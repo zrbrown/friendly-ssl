@@ -10,7 +10,7 @@ import java.lang.annotation.*;
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Import(value = {
+@Import({
         CertificateChallengeController.class,
         AcmeAccountService.class,
         CertificateOrderService.class,
