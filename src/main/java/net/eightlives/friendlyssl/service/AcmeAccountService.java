@@ -6,6 +6,7 @@ import org.shredzone.acme4j.AccountBuilder;
 import org.shredzone.acme4j.Login;
 import org.shredzone.acme4j.Session;
 import org.shredzone.acme4j.exception.AcmeException;
+import org.shredzone.acme4j.exception.AcmeUserActionRequiredException;
 import org.shredzone.acme4j.util.KeyPairUtils;
 import org.springframework.stereotype.Component;
 
@@ -18,19 +19,22 @@ public class AcmeAccountService {
 
     public Login getOrCreateAccountLogin(Session session) {
         try (Reader keyReader = getKeyReader("account.pem")) {
-            AccountBuilder accountBuilder = new AccountBuilder()
-                    .useKeyPair(KeyPairUtils.readKeyPair(keyReader));
-
+            KeyPair accountKeyPair = KeyPairUtils.readKeyPair(keyReader);
             try {
-                return accountBuilder
+                return new AccountBuilder()
+                        .useKeyPair(accountKeyPair)
                         .onlyExisting()
                         .createLogin(session);
             } catch (AcmeException ignored) {
-                return accountBuilder
-                        .addEmail("acme@example.com") //TODO email config
-                        .agreeToTermsOfService()
+                return new AccountBuilder()
+                        .useKeyPair(accountKeyPair)
+                        .addEmail("zackrbrown@gmail.com")
+                        .agreeToTermsOfService() // TODO new service to handle user accepting agreement (probably make this a service call, then in mindy have a pretty page to accept)
                         .createLogin(session);
             }
+        } catch (AcmeUserActionRequiredException e) {
+            log.error("Account retrieval failed due to user action required (terms of service probably changed). See " + e.getInstance());
+            throw new SSLCertificateException(e); // TODO same as above TOS agreement
         } catch (IOException | AcmeException e) {
             log.error("Error while retrieving or creating ACME Login");
             throw new SSLCertificateException(e);
@@ -45,9 +49,10 @@ public class AcmeAccountService {
             try (FileWriter fileWriter = new FileWriter("account.pem")) {
                 KeyPairUtils.writeKeyPair(accountKeyPair, fileWriter);
 
-                PipedWriter directKeyWriter = new PipedWriter();
-                KeyPairUtils.writeKeyPair(accountKeyPair, directKeyWriter);
-                return new PipedReader(directKeyWriter);
+                ByteArrayOutputStream keyBytes = new ByteArrayOutputStream();
+                KeyPairUtils.writeKeyPair(accountKeyPair, new OutputStreamWriter(keyBytes));
+                keyBytes.flush();
+                return new InputStreamReader(new ByteArrayInputStream(keyBytes.toByteArray()));
             }
         }
     }

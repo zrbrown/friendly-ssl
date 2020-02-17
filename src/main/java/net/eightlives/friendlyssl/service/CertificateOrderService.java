@@ -27,6 +27,8 @@ public class CertificateOrderService {
     }
 
     public Optional<Certificate> orderCertificate(String domain, Login login, KeyPair domainKeyPair) {
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+
         try {
             Order order = login.getAccount()
                     .newOrder()
@@ -36,14 +38,14 @@ public class CertificateOrderService {
             challengeProcessorService.process(order.getAuthorizations()).get();
             byte[] csr = csrService.generateCSR(domain, domainKeyPair);
             order.execute(csr);
-            ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-            updateCheckerService.start(executor, order).get(30, TimeUnit.SECONDS);
 
-            executor.shutdown();
+            updateCheckerService.start(executor, order).get(30, TimeUnit.SECONDS);
 
             return Optional.ofNullable(order.getCertificate());
         } catch (AcmeException | InterruptedException | ExecutionException | TimeoutException | CancellationException e) {
             throw new SSLCertificateException(e);
+        } finally {
+            executor.shutdown();
         }
     }
 }
