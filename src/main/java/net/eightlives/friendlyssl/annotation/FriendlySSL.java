@@ -1,8 +1,9 @@
 package net.eightlives.friendlyssl.annotation;
 
+import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.controller.CertificateChallengeController;
+import net.eightlives.friendlyssl.listener.FriendlySSLApplicationListener;
 import net.eightlives.friendlyssl.service.*;
-import net.eightlives.friendlyssl.startup.SSLStartupRunner;
 import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.*;
@@ -11,16 +12,20 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Import({
+        FriendlySSLConfig.class,
+        FriendlySSLApplicationListener.class,
         CertificateChallengeController.class,
         AcmeAccountService.class,
+        CertificateOrderHandlerService.class,
         CertificateOrderService.class,
         ChallengeProcessorService.class,
         ChallengeTokenRequestedListenerService.class,
         ChallengeTokenStore.class,
         CSRService.class,
-        PKCS12KeyStoreGeneratorService.class,
-        UpdateCheckerService.class,
-        SSLStartupRunner.class
+        LocalIdGeneratorService.class,
+        PKCS12KeyStoreService.class,
+        SSLCertificateCreateRenewService.class,
+        UpdateCheckerService.class
 })
 public @interface FriendlySSL {
 }
