@@ -1,5 +1,6 @@
 package net.eightlives.friendlyssl.service;
 
+import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.exception.SSLCertificateException;
 import org.shredzone.acme4j.Authorization;
 import org.shredzone.acme4j.Status;
@@ -13,13 +14,16 @@ import java.util.concurrent.*;
 @Component
 public class ChallengeProcessorService {
 
+    private final FriendlySSLConfig config;
     private final ChallengeTokenStore challengeTokenStore;
     private final ChallengeTokenRequestedListenerService challengeTokenRequestedListenerService;
     private final UpdateCheckerService updateCheckerService;
 
-    public ChallengeProcessorService(ChallengeTokenStore challengeTokenStore,
+    public ChallengeProcessorService(FriendlySSLConfig config,
+                                     ChallengeTokenStore challengeTokenStore,
                                      ChallengeTokenRequestedListenerService challengeTokenRequestedListenerService,
                                      UpdateCheckerService updateCheckerService) {
+        this.config = config;
         this.challengeTokenStore = challengeTokenStore;
         this.challengeTokenRequestedListenerService = challengeTokenRequestedListenerService;
         this.updateCheckerService = updateCheckerService;
@@ -54,9 +58,9 @@ public class ChallengeProcessorService {
             throw new SSLCertificateException(e);
         }
 
-        ScheduledFuture<?> updateChecker = getWithTimeout(listener, 10, challenge.getToken());
+        ScheduledFuture<?> updateChecker = getWithTimeout(listener, config.getTokenRequestedTimeoutSeconds(), challenge.getToken());
 
-        return CompletableFuture.runAsync(() -> getWithTimeout(updateChecker, 20, challenge.getToken()));
+        return CompletableFuture.runAsync(() -> getWithTimeout(updateChecker, config.getAuthChallengeTimeoutSeconds(), challenge.getToken()));
     }
 
     private <T> T getWithTimeout(Future<T> future, int timeoutSeconds, String token) {

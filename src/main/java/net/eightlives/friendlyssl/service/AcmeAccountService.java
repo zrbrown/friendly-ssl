@@ -1,6 +1,7 @@
 package net.eightlives.friendlyssl.service;
 
 import lombok.extern.slf4j.Slf4j;
+import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.exception.SSLCertificateException;
 import org.shredzone.acme4j.AccountBuilder;
 import org.shredzone.acme4j.Login;
@@ -17,8 +18,14 @@ import java.security.KeyPair;
 @Component
 public class AcmeAccountService {
 
+    private FriendlySSLConfig config;
+
+    public AcmeAccountService(FriendlySSLConfig config) {
+        this.config = config;
+    }
+
     public Login getOrCreateAccountLogin(Session session) {
-        try (Reader keyReader = getKeyReader("account.pem")) {
+        try (Reader keyReader = getKeyReader(config.getAccountPrivateKeyFile())) {
             KeyPair accountKeyPair = KeyPairUtils.readKeyPair(keyReader);
             try {
                 return new AccountBuilder()
@@ -28,7 +35,7 @@ public class AcmeAccountService {
             } catch (AcmeException ignored) {
                 return new AccountBuilder()
                         .useKeyPair(accountKeyPair)
-                        .addEmail("zackrbrown@gmail.com")
+                        .addEmail(config.getAccountEmail())
                         .agreeToTermsOfService() // TODO new service to handle user accepting agreement (probably make this a service call, then in mindy have a pretty page to accept)
                         .createLogin(session);
             }
@@ -46,7 +53,7 @@ public class AcmeAccountService {
             return new FileReader(filename);
         } catch (FileNotFoundException fnfe) {
             KeyPair accountKeyPair = KeyPairUtils.createKeyPair(2048);
-            try (FileWriter fileWriter = new FileWriter("account.pem")) {
+            try (FileWriter fileWriter = new FileWriter(filename)) {
                 KeyPairUtils.writeKeyPair(accountKeyPair, fileWriter);
 
                 ByteArrayOutputStream keyBytes = new ByteArrayOutputStream();

@@ -1,7 +1,8 @@
 package net.eightlives.friendlyssl.listener;
 
+import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.service.SSLCertificateCreateRenewService;
-import net.eightlives.friendlyssl.task.ReactiveTimerTask;
+import net.eightlives.friendlyssl.task.RecursiveTimerTask;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
@@ -23,7 +24,7 @@ public class FriendlySSLApplicationListener implements ApplicationListener<Appli
     public void onApplicationEvent(ApplicationReadyEvent applicationReadyEvent) {
         Timer timer = new Timer("SSL Certificate Monitor", true);
         timer.schedule(
-                new ReactiveTimerTask(timer, createRenewService::createOrRenew),
-                Instant.now().plus(30, ChronoUnit.SECONDS));
+                new RecursiveTimerTask(timer, createRenewService::createOrRenew),
+                Instant.now().plus(1, ChronoUnit.SECONDS));
     }
 }
