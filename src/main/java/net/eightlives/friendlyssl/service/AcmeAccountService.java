@@ -12,19 +12,25 @@ import org.shredzone.acme4j.util.KeyPairUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
+import java.net.URI;
 import java.security.KeyPair;
 
 @Slf4j
 @Component
 public class AcmeAccountService {
 
-    private FriendlySSLConfig config;
+    private final FriendlySSLConfig config;
+    private final TermsOfServiceService termsOfServiceService;
 
-    public AcmeAccountService(FriendlySSLConfig config) {
+    public AcmeAccountService(FriendlySSLConfig config,
+                              TermsOfServiceService termsOfServiceService) {
         this.config = config;
+        this.termsOfServiceService = termsOfServiceService;
     }
 
     public Login getOrCreateAccountLogin(Session session) {
+        URI termsOfServiceLink = termsOfServiceService.getTermsOfServiceLink(session);
+
         try (Reader keyReader = getKeyReader(config.getAccountPrivateKeyFile())) {
             KeyPair accountKeyPair = KeyPairUtils.readKeyPair(keyReader);
             try {
@@ -32,18 +38,24 @@ public class AcmeAccountService {
                         .useKeyPair(accountKeyPair)
                         .onlyExisting()
                         .createLogin(session);
-            } catch (AcmeException ignored) {
+            } catch (AcmeException e) {
+                if (!termsOfServiceService.termsAccepted(termsOfServiceLink)) {
+                    log.error("Terms of service must be accepted in file " + config.getTermsOfServiceFile(), e);
+                    throw new SSLCertificateException(e);
+                }
                 return new AccountBuilder()
                         .useKeyPair(accountKeyPair)
                         .addEmail(config.getAccountEmail())
-                        .agreeToTermsOfService() // TODO new service to handle user accepting agreement (probably make this a service call, then in mindy have a pretty page to accept)
+                        .agreeToTermsOfService()
                         .createLogin(session);
             }
         } catch (AcmeUserActionRequiredException e) {
-            log.error("Account retrieval failed due to user action required (terms of service probably changed). See " + e.getInstance());
-            throw new SSLCertificateException(e); // TODO same as above TOS agreement
+            log.error("Account retrieval failed due to user action required (terms of service probably changed). See " + e.getInstance() +
+                    " and if the terms of service did change, accept the terms in file " + config.getTermsOfServiceFile(), e);
+            termsOfServiceService.writeUnacceptedTermsLink(termsOfServiceLink);
+            throw new SSLCertificateException(e);
         } catch (IOException | AcmeException e) {
-            log.error("Error while retrieving or creating ACME Login");
+            log.error("Error while retrieving or creating ACME Login", e);
             throw new SSLCertificateException(e);
         }
     }

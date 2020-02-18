@@ -4,6 +4,7 @@ account-email: test@gmail.com
 certificate-friendly-name: mindy
 account-private-key-file: account.pem
 keystore-file: testout.p12
+terms-of-service-file: tos
 order-timeout-seconds: 30
 token-requested-timeout-seconds: 10
 auth-challenge-timeout-seconds: 20
