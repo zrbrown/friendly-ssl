@@ -1,6 +1,7 @@
 package net.eightlives.friendlyssl.task;
 
 import java.time.Instant;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Supplier;
@@ -18,6 +19,6 @@ public class RecursiveTimerTask extends TimerTask {
     @Override
     public void run() {
         Instant renewTime = task.get();
-        timer.schedule(new RecursiveTimerTask(timer, task), java.util.Date.from(renewTime));
+        timer.schedule(new RecursiveTimerTask(timer, task), Date.from(renewTime));
     }
 }
