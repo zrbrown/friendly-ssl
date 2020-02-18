@@ -13,6 +13,7 @@ public class FriendlySSLConfig {
     private String certificateFriendlyName;
     private String accountPrivateKeyFile;
     private String keystoreFile;
+    private String termsOfServiceFile;
     private int orderTimeoutSeconds;
     private int tokenRequestedTimeoutSeconds;
     private int authChallengeTimeoutSeconds;
@@ -65,6 +66,14 @@ public class FriendlySSLConfig {
 
     public void setKeystoreFile(String keystoreFile) {
         this.keystoreFile = keystoreFile;
+    }
+
+    public String getTermsOfServiceFile() {
+        return termsOfServiceFile;
+    }
+
+    public void setTermsOfServiceFile(String termsOfServiceFile) {
+        this.termsOfServiceFile = termsOfServiceFile;
     }
 
     public int getOrderTimeoutSeconds() {
