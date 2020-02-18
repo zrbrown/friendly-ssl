@@ -1,6 +1,7 @@
 package net.eightlives.friendlyssl.service;
 
 import lombok.extern.slf4j.Slf4j;
+import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.exception.KeyStoreGeneratorException;
 import org.bouncycastle.asn1.ASN1Encoding;
 import org.bouncycastle.asn1.DERBMPString;
@@ -32,10 +33,15 @@ import java.util.Optional;
 public class PKCS12KeyStoreService {
 
     private static final String ROOT_FRIENDLY_NAME = "root";
+    private static final String KEYSTORE_TYPE = "PKCS12";
+    private static final String KEYFACTORY_TYPE = "RSA";
 
+    private final FriendlySSLConfig config;
     private final LocalIdGeneratorService localIdGeneratorService;
 
-    public PKCS12KeyStoreService(LocalIdGeneratorService localIdGeneratorService) {
+    public PKCS12KeyStoreService(FriendlySSLConfig config,
+                                 LocalIdGeneratorService localIdGeneratorService) {
+        this.config = config;
         this.localIdGeneratorService = localIdGeneratorService;
     }
 
@@ -49,7 +55,7 @@ public class PKCS12KeyStoreService {
             for (int i = certificates.size() - 1; i >= 0; i--) {
                 var certBagBuilder = new JcaPKCS12SafeBagBuilder(certificates.get(i));
                 if (i == 0) {
-                    certBagBuilder.addBagAttribute(PKCSObjectIdentifiers.pkcs_9_at_friendlyName, new DERBMPString("tomcat"));
+                    certBagBuilder.addBagAttribute(PKCSObjectIdentifiers.pkcs_9_at_friendlyName, new DERBMPString(config.getCertificateFriendlyName()));
                     certBagBuilder.addBagAttribute(PKCSObjectIdentifiers.pkcs_9_at_localKeyId, new DEROctetString(localKeyBytes));
                 } else {
                     certBagBuilder.addBagAttribute(PKCSObjectIdentifiers.pkcs_9_at_friendlyName, new DERBMPString(ROOT_FRIENDLY_NAME));
@@ -62,7 +68,7 @@ public class PKCS12KeyStoreService {
                             PKCSObjectIdentifiers.pbeWithSHAAnd3_KeyTripleDES_CBC,
                             new CBCBlockCipher(new DESedeEngine())).setIterationCount(2048)
                             .build("".toCharArray()));
-            keyBagBuilder.addBagAttribute(PKCSObjectIdentifiers.pkcs_9_at_friendlyName, new DERBMPString("tomcat"));
+            keyBagBuilder.addBagAttribute(PKCSObjectIdentifiers.pkcs_9_at_friendlyName, new DERBMPString(config.getCertificateFriendlyName()));
             keyBagBuilder.addBagAttribute(PKCSObjectIdentifiers.pkcs_9_at_localKeyId, new DEROctetString(localKeyBytes));
 
             PKCS12PfxPduBuilder pfxBuilder = new PKCS12PfxPduBuilder();
@@ -85,10 +91,10 @@ public class PKCS12KeyStoreService {
 
     public KeyPair getKeyPair(Certificate certificate, String privateKeyFriendlyName) {
         try {
-            KeyStore store = KeyStore.getInstance("PKCS12");
-            store.load(new FileInputStream("testout.p12"), "".toCharArray());
+            KeyStore store = KeyStore.getInstance(KEYSTORE_TYPE);
+            store.load(new FileInputStream(config.getKeystoreFile()), "".toCharArray());
 
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            KeyFactory keyFactory = KeyFactory.getInstance(KEYFACTORY_TYPE);
             Key key = store.getKey(privateKeyFriendlyName, "".toCharArray());
             PrivateKey privateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(key.getEncoded()));
 
@@ -102,8 +108,8 @@ public class PKCS12KeyStoreService {
 
     public Optional<X509Certificate> getCertificate(String friendlyName) {
         try {
-            KeyStore store = KeyStore.getInstance("PKCS12");
-            store.load(new FileInputStream("testout.p12"), "".toCharArray());
+            KeyStore store = KeyStore.getInstance(KEYSTORE_TYPE);
+            store.load(new FileInputStream(config.getKeystoreFile()), "".toCharArray());
 
             Certificate certificate = store.getCertificate(friendlyName);
             if (certificate instanceof X509Certificate) {

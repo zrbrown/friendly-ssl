@@ -1,5 +1,6 @@
 package net.eightlives.friendlyssl.service;
 
+import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.exception.SSLCertificateException;
 import org.shredzone.acme4j.Certificate;
 import org.shredzone.acme4j.Login;
@@ -14,13 +15,16 @@ import java.util.concurrent.*;
 @Component
 public class CertificateOrderService {
 
+    private final FriendlySSLConfig config;
     private final ChallengeProcessorService challengeProcessorService;
     private final CSRService csrService;
     private final UpdateCheckerService updateCheckerService;
 
-    public CertificateOrderService(ChallengeProcessorService challengeProcessorService,
+    public CertificateOrderService(FriendlySSLConfig config,
+                                   ChallengeProcessorService challengeProcessorService,
                                    CSRService csrService,
                                    UpdateCheckerService updateCheckerService) {
+        this.config = config;
         this.challengeProcessorService = challengeProcessorService;
         this.csrService = csrService;
         this.updateCheckerService = updateCheckerService;
@@ -39,7 +43,7 @@ public class CertificateOrderService {
             byte[] csr = csrService.generateCSR(domain, domainKeyPair);
             order.execute(csr);
 
-            updateCheckerService.start(executor, order).get(30, TimeUnit.SECONDS);
+            updateCheckerService.start(executor, order).get(config.getOrderTimeoutSeconds(), TimeUnit.SECONDS);
 
             return Optional.ofNullable(order.getCertificate());
         } catch (AcmeException | InterruptedException | ExecutionException | TimeoutException | CancellationException e) {
