@@ -3,6 +3,8 @@ package net.eightlives.friendlyssl.service;
 import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.exception.KeyStoreGeneratorException;
+import net.eightlives.friendlyssl.exception.SSLCertificateException;
+import org.shredzone.acme4j.Certificate;
 import org.shredzone.acme4j.Login;
 import org.springframework.stereotype.Component;
 
@@ -27,9 +29,9 @@ public class CertificateOrderHandlerService {
         this.keyStoreGenerator = keyStoreGenerator;
     }
 
-    public void handleCertificateOrder(Login login, KeyPair domainKeyPair, boolean isRenewal) {
-        certificateOrderService.orderCertificate(config.getAccountEmail(), login, domainKeyPair)
-                .ifPresentOrElse(certificate -> {
+    public Certificate handleCertificateOrder(Login login, KeyPair domainKeyPair, boolean isRenewal) {
+        return certificateOrderService.orderCertificate(config.getAccountEmail(), login, domainKeyPair)
+                .map(certificate -> {
                     if (!isRenewal) {
                         try (OutputStream file = new FileOutputStream(config.getKeystoreFile())) {
                             byte[] keyStore = keyStoreGenerator.generateKeyStore(
@@ -40,6 +42,8 @@ public class CertificateOrderHandlerService {
                             log.error("Exception while creating keystore", e);
                         }
                     }
-                }, () -> log.error("Certificate was not returned"));
+
+                    return certificate;
+                }).orElseThrow(() -> new SSLCertificateException(new RuntimeException("Certificate was not returned")));
     }
 }

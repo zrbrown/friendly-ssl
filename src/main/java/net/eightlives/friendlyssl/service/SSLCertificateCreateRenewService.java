@@ -3,6 +3,7 @@ package net.eightlives.friendlyssl.service;
 import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.exception.SSLCertificateException;
+import org.shredzone.acme4j.Certificate;
 import org.shredzone.acme4j.Login;
 import org.shredzone.acme4j.Session;
 import org.shredzone.acme4j.util.KeyPairUtils;
@@ -52,8 +53,8 @@ public class SSLCertificateCreateRenewService {
             boolean isRenewal = domainKeyPair != null;
             domainKeyPair = domainKeyPair == null ? KeyPairUtils.createKeyPair(2048) : domainKeyPair;
 
-            certificateOrderHandlerService.handleCertificateOrder(login, domainKeyPair, isRenewal);
-            return Instant.now(); // TODO needs to return the new cert renewal time
+            Certificate certificate = certificateOrderHandlerService.handleCertificateOrder(login, domainKeyPair, isRenewal);
+            return Instant.ofEpochMilli(certificate.getCertificate().getNotAfter().getTime());
         } catch (SSLCertificateException e) {
             log.error("Exception while ordering certificate, retry in " + config.getErrorRetryWaitHours() + " hours", e);
             return Instant.now().plus(config.getErrorRetryWaitHours(), ChronoUnit.HOURS);
