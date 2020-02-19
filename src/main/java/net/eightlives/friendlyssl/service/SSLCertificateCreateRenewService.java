@@ -38,11 +38,13 @@ public class SSLCertificateCreateRenewService {
         try {
             Session session = new Session(config.getAcmeSessionUrl());
             Login login = accountService.getOrCreateAccountLogin(session);
+            log.info("Certificate account login accessed");
 
             Optional<X509Certificate> existingCertificate = keyStoreService.getCertificate(config.getCertificateFriendlyName());
             if (existingCertificate.isPresent()) {
                 Instant renewTime = (Instant.ofEpochMilli(existingCertificate.get().getNotAfter().getTime()));
                 if (Instant.now().plus(config.getAutoRenewalHoursBefore(), ChronoUnit.HOURS).isBefore(renewTime)) {
+                    log.info("Existing certificate expiration time is " + renewTime);
                     return renewTime;
                 }
             }
@@ -53,7 +55,9 @@ public class SSLCertificateCreateRenewService {
             boolean isRenewal = domainKeyPair != null;
             domainKeyPair = domainKeyPair == null ? KeyPairUtils.createKeyPair(2048) : domainKeyPair;
 
+            log.info("Beginning certificate order. Renewal: " + isRenewal);
             Certificate certificate = certificateOrderHandlerService.handleCertificateOrder(login, domainKeyPair, isRenewal);
+            log.info("Certificate renewal successful. New certificate expiration time is " + certificate.getCertificate().getNotAfter());
             return Instant.ofEpochMilli(certificate.getCertificate().getNotAfter().getTime());
         } catch (SSLCertificateException e) {
             log.error("Exception while ordering certificate, retry in " + config.getErrorRetryWaitHours() + " hours", e);
