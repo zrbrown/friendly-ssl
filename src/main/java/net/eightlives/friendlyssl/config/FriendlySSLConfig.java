@@ -7,19 +7,19 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "friendly-ssl")
 public class FriendlySSLConfig {
 
-    private boolean autoRenewEnabled;
-    private String acmeSessionUrl;
+    private boolean autoRenewEnabled = false;
+    private String acmeSessionUrl = "acme://letsencrypt.org/staging";
     private String domain;
     private String accountEmail;
-    private String certificateFriendlyName;
-    private String accountPrivateKeyFile;
-    private String keystoreFile;
-    private String termsOfServiceFile;
-    private int orderTimeoutSeconds;
-    private int tokenRequestedTimeoutSeconds;
-    private int authChallengeTimeoutSeconds;
-    private int autoRenewalHoursBefore;
-    private int errorRetryWaitHours;
+    private String certificateFriendlyName = "account.pem";
+    private String accountPrivateKeyFile = "keystore.p12";
+    private String keystoreFile = "tos";
+    private String termsOfServiceFile = "";
+    private int orderTimeoutSeconds = 30;
+    private int tokenRequestedTimeoutSeconds = 10;
+    private int authChallengeTimeoutSeconds = 20;
+    private int autoRenewalHoursBefore = 72;
+    private int errorRetryWaitHours = 1;
 
     public boolean isAutoRenewEnabled() {
         return autoRenewEnabled;
