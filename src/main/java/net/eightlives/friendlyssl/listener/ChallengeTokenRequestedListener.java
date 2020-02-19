@@ -1,4 +1,4 @@
-package net.eightlives.friendlyssl.service;
+package net.eightlives.friendlyssl.listener;
 
 import net.eightlives.friendlyssl.event.ChallengeTokenRequested;
 import org.springframework.context.ApplicationListener;
@@ -11,7 +11,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.function.Supplier;
 
 @Component
-public class ChallengeTokenRequestedListenerService implements ApplicationListener<ChallengeTokenRequested> {
+public class ChallengeTokenRequestedListener implements ApplicationListener<ChallengeTokenRequested> {
 
     private final Map<String, Supplier<ScheduledFuture<?>>> tokensToListeners = new HashMap<>();
     private final Map<String, CompletableFuture<ScheduledFuture<?>>> tokenToFuture = new HashMap<>();
