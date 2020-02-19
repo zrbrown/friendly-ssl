@@ -1,5 +1,6 @@
 package net.eightlives.friendlyssl.listener;
 
+import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.service.SSLCertificateCreateRenewService;
 import net.eightlives.friendlyssl.task.RecursiveTimerTask;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -14,17 +15,22 @@ import java.util.Timer;
 @Component
 public class FriendlySSLApplicationListener implements ApplicationListener<ApplicationReadyEvent> {
 
+    private final FriendlySSLConfig config;
     private final SSLCertificateCreateRenewService createRenewService;
 
-    public FriendlySSLApplicationListener(SSLCertificateCreateRenewService createRenewService) {
+    public FriendlySSLApplicationListener(FriendlySSLConfig config,
+                                          SSLCertificateCreateRenewService createRenewService) {
+        this.config = config;
         this.createRenewService = createRenewService;
     }
 
     @Override
     public void onApplicationEvent(ApplicationReadyEvent applicationReadyEvent) {
-        Timer timer = new Timer("SSL Certificate Monitor", true);
-        timer.schedule(
-                new RecursiveTimerTask(timer, createRenewService::createOrRenew),
-                Date.from(Instant.now().plus(1, ChronoUnit.SECONDS)));
+        if (config.isAutoRenewEnabled()) {
+            Timer timer = new Timer("SSL Certificate Monitor", true);
+            timer.schedule(
+                    new RecursiveTimerTask(timer, createRenewService::createOrRenew),
+                    Date.from(Instant.now().plus(1, ChronoUnit.SECONDS)));
+        }
     }
 }

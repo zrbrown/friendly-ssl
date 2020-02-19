@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "friendly-ssl")
 public class FriendlySSLConfig {
 
+    private boolean autoRenewEnabled = true;
     private String acmeSessionUrl;
     private String domain;
     private String accountEmail;
@@ -19,6 +20,14 @@ public class FriendlySSLConfig {
     private int authChallengeTimeoutSeconds;
     private int autoRenewalHoursBefore;
     private int errorRetryWaitHours;
+
+    public boolean isAutoRenewEnabled() {
+        return autoRenewEnabled;
+    }
+
+    public void setAutoRenewEnabled(boolean autoRenewEnabled) {
+        this.autoRenewEnabled = autoRenewEnabled;
+    }
 
     public String getAcmeSessionUrl() {
         return acmeSessionUrl;
