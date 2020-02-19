@@ -1,3 +1,4 @@
+auto-renew-enabled: false
 acme-session-url: acme://letsencrypt.org/staging
 certificate-friendly-name: friendlyssl
 account-private-key-file: account.pem
@@ -19,7 +20,3 @@ error-retry-wait-hours: 1
 #
 #  friendlyssl:
 #    acme-session-url: acme://letsencrypt.org
-#
-# If you don't want the auto-renew service to run, set:
-#
-#  friendlyssl.auto-renew-enabled: false
