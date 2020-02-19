@@ -1,5 +1,6 @@
 package net.eightlives.friendlyssl.listener;
 
+import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.service.SSLCertificateCreateRenewService;
 import net.eightlives.friendlyssl.task.RecursiveTimerTask;
@@ -12,6 +13,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Timer;
 
+@Slf4j
 @Component
 public class FriendlySSLApplicationListener implements ApplicationListener<ApplicationReadyEvent> {
 
@@ -27,6 +29,7 @@ public class FriendlySSLApplicationListener implements ApplicationListener<Appli
     @Override
     public void onApplicationEvent(ApplicationReadyEvent applicationReadyEvent) {
         if (config.isAutoRenewEnabled()) {
+            log.info("Auto-renew SSL enabled, starting timer");
             Timer timer = new Timer("SSL Certificate Monitor", true);
             timer.schedule(
                     new RecursiveTimerTask(timer, createRenewService::createOrRenew),
