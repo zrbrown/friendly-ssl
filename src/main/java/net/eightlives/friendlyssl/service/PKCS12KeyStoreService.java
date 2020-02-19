@@ -10,7 +10,6 @@ import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.crypto.engines.DESedeEngine;
 import org.bouncycastle.crypto.engines.RC2Engine;
 import org.bouncycastle.crypto.modes.CBCBlockCipher;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.pkcs.*;
 import org.bouncycastle.pkcs.bc.BcPKCS12MacCalculatorBuilder;
 import org.bouncycastle.pkcs.bc.BcPKCS12PBEOutputEncryptorBuilder;
@@ -47,8 +46,6 @@ public class PKCS12KeyStoreService {
 
     public byte[] generateKeyStore(List<X509Certificate> certificates, PrivateKey privateKey) {
         try {
-            Security.addProvider(new BouncyCastleProvider());
-
             byte[] localKeyBytes = localIdGeneratorService.generate();
 
             PKCS12SafeBag[] certBags = new PKCS12SafeBag[certificates.size()];
