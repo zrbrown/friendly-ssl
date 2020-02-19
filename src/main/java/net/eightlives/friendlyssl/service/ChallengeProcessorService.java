@@ -2,6 +2,7 @@ package net.eightlives.friendlyssl.service;
 
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.exception.SSLCertificateException;
+import net.eightlives.friendlyssl.listener.ChallengeTokenRequestedListener;
 import org.shredzone.acme4j.Authorization;
 import org.shredzone.acme4j.Status;
 import org.shredzone.acme4j.challenge.Http01Challenge;
@@ -16,16 +17,16 @@ public class ChallengeProcessorService {
 
     private final FriendlySSLConfig config;
     private final ChallengeTokenStore challengeTokenStore;
-    private final ChallengeTokenRequestedListenerService challengeTokenRequestedListenerService;
+    private final ChallengeTokenRequestedListener challengeTokenRequestedListener;
     private final UpdateCheckerService updateCheckerService;
 
     public ChallengeProcessorService(FriendlySSLConfig config,
                                      ChallengeTokenStore challengeTokenStore,
-                                     ChallengeTokenRequestedListenerService challengeTokenRequestedListenerService,
+                                     ChallengeTokenRequestedListener challengeTokenRequestedListener,
                                      UpdateCheckerService updateCheckerService) {
         this.config = config;
         this.challengeTokenStore = challengeTokenStore;
-        this.challengeTokenRequestedListenerService = challengeTokenRequestedListenerService;
+        this.challengeTokenRequestedListener = challengeTokenRequestedListener;
         this.updateCheckerService = updateCheckerService;
     }
 
@@ -47,7 +48,7 @@ public class ChallengeProcessorService {
         }
 
         challengeTokenStore.setToken(challenge.getToken(), challenge.getAuthorization());
-        CompletableFuture<ScheduledFuture<?>> listener = challengeTokenRequestedListenerService.setTokenRequestedListener(
+        CompletableFuture<ScheduledFuture<?>> listener = challengeTokenRequestedListener.setTokenRequestedListener(
                 challenge.getToken(),
                 () -> updateCheckerService.start(executorService, auth)
         );
