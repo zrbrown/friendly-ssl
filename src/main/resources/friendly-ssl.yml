@@ -1,12 +1,16 @@
 acme-session-url: acme://letsencrypt.org/staging
-domain: zackrbrown.com
-account-email: test@gmail.com
-certificate-friendly-name: mindy
+certificate-friendly-name: friendlyssl
 account-private-key-file: account.pem
-keystore-file: testout.p12
+keystore-file: keystore.p12
 terms-of-service-file: tos
 order-timeout-seconds: 30
 token-requested-timeout-seconds: 10
 auth-challenge-timeout-seconds: 20
 auto-renewal-hours-before: 72
 error-retry-wait-hours: 1
+
+# In consumer, the following are required to be defined:
+#
+# friendlyssl:
+#   domain: domain.com
+#   account-email: your@email.com

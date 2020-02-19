@@ -25,6 +25,7 @@ import java.lang.annotation.*;
         LocalIdGeneratorService.class,
         PKCS12KeyStoreService.class,
         SSLCertificateCreateRenewService.class,
+        TermsOfServiceService.class,
         UpdateCheckerService.class
 })
 public @interface FriendlySSL {
