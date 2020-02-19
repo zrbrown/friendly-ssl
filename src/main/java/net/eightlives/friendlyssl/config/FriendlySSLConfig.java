@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "friendly-ssl")
 public class FriendlySSLConfig {
 
-    private boolean autoRenewEnabled = true;
+    private boolean autoRenewEnabled;
     private String acmeSessionUrl;
     private String domain;
     private String accountEmail;
