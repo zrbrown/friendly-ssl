@@ -15,6 +15,11 @@ error-retry-wait-hours: 1
 #    domain: domain.com
 #    account-email: your@email.com
 #
+# You will need to change the session url to a production one (default is LetsEncrypt staging):
+#
+#  friendlyssl:
+#    acme-session-url: acme://letsencrypt.org
+#
 # If you don't want the auto-renew service to run, set:
 #
 #  friendlyssl.auto-renew-enabled: false
