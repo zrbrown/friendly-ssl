@@ -10,6 +10,7 @@ import org.shredzone.acme4j.exception.AcmeException;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
@@ -72,6 +73,10 @@ public class TermsOfServiceService {
         if (!termsOfServiceFile.exists()) {
             try {
                 termsOfServiceFile.createNewFile();
+
+                try (FileWriter writer = new FileWriter(termsOfServiceFile)) {
+                    writer.write("[]");
+                }
             } catch (IOException e) {
                 log.error("Exception while creating terms of service file " + config.getTermsOfServiceFile(), e);
             }
@@ -80,11 +85,11 @@ public class TermsOfServiceService {
         try {
             TermsOfService[] termsOfService = objectMapper.readValue(termsOfServiceFile, TermsOfService[].class);
             List<TermsOfService> allTerms = Stream.of(termsOfService)
-                    .filter(tos -> termsOfServiceLink.toString().equals(tos.getTermsOfService()))
+                    .filter(tos -> !termsOfServiceLink.toString().equals(tos.getTermsOfService()))
                     .collect(Collectors.toList());
             allTerms.add(new TermsOfService(termsOfServiceLink.toString(), DEFAULT_AGREE_TO_TERMS));
 
-            objectMapper.writeValue(termsOfServiceFile, allTerms);
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(termsOfServiceFile, allTerms);
         } catch (IOException e) {
             log.error("Exception while trying to read or write to terms of service file " + config.getTermsOfServiceFile(), e);
             throw new SSLCertificateException(e);
