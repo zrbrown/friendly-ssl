@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>net.eightlives</groupId>
-    <artifactId>friendly-boot-ssl</artifactId>
+    <artifactId>friendly-ssl</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
@@ -21,9 +21,9 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:git://github.com/zrbrown/friendly-boot-ssl.git</connection>
-        <developerConnection>scm:git:ssh://github.com:zrbrown/friendly-boot-ssl.git</developerConnection>
-        <url>http://github.com/zrbrown/friendly-boot-ssl/tree/master</url>
+        <connection>scm:git:git://github.com/zrbrown/friendly-ssl.git</connection>
+        <developerConnection>scm:git:ssh://github.com:zrbrown/friendly-ssl.git</developerConnection>
+        <url>http://github.com/zrbrown/friendly-ssl/tree/master</url>
     </scm>
 
     <properties>
