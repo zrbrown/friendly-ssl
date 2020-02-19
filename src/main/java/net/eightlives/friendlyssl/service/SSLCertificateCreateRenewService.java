@@ -36,6 +36,7 @@ public class SSLCertificateCreateRenewService {
 
     public Instant createOrRenew() {
         try {
+            log.info("Starting certificate create/renew");
             Session session = new Session(config.getAcmeSessionUrl());
             Login login = accountService.getOrCreateAccountLogin(session);
             log.info("Certificate account login accessed");
