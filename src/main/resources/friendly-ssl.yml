@@ -11,6 +11,10 @@ error-retry-wait-hours: 1
 
 # In consumer, the following are required to be defined:
 #
-# friendlyssl:
-#   domain: domain.com
-#   account-email: your@email.com
+#  friendlyssl:
+#    domain: domain.com
+#    account-email: your@email.com
+#
+# If you don't want the auto-renew service to run, set:
+#
+#  friendlyssl.auto-renew-enabled: false
