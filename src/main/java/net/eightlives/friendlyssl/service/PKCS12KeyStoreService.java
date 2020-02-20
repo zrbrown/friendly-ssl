@@ -17,6 +17,7 @@ import org.bouncycastle.pkcs.jcajce.JcaPKCS12SafeBagBuilder;
 import org.springframework.stereotype.Component;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.*;
 import java.security.cert.Certificate;
@@ -106,7 +107,12 @@ public class PKCS12KeyStoreService {
     public Optional<X509Certificate> getCertificate(String friendlyName) {
         try {
             KeyStore store = KeyStore.getInstance(KEYSTORE_TYPE);
-            store.load(new FileInputStream(config.getKeystoreFile()), "".toCharArray());
+
+            try {
+                store.load(new FileInputStream(config.getKeystoreFile()), "".toCharArray());
+            } catch (FileNotFoundException e) {
+                return Optional.empty();
+            }
 
             Certificate certificate = store.getCertificate(friendlyName);
             if (certificate instanceof X509Certificate) {

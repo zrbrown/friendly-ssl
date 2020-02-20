@@ -41,7 +41,8 @@ public class AcmeAccountService {
             } catch (AcmeException e) {
                 if (!termsOfServiceService.termsAccepted(termsOfServiceLink)) {
                     log.error("Terms of service must be accepted in file " + config.getTermsOfServiceFile(), e);
-                    throw new SSLCertificateException(e);
+                    termsOfServiceService.writeUnacceptedTermsLink(termsOfServiceLink);
+                    throw new SSLCertificateException(new RuntimeException("Terms of service must be accepted in file " + config.getTermsOfServiceFile()));
                 }
                 return new AccountBuilder()
                         .useKeyPair(accountKeyPair)

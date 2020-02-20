@@ -1,5 +1,6 @@
 package net.eightlives.friendlyssl.service;
 
+import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.exception.SSLCertificateException;
 import net.eightlives.friendlyssl.listener.ChallengeTokenRequestedListener;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.concurrent.*;
 
+@Slf4j
 @Component
 public class ChallengeProcessorService {
 
@@ -48,7 +50,7 @@ public class ChallengeProcessorService {
         }
 
         challengeTokenStore.setToken(challenge.getToken(), challenge.getAuthorization());
-        CompletableFuture<ScheduledFuture<?>> listener = challengeTokenRequestedListener.setTokenRequestedListener(
+        CompletableFuture<ScheduledFuture<?>> challengeListener = challengeTokenRequestedListener.setTokenRequestedListener(
                 challenge.getToken(),
                 () -> updateCheckerService.start(executorService, auth)
         );
@@ -59,15 +61,26 @@ public class ChallengeProcessorService {
             throw new SSLCertificateException(e);
         }
 
-        ScheduledFuture<?> updateChecker = getWithTimeout(listener, config.getTokenRequestedTimeoutSeconds(), challenge.getToken());
+        ScheduledFuture<?> updateChecker = getWithTimeout(
+                challengeListener,
+                config.getTokenRequestedTimeoutSeconds(),
+                challenge.getToken(),
+                "waiting for challenge endpoint to be hit");
 
-        return CompletableFuture.runAsync(() -> getWithTimeout(updateChecker, config.getAuthChallengeTimeoutSeconds(), challenge.getToken()));
+        return CompletableFuture.runAsync(
+                () -> getWithTimeout(updateChecker,
+                        config.getAuthChallengeTimeoutSeconds(),
+                        challenge.getToken(),
+                        "checking for challenge status"));
     }
 
-    private <T> T getWithTimeout(Future<T> future, int timeoutSeconds, String token) {
+    private <T> T getWithTimeout(Future<T> future, int timeoutSeconds, String token, String operationDescription) {
         try {
             return future.get(timeoutSeconds, TimeUnit.SECONDS);
-        } catch (InterruptedException | ExecutionException | TimeoutException | CancellationException e) {
+        } catch (TimeoutException e) {
+            log.error("Timeout while " + operationDescription);
+            throw new SSLCertificateException(e);
+        } catch (InterruptedException | ExecutionException | CancellationException e) {
             throw new SSLCertificateException(e);
         } finally {
             challengeTokenStore.getTokens().remove(token);
