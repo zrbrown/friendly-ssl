@@ -30,7 +30,7 @@ public class CertificateOrderHandlerService {
     }
 
     public Certificate handleCertificateOrder(Login login, KeyPair domainKeyPair, boolean isRenewal) {
-        return certificateOrderService.orderCertificate(config.getAccountEmail(), login, domainKeyPair)
+        return certificateOrderService.orderCertificate(config.getDomain(), login, domainKeyPair)
                 .map(certificate -> {
                     if (!isRenewal) {
                         try (OutputStream file = new FileOutputStream(config.getKeystoreFile())) {
