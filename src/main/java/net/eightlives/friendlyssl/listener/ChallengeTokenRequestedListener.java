@@ -18,7 +18,7 @@ public class ChallengeTokenRequestedListener implements ApplicationListener<Chal
 
     @Override
     public void onApplicationEvent(ChallengeTokenRequested event) {
-        if (tokensToListeners.containsKey(event.getToken())) {
+        synchronized (tokensToListeners) {
             if (tokensToListeners.containsKey(event.getToken())) {
                 ScheduledFuture<?> listener = tokensToListeners.remove(event.getToken()).get();
                 tokenToFuture.remove(event.getToken()).complete(listener);
