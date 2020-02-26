@@ -30,8 +30,6 @@ public class FriendlySSLApplicationListener implements ApplicationListener<Appli
 
     @Override
     public void onApplicationEvent(ApplicationReadyEvent applicationReadyEvent) {
-        Security.addProvider(new BouncyCastleProvider());
-
         if (config.isAutoRenewEnabled()) {
             log.info("Auto-renew SSL enabled, starting timer");
             Timer timer = new Timer("SSL Certificate Monitor", true);
