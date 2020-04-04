@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 public class TermsOfServiceService {
 
     private static final String AGREE_TO_TERMS_YES = "YES";
-    private static final String DEFAULT_AGREE_TO_TERMS = "NO";
+    private static final String AGREE_TO_TERMS_NO = "NO";
 
     private final FriendlySSLConfig config;
     private final ObjectMapper objectMapper;
@@ -67,7 +67,7 @@ public class TermsOfServiceService {
         }
     }
 
-    public void writeUnacceptedTermsLink(URI termsOfServiceLink) {
+    public void writeTermsLink(URI termsOfServiceLink, boolean accept) {
         File termsOfServiceFile = new File(config.getTermsOfServiceFile());
 
         if (!termsOfServiceFile.exists()) {
@@ -79,6 +79,7 @@ public class TermsOfServiceService {
                 }
             } catch (IOException e) {
                 log.error("Exception while creating terms of service file " + config.getTermsOfServiceFile(), e);
+                throw new SSLCertificateException(e);
             }
         }
 
@@ -87,7 +88,7 @@ public class TermsOfServiceService {
             List<TermsOfService> allTerms = Stream.of(termsOfService)
                     .filter(tos -> !termsOfServiceLink.toString().equals(tos.getTermsOfService()))
                     .collect(Collectors.toList());
-            allTerms.add(new TermsOfService(termsOfServiceLink.toString(), DEFAULT_AGREE_TO_TERMS));
+            allTerms.add(new TermsOfService(termsOfServiceLink.toString(), accept ? AGREE_TO_TERMS_YES : AGREE_TO_TERMS_NO));
 
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(termsOfServiceFile, allTerms);
         } catch (IOException e) {
