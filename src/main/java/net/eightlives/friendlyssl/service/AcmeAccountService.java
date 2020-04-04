@@ -41,7 +41,7 @@ public class AcmeAccountService {
             } catch (AcmeException e) {
                 if (!termsOfServiceService.termsAccepted(termsOfServiceLink)) {
                     log.error("Terms of service must be accepted in file " + config.getTermsOfServiceFile(), e);
-                    termsOfServiceService.writeUnacceptedTermsLink(termsOfServiceLink);
+                    termsOfServiceService.writeTermsLink(termsOfServiceLink, false);
                     throw new SSLCertificateException(new RuntimeException("Terms of service must be accepted in file " + config.getTermsOfServiceFile()));
                 }
                 return new AccountBuilder()
@@ -53,7 +53,7 @@ public class AcmeAccountService {
         } catch (AcmeUserActionRequiredException e) {
             log.error("Account retrieval failed due to user action required (terms of service probably changed). See " + e.getInstance() +
                     " and if the terms of service did change, accept the terms in file " + config.getTermsOfServiceFile(), e);
-            termsOfServiceService.writeUnacceptedTermsLink(termsOfServiceLink);
+            termsOfServiceService.writeTermsLink(termsOfServiceLink, false);
             throw new SSLCertificateException(e);
         } catch (IOException | AcmeException e) {
             log.error("Error while retrieving or creating ACME Login", e);
