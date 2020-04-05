@@ -3,6 +3,8 @@ package net.eightlives.friendlyssl.service;
 import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.exception.SSLCertificateException;
+import net.eightlives.friendlyssl.model.CertificateRenewal;
+import net.eightlives.friendlyssl.model.CertificateRenewalStatus;
 import org.shredzone.acme4j.Certificate;
 import org.shredzone.acme4j.Login;
 import org.shredzone.acme4j.Session;
@@ -34,7 +36,7 @@ public class SSLCertificateCreateRenewService {
         this.certificateOrderHandlerService = certificateOrderHandlerService;
     }
 
-    public Instant createOrRenew() {
+    public CertificateRenewal createOrRenew() {
         try {
             log.info("Starting certificate create/renew");
             Session session = new Session(config.getAcmeSessionUrl());
@@ -43,10 +45,12 @@ public class SSLCertificateCreateRenewService {
 
             Optional<X509Certificate> existingCertificate = keyStoreService.getCertificate(config.getCertificateFriendlyName());
             if (existingCertificate.isPresent()) {
-                Instant renewTime = (Instant.ofEpochMilli(existingCertificate.get().getNotAfter().getTime()));
+                Instant renewTime = Instant.ofEpochMilli(existingCertificate.get().getNotAfter().getTime());
                 if (Instant.now().plus(config.getAutoRenewalHoursBefore(), ChronoUnit.HOURS).isBefore(renewTime)) {
                     log.info("Existing certificate expiration time is " + renewTime);
-                    return renewTime;
+                    return new CertificateRenewal(
+                            CertificateRenewalStatus.ALREADY_VALID,
+                            renewTime);
                 }
             }
 
@@ -59,10 +63,14 @@ public class SSLCertificateCreateRenewService {
             log.info("Beginning certificate order. Renewal: " + isRenewal);
             Certificate certificate = certificateOrderHandlerService.handleCertificateOrder(login, domainKeyPair, isRenewal);
             log.info("Certificate renewal successful. New certificate expiration time is " + certificate.getCertificate().getNotAfter());
-            return Instant.ofEpochMilli(certificate.getCertificate().getNotAfter().getTime());
+            return new CertificateRenewal(
+                    CertificateRenewalStatus.SUCCESS,
+                    Instant.ofEpochMilli(certificate.getCertificate().getNotAfter().getTime()));
         } catch (SSLCertificateException e) {
             log.error("Exception while ordering certificate, retry in " + config.getErrorRetryWaitHours() + " hours", e);
-            return Instant.now().plus(config.getErrorRetryWaitHours(), ChronoUnit.HOURS);
+            return new CertificateRenewal(
+                    CertificateRenewalStatus.ERROR,
+                    Instant.now().plus(config.getErrorRetryWaitHours(), ChronoUnit.HOURS));
         }
     }
 }

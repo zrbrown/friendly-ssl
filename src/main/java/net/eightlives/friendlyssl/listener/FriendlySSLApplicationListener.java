@@ -36,8 +36,12 @@ public class FriendlySSLApplicationListener implements ApplicationListener<Appli
             log.info("Auto-renew SSL enabled, starting timer");
             Timer timer = new Timer("SSL Certificate Monitor", true);
             timer.schedule(
-                    new RecursiveTimerTask(timer, createRenewService::createOrRenew),
+                    new RecursiveTimerTask(timer, this::createOrRenewTime),
                     Date.from(Instant.now().plus(1, ChronoUnit.SECONDS)));
         }
+    }
+
+    private Instant createOrRenewTime() {
+        return createRenewService.createOrRenew().getTime();
     }
 }
