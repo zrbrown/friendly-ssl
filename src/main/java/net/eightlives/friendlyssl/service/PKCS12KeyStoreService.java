@@ -115,8 +115,8 @@ public class PKCS12KeyStoreService {
             }
 
             Certificate certificate = store.getCertificate(friendlyName);
-            if (certificate instanceof X509Certificate) {
-                return Optional.of(certificate);
+            if (certificate instanceof X509Certificate cert) {
+                return Optional.of(cert);
             }
             return Optional.empty();
         } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e) {

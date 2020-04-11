@@ -22,13 +22,9 @@ public class CertificateController {
     public ResponseEntity<CertificateRenewal> order() {
         CertificateRenewal certificateRenewal = createRenewService.createOrRenew();
 
-        return switch (certificateRenewal.getStatus()) {
+        return switch (certificateRenewal.status()) {
             case ALREADY_VALID, SUCCESS -> ResponseEntity.ok(certificateRenewal);
-            case ERROR                  -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-            default -> {
-                log.error("Unknown CertificateRenewal " + certificateRenewal.getStatus().name() + ". This is most likely a build problem.");
-                yield ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-            }
-        }
+            case ERROR -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        };
     }
 }
