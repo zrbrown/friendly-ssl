@@ -14,14 +14,14 @@ import java.util.function.Supplier;
 public class ChallengeTokenRequestedListener implements ApplicationListener<ChallengeTokenRequested> {
 
     private final Map<String, Supplier<ScheduledFuture<?>>> tokensToListeners = new HashMap<>();
-    private final Map<String, CompletableFuture<ScheduledFuture<?>>> tokenToFuture = new HashMap<>();
+    private final Map<String, CompletableFuture<ScheduledFuture<?>>> tokensToFutures = new HashMap<>();
 
     @Override
     public void onApplicationEvent(ChallengeTokenRequested event) {
         synchronized (tokensToListeners) {
             if (tokensToListeners.containsKey(event.getToken())) {
                 ScheduledFuture<?> listener = tokensToListeners.remove(event.getToken()).get();
-                tokenToFuture.remove(event.getToken()).complete(listener);
+                tokensToFutures.remove(event.getToken()).complete(listener);
             }
         }
     }
@@ -30,7 +30,7 @@ public class ChallengeTokenRequestedListener implements ApplicationListener<Chal
         tokensToListeners.put(token, listener);
 
         CompletableFuture<ScheduledFuture<?>> future = new CompletableFuture<>();
-        tokenToFuture.put(token, future);
+        tokensToFutures.put(token, future);
 
         return future;
     }

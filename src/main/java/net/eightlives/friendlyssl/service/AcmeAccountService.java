@@ -3,7 +3,7 @@ package net.eightlives.friendlyssl.service;
 import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.exception.SSLCertificateException;
-import org.shredzone.acme4j.AccountBuilder;
+import net.eightlives.friendlyssl.factory.AccountBuilderFactory;
 import org.shredzone.acme4j.Login;
 import org.shredzone.acme4j.Session;
 import org.shredzone.acme4j.exception.AcmeException;
@@ -21,11 +21,14 @@ public class AcmeAccountService {
 
     private final FriendlySSLConfig config;
     private final TermsOfServiceService termsOfServiceService;
+    private final AccountBuilderFactory accountBuilderFactory;
 
     public AcmeAccountService(FriendlySSLConfig config,
-                              TermsOfServiceService termsOfServiceService) {
+                              TermsOfServiceService termsOfServiceService,
+                              AccountBuilderFactory accountBuilderFactory) {
         this.config = config;
         this.termsOfServiceService = termsOfServiceService;
+        this.accountBuilderFactory = accountBuilderFactory;
     }
 
     public Login getOrCreateAccountLogin(Session session) {
@@ -34,7 +37,7 @@ public class AcmeAccountService {
         try (Reader keyReader = getKeyReader(config.getAccountPrivateKeyFile())) {
             KeyPair accountKeyPair = KeyPairUtils.readKeyPair(keyReader);
             try {
-                return new AccountBuilder()
+                return accountBuilderFactory.accountBuilder()
                         .useKeyPair(accountKeyPair)
                         .onlyExisting()
                         .createLogin(session);
@@ -44,7 +47,7 @@ public class AcmeAccountService {
                     termsOfServiceService.writeTermsLink(termsOfServiceLink, false);
                     throw new SSLCertificateException(new RuntimeException("Terms of service must be accepted in file " + config.getTermsOfServiceFile()));
                 }
-                return new AccountBuilder()
+                return accountBuilderFactory.accountBuilder()
                         .useKeyPair(accountKeyPair)
                         .addEmail(config.getAccountEmail())
                         .agreeToTermsOfService()
