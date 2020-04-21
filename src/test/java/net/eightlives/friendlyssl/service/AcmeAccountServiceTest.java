@@ -17,7 +17,6 @@ import org.shredzone.acme4j.exception.AcmeException;
 import org.shredzone.acme4j.exception.AcmeUserActionRequiredException;
 import org.shredzone.acme4j.util.KeyPairUtils;
 
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
@@ -56,7 +55,7 @@ class AcmeAccountServiceTest {
         assertThrows(SSLCertificateException.class, () -> service.getOrCreateAccountLogin(session));
     }
 
-    @DisplayName("Valid TOS link")
+    @DisplayName("When TOS link is valid")
     @Nested
     class ValidTOSLink {
 
@@ -71,8 +70,8 @@ class AcmeAccountServiceTest {
 
         @BeforeEach
         void setUp() throws IOException {
-            accountKeyPair = KeyPairUtils.readKeyPair(new FileReader(
-                    Paths.get("src", "test", "resources", "account.pem").toString()));
+            accountKeyPair = KeyPairUtils.readKeyPair(Files.newBufferedReader(
+                    Paths.get("src", "test", "resources", "account.pem")));
             when(termsOfServiceService.getTermsOfServiceLink(session)).thenReturn(TERMS_OF_SERVICE_LINK);
 
             when(accountBuilderFactory.accountBuilder()).thenReturn(accountBuilder);

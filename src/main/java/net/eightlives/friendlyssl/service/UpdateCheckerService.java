@@ -6,21 +6,26 @@ import org.shredzone.acme4j.AcmeJsonResource;
 import org.shredzone.acme4j.Status;
 import org.shredzone.acme4j.exception.AcmeException;
 import org.shredzone.acme4j.exception.AcmeRetryAfterException;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
 public class UpdateCheckerService {
 
-    public ScheduledFuture<?> start(ScheduledExecutorService executor, AcmeJsonResource resource) {
+    private final TaskScheduler scheduler;
+
+    public UpdateCheckerService(TaskScheduler scheduler) {
+        this.scheduler = scheduler;
+    }
+
+    public ScheduledFuture<?> start(AcmeJsonResource resource) {
         long millisecondsUntilRetry = updateAcmeJsonResource(resource);
-        return executor.schedule(() -> {
+        return scheduler.schedule(() -> {
             while (true) {
                 try {
                     Status status = resource.getJSON().get("status").asStatus();
@@ -39,7 +44,7 @@ public class UpdateCheckerService {
                 } catch (InterruptedException ignored) {
                 }
             }
-        }, millisecondsUntilRetry, TimeUnit.MILLISECONDS);
+        }, Instant.now().plus(millisecondsUntilRetry, ChronoUnit.MILLIS));
     }
 
     private long updateAcmeJsonResource(AcmeJsonResource resource) {
