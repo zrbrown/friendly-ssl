@@ -33,17 +33,15 @@ public class ChallengeProcessorService {
     }
 
     public CompletableFuture<?> process(List<Authorization> authorizations) {
-        ScheduledExecutorService executorService = Executors.newScheduledThreadPool(authorizations.size());
-
         CompletableFuture<?>[] challenges = authorizations.stream()
                 .filter(auth -> auth.getStatus() != Status.VALID)
-                .map(auth -> processAuth(executorService, auth))
+                .map(this::processAuth)
                 .toArray(CompletableFuture[]::new);
 
         return CompletableFuture.allOf(challenges);
     }
 
-    private CompletableFuture<Void> processAuth(ScheduledExecutorService executorService, Authorization auth) {
+    private CompletableFuture<Void> processAuth(Authorization auth) {
         Http01Challenge challenge = auth.findChallenge(Http01Challenge.TYPE);
         if (challenge == null) {
             throw new SSLCertificateException(new IllegalStateException("HTTP Challenge does not exist"));
@@ -52,7 +50,7 @@ public class ChallengeProcessorService {
         challengeTokenStore.setToken(challenge.getToken(), challenge.getAuthorization());
         CompletableFuture<ScheduledFuture<?>> challengeListener = challengeTokenRequestedListener.setTokenRequestedListener(
                 challenge.getToken(),
-                () -> updateCheckerService.start(executorService, auth)
+                () -> updateCheckerService.start(auth)
         );
 
         try {
