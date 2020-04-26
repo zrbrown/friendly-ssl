@@ -89,7 +89,6 @@ class CertificateOrderServiceTest {
             when(orderBuilder.create()).thenReturn(order);
         }
 
-        //TODO is this actually ever thrown?
         @DisplayName("and challenge processor throws an exception")
         @Test
         void challengeProcessorFails() {
@@ -103,7 +102,7 @@ class CertificateOrderServiceTest {
         class ChallengeProcessed {
 
             @Mock
-            private CompletableFuture challengeProcessorFuture;
+            private CompletableFuture<Void> challengeProcessorFuture;
 
             @BeforeEach
             void setUp() {
@@ -114,7 +113,7 @@ class CertificateOrderServiceTest {
             @DisplayName("and future retrieval fails")
             @ParameterizedTest(name = "with exception {0}")
             @ValueSource(classes = {InterruptedException.class, ExecutionException.class, CancellationException.class})
-            void challengeProcessorFutureFails(Class exceptionClass) throws ExecutionException, InterruptedException {
+            void challengeProcessorFutureFails(Class<Throwable> exceptionClass) throws ExecutionException, InterruptedException {
                 when(challengeProcessorFuture.get()).thenThrow(exceptionClass);
 
                 assertThrows(SSLCertificateException.class, () -> service.orderCertificate(DOMAIN, login, domainKeyPair));
@@ -184,7 +183,7 @@ class CertificateOrderServiceTest {
                             @DisplayName("and future retrieval fails")
                             @ParameterizedTest(name = "with exception {0}")
                             @ValueSource(classes = {InterruptedException.class, ExecutionException.class, CancellationException.class, TimeoutException.class})
-                            void updateCheckerFutureFails(Class exceptionClass) throws ExecutionException, InterruptedException, TimeoutException {
+                            void updateCheckerFutureFails(Class<Throwable> exceptionClass) throws ExecutionException, InterruptedException, TimeoutException {
                                 when(updateCheckerFuture.get(ORDER_TIMEOUT_SECONDS, TimeUnit.SECONDS))
                                         .thenThrow(exceptionClass);
 
