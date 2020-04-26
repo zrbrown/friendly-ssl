@@ -7,7 +7,7 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-public class UUIDProvider implements ArgumentsProvider {
+public class UUIDStringProvider implements ArgumentsProvider {
 
     @Override
     public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) throws Exception {
