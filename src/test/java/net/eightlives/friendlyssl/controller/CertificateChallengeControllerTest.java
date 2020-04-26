@@ -1,7 +1,7 @@
 package net.eightlives.friendlyssl.controller;
 
 import net.eightlives.friendlyssl.event.ChallengeTokenRequested;
-import net.eightlives.friendlyssl.junit.UUIDProvider;
+import net.eightlives.friendlyssl.junit.UUIDStringProvider;
 import net.eightlives.friendlyssl.service.ChallengeTokenStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,7 +42,7 @@ class CertificateChallengeControllerTest {
     class GetToken {
         @DisplayName("with no existing token")
         @ParameterizedTest(name = "for token {0}")
-        @ArgumentsSource(UUIDProvider.class)
+        @ArgumentsSource(UUIDStringProvider.class)
         void getTokenWithNoExistingToken(String token) throws InterruptedException {
             Mockito.when(mockStore.getTokens()).thenReturn(Collections.emptyMap());
             CountDownLatch latch = new CountDownLatch(1);
@@ -63,7 +63,7 @@ class CertificateChallengeControllerTest {
 
         @DisplayName("with existing token")
         @ParameterizedTest(name = "for token {0}")
-        @ArgumentsSource(UUIDProvider.class)
+        @ArgumentsSource(UUIDStringProvider.class)
         void getTokenWithExistingToken(String token) throws InterruptedException {
             Mockito.when(mockStore.getTokens()).thenReturn(Map.of(token, "stuff"));
             CountDownLatch latch = new CountDownLatch(1);

@@ -4,7 +4,6 @@ import net.eightlives.friendlyssl.exception.SSLCertificateException;
 import org.shredzone.acme4j.util.CSRBuilder;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.security.KeyPair;
 
 @Component
@@ -17,7 +16,7 @@ public class CSRService {
         try {
             csrBuilder.sign(domainKeyPair);
             return csrBuilder.getEncoded();
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new SSLCertificateException(e);
         }
     }
