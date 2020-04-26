@@ -23,9 +23,9 @@ public class UpdateCheckerService {
         this.scheduler = scheduler;
     }
 
-    public ScheduledFuture<?> start(AcmeJsonResource resource) {
+    public ScheduledFuture<Void> start(AcmeJsonResource resource) {
         long millisecondsUntilRetry = updateAcmeJsonResource(resource);
-        return scheduler.schedule(() -> {
+        return (ScheduledFuture<Void>) scheduler.schedule(() -> {
             while (true) {
                 try {
                     Status status = resource.getJSON().get("status").asStatus();

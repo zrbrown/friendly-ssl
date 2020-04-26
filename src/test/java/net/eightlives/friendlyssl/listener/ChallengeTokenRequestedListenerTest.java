@@ -31,9 +31,9 @@ class ChallengeTokenRequestedListenerTest {
     @DisplayName("Testing setTokenRequestedListener return value")
     @Test
     void setTokenRequestedListener() throws ExecutionException, InterruptedException {
-        ScheduledFuture<?> scheduledFuture = mock(ScheduledFuture.class);
+        ScheduledFuture<Void> scheduledFuture = mock(ScheduledFuture.class);
 
-        CompletableFuture<ScheduledFuture<?>> future = listener.setTokenRequestedListener("token", () -> scheduledFuture);
+        CompletableFuture<ScheduledFuture<Void>> future = listener.setTokenRequestedListener("token", () -> scheduledFuture);
         future.complete(scheduledFuture);
 
         assertEquals(scheduledFuture, future.get());
@@ -42,9 +42,9 @@ class ChallengeTokenRequestedListenerTest {
     @DisplayName("Testing that onApplicationEvent should complete the future from setTokenRequestedListener")
     @Test
     void setTokenRequestedListenerAndOnApplicationEvent() {
-        ScheduledFuture<?> scheduledFuture = mock(ScheduledFuture.class);
+        ScheduledFuture<Void> scheduledFuture = mock(ScheduledFuture.class);
 
-        CompletableFuture<ScheduledFuture<?>> future = listener.setTokenRequestedListener("token", () -> scheduledFuture);
+        CompletableFuture<ScheduledFuture<Void>> future = listener.setTokenRequestedListener("token", () -> scheduledFuture);
         listener.onApplicationEvent(new ChallengeTokenRequested(this, "token"));
 
         assertTrue(future.isDone());
@@ -53,9 +53,9 @@ class ChallengeTokenRequestedListenerTest {
     @DisplayName("Testing that onApplicationEvent multiple times should not throw an exception")
     @Test
     void setTokenRequestedListenerAndOnApplicationEventMultiple() {
-        ScheduledFuture<?> scheduledFuture = mock(ScheduledFuture.class);
+        ScheduledFuture<Void> scheduledFuture = mock(ScheduledFuture.class);
 
-        CompletableFuture<ScheduledFuture<?>> future = listener.setTokenRequestedListener("token", () -> scheduledFuture);
+        CompletableFuture<ScheduledFuture<Void>> future = listener.setTokenRequestedListener("token", () -> scheduledFuture);
         listener.onApplicationEvent(new ChallengeTokenRequested(this, "token"));
         listener.onApplicationEvent(new ChallengeTokenRequested(this, "token"));
 
