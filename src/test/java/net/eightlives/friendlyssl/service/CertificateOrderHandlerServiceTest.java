@@ -46,7 +46,7 @@ class CertificateOrderHandlerServiceTest {
     void setUp() throws IOException {
         when(config.getDomain()).thenReturn("domain.com");
         domainKeyPair = KeyPairUtils.readKeyPair(Files.newBufferedReader(
-                Paths.get("src", "test", "resources", "account.pem")));
+                Paths.get("src", "test", "resources", "keypair.pem")));
         service = new CertificateOrderHandlerService(config, certificateOrderService, keyStoreService);
     }
 
@@ -75,7 +75,7 @@ class CertificateOrderHandlerServiceTest {
         @BeforeEach
         void setUp() throws IOException {
             domainKeyPair = KeyPairUtils.readKeyPair(Files.newBufferedReader(
-                    Paths.get("src", "test", "resources", "account.pem")));
+                    Paths.get("src", "test", "resources", "keypair.pem")));
             when(certificateOrderService.orderCertificate("domain.com", login, domainKeyPair))
                     .thenReturn(Optional.of(certificate));
         }

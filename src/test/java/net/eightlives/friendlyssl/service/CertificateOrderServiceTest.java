@@ -62,7 +62,7 @@ class CertificateOrderServiceTest {
         when(account.newOrder()).thenReturn(orderBuilder);
         when(orderBuilder.domain(anyString())).thenReturn(orderBuilder);
         domainKeyPair = KeyPairUtils.readKeyPair(Files.newBufferedReader(
-                Paths.get("src", "test", "resources", "account.pem")));
+                Paths.get("src", "test", "resources", "keypair.pem")));
         service = new CertificateOrderService(config, challengeProcessorService, csrService, updateCheckerService);
     }
 
