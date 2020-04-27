@@ -71,7 +71,7 @@ class AcmeAccountServiceTest {
         @BeforeEach
         void setUp() throws IOException {
             accountKeyPair = KeyPairUtils.readKeyPair(Files.newBufferedReader(
-                    Paths.get("src", "test", "resources", "account.pem")));
+                    Paths.get("src", "test", "resources", "keypair.pem")));
             when(termsOfServiceService.getTermsOfServiceLink(session)).thenReturn(TERMS_OF_SERVICE_LINK);
 
             when(accountBuilderFactory.accountBuilder()).thenReturn(accountBuilder);
@@ -83,7 +83,7 @@ class AcmeAccountServiceTest {
         @Nested
         class AccountKeyValueFileExists {
 
-            private final String accountFile = Paths.get("src", "test", "resources", "account.pem").toString();
+            private final String accountFile = Paths.get("src", "test", "resources", "keypair.pem").toString();
 
             @BeforeEach
             void setUp() {
@@ -129,7 +129,7 @@ class AcmeAccountServiceTest {
 
         @DisplayName("when account creation succeeds")
         @ParameterizedTest(name = "for file {0}")
-        @ValueSource(strings = {"account.pem", "non-existing.pem"})
+        @ValueSource(strings = {"keypair.pem", "non-existing.pem"})
         void accountCreationSuccessful(String accountFile) throws AcmeException {
             when(config.getAccountPrivateKeyFile())
                     .thenReturn(Paths.get("src", "test", "resources", accountFile).toString());
@@ -144,7 +144,7 @@ class AcmeAccountServiceTest {
 
         @DisplayName("when account creation fails, but TOS accepted")
         @ParameterizedTest(name = "for file {0}")
-        @ValueSource(strings = {"account.pem", "non-existing.pem"})
+        @ValueSource(strings = {"keypair.pem", "non-existing.pem"})
         void accountCreationFailedTOSAccepted(String accountFile) throws AcmeException {
             when(config.getAccountPrivateKeyFile())
                     .thenReturn(Paths.get("src", "test", "resources", accountFile).toString());
@@ -167,7 +167,7 @@ class AcmeAccountServiceTest {
 
         @DisplayName("when account creation fails, but TOS not accepted")
         @ParameterizedTest(name = "for file {0}")
-        @ValueSource(strings = {"account.pem", "non-existing.pem"})
+        @ValueSource(strings = {"keypair.pem", "non-existing.pem"})
         void accountCreationFailedTOSUnaccepted(String accountFile) throws AcmeException {
             when(config.getAccountPrivateKeyFile())
                     .thenReturn(Paths.get("src", "test", "resources", accountFile).toString());
@@ -182,7 +182,7 @@ class AcmeAccountServiceTest {
 
         @DisplayName("when AcmeUserActionRequiredException occurs")
         @ParameterizedTest(name = "for file {0}")
-        @ValueSource(strings = {"account.pem", "non-existing.pem"})
+        @ValueSource(strings = {"keypair.pem", "non-existing.pem"})
         void acmeUserActionRequiredException(String accountFile) throws AcmeException {
             when(config.getAccountPrivateKeyFile())
                     .thenReturn(Paths.get("src", "test", "resources", accountFile).toString());
@@ -202,7 +202,7 @@ class AcmeAccountServiceTest {
 
         @DisplayName("when AcmeException occurs when account creation fails and TOS accepted")
         @ParameterizedTest(name = "for file {0}")
-        @ValueSource(strings = {"account.pem", "non-existing.pem"})
+        @ValueSource(strings = {"keypair.pem", "non-existing.pem"})
         void acmeException(String accountFile) throws AcmeException {
             when(config.getAccountPrivateKeyFile())
                     .thenReturn(Paths.get("src", "test", "resources", accountFile).toString());
