@@ -1,0 +1,7 @@
+[ {
+  "termsOfService" : "http://localhost:8001",
+  "agreeToTerms" : "YES"
+}, {
+  "termsOfService" : "http://localhost:9000",
+  "agreeToTerms" : "NO"
+} ]
