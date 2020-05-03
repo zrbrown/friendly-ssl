@@ -9,6 +9,7 @@ import org.shredzone.acme4j.exception.AcmeRetryAfterException;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ScheduledFuture;
@@ -18,9 +19,11 @@ import java.util.concurrent.ScheduledFuture;
 public class UpdateCheckerService {
 
     private final TaskScheduler scheduler;
+    private final Clock clock;
 
-    public UpdateCheckerService(TaskScheduler scheduler) {
+    public UpdateCheckerService(TaskScheduler scheduler, Clock clock) {
         this.scheduler = scheduler;
+        this.clock = clock;
     }
 
     public ScheduledFuture<Void> start(AcmeJsonResource resource) {
@@ -44,7 +47,7 @@ public class UpdateCheckerService {
                 } catch (InterruptedException ignored) {
                 }
             }
-        }, Instant.now().plus(millisecondsUntilRetry, ChronoUnit.MILLIS));
+        }, clock.instant().plus(millisecondsUntilRetry, ChronoUnit.MILLIS));
     }
 
     private long updateAcmeJsonResource(AcmeJsonResource resource) {
@@ -52,7 +55,7 @@ public class UpdateCheckerService {
             resource.update();
             return 0;
         } catch (AcmeRetryAfterException e) {
-            return Instant.now().until(e.getRetryAfter(), ChronoUnit.MILLIS);
+            return clock.instant().until(e.getRetryAfter(), ChronoUnit.MILLIS);
         } catch (AcmeException e) {
             throw new UpdateFailedException();
         }
