@@ -2,6 +2,7 @@ package net.eightlives.friendlyssl.controller;
 
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.exception.SSLCertificateException;
+import net.eightlives.friendlyssl.model.TermsOfServiceAgreeRequest;
 import net.eightlives.friendlyssl.service.TermsOfServiceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -22,6 +23,7 @@ class TermsOfServiceControllerTest {
 
     private static final String TERMS_LINK = "http://localhost:8000";
     private static final URI TERMS_URI = URI.create(TERMS_LINK);
+    private static final TermsOfServiceAgreeRequest TERMS_REQUEST = new TermsOfServiceAgreeRequest(TERMS_LINK);
 
     private TermsOfServiceController controller;
 
@@ -38,7 +40,9 @@ class TermsOfServiceControllerTest {
     @DisplayName("Test agreeing returns 400 for invalid URI")
     @Test
     void invalidUri() {
-        ResponseEntity<String> response = controller.agreeToTermsOfService("not a uri");
+        ResponseEntity<String> response = controller.agreeToTermsOfService(
+                new TermsOfServiceAgreeRequest("not a uri")
+        );
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
@@ -49,7 +53,7 @@ class TermsOfServiceControllerTest {
         doThrow(new SSLCertificateException(new RuntimeException()))
                 .when(termsOfServiceService).writeTermsLink(TERMS_URI, true);
 
-        ResponseEntity<String> response = controller.agreeToTermsOfService(TERMS_LINK);
+        ResponseEntity<String> response = controller.agreeToTermsOfService(TERMS_REQUEST);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertEquals(
@@ -60,7 +64,7 @@ class TermsOfServiceControllerTest {
     @DisplayName("Test agreeing returns 200 when successful")
     @Test
     void success() {
-        ResponseEntity<String> response = controller.agreeToTermsOfService(TERMS_LINK);
+        ResponseEntity<String> response = controller.agreeToTermsOfService(TERMS_REQUEST);
 
         verify(termsOfServiceService, times(1))
                 .writeTermsLink(TERMS_URI, true);
