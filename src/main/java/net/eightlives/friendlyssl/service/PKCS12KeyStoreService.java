@@ -94,6 +94,13 @@ public class PKCS12KeyStoreService {
 
             KeyFactory keyFactory = KeyFactory.getInstance(KEYFACTORY_TYPE);
             Key key = store.getKey(privateKeyFriendlyName, "".toCharArray());
+            if (key == null) {
+                log.error("Private key friendly name " + privateKeyFriendlyName +
+                        " not found in keystore " + config.getKeystoreFile() +
+                        " when loading keystore");
+                return null;
+            }
+
             PrivateKey privateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(key.getEncoded()));
 
             return new KeyPair(certificate.getPublicKey(), privateKey);

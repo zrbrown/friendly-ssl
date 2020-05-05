@@ -1,7 +1,9 @@
 package net.eightlives.friendlyssl.annotation;
 
+import net.eightlives.friendlyssl.config.ClockConfig;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.controller.CertificateChallengeController;
+import net.eightlives.friendlyssl.factory.AccountBuilderFactory;
 import net.eightlives.friendlyssl.listener.ChallengeTokenRequestedListener;
 import net.eightlives.friendlyssl.listener.FriendlySSLApplicationListener;
 import net.eightlives.friendlyssl.service.*;
@@ -14,6 +16,7 @@ import java.lang.annotation.*;
 @Documented
 @Import({
         FriendlySSLConfig.class,
+        ClockConfig.class,
         FriendlySSLApplicationListener.class,
         CertificateChallengeController.class,
         AcmeAccountService.class,
@@ -27,7 +30,8 @@ import java.lang.annotation.*;
         PKCS12KeyStoreService.class,
         SSLCertificateCreateRenewService.class,
         TermsOfServiceService.class,
-        UpdateCheckerService.class
+        UpdateCheckerService.class,
+        AccountBuilderFactory.class
 })
 public @interface FriendlySSL {
 }

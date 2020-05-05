@@ -19,14 +19,14 @@ public class CertificateOrderHandlerService {
 
     private final FriendlySSLConfig config;
     private final CertificateOrderService certificateOrderService;
-    private final PKCS12KeyStoreService keyStoreGenerator;
+    private final PKCS12KeyStoreService keyStoreService;
 
     public CertificateOrderHandlerService(FriendlySSLConfig config,
                                           CertificateOrderService certificateOrderService,
-                                          PKCS12KeyStoreService keyStoreGenerator) {
+                                          PKCS12KeyStoreService keyStoreService) {
         this.config = config;
         this.certificateOrderService = certificateOrderService;
-        this.keyStoreGenerator = keyStoreGenerator;
+        this.keyStoreService = keyStoreService;
     }
 
     public Certificate handleCertificateOrder(Login login, KeyPair domainKeyPair, boolean isRenewal) {
@@ -34,7 +34,7 @@ public class CertificateOrderHandlerService {
                 .map(certificate -> {
                     if (!isRenewal) {
                         try (OutputStream file = new FileOutputStream(config.getKeystoreFile())) {
-                            byte[] keyStore = keyStoreGenerator.generateKeyStore(
+                            byte[] keyStore = keyStoreService.generateKeyStore(
                                     certificate.getCertificateChain(),
                                     domainKeyPair.getPrivate());
                             file.write(keyStore);
