@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -32,27 +33,40 @@ public class ChallengeProcessorService {
         this.updateCheckerService = updateCheckerService;
     }
 
-    public CompletableFuture<?> process(List<Authorization> authorizations) {
-        ScheduledExecutorService executorService = Executors.newScheduledThreadPool(authorizations.size());
-
+    public CompletableFuture<Void> process(List<Authorization> authorizations) {
         CompletableFuture<?>[] challenges = authorizations.stream()
                 .filter(auth -> auth.getStatus() != Status.VALID)
-                .map(auth -> processAuth(executorService, auth))
+                .map(auth -> {
+                    Http01Challenge challenge = auth.findChallenge(Http01Challenge.TYPE);
+                    if (challenge == null) {
+                        throw new SSLCertificateException(new IllegalStateException("HTTP Challenge does not exist"));
+                    }
+                    return new AuthorizationAndChallenge(auth, challenge);
+                })
+                .collect(Collectors.toList()).stream()
+                .map(this::processAuth)
                 .toArray(CompletableFuture[]::new);
 
         return CompletableFuture.allOf(challenges);
     }
 
-    private CompletableFuture<Void> processAuth(ScheduledExecutorService executorService, Authorization auth) {
-        Http01Challenge challenge = auth.findChallenge(Http01Challenge.TYPE);
-        if (challenge == null) {
-            throw new SSLCertificateException(new IllegalStateException("HTTP Challenge does not exist"));
+    private static final class AuthorizationAndChallenge {
+        public final Authorization authorization;
+        public final Http01Challenge challenge;
+
+        private AuthorizationAndChallenge(Authorization authorization, Http01Challenge challenge) {
+            this.authorization = authorization;
+            this.challenge = challenge;
         }
+    }
+
+    private CompletableFuture<Void> processAuth(AuthorizationAndChallenge authAndChallenge) {
+        Http01Challenge challenge = authAndChallenge.challenge;
 
         challengeTokenStore.setToken(challenge.getToken(), challenge.getAuthorization());
-        CompletableFuture<ScheduledFuture<?>> challengeListener = challengeTokenRequestedListener.setTokenRequestedListener(
+        CompletableFuture<ScheduledFuture<Void>> challengeListener = challengeTokenRequestedListener.setTokenRequestedListener(
                 challenge.getToken(),
-                () -> updateCheckerService.start(executorService, auth)
+                () -> updateCheckerService.start(authAndChallenge.authorization)
         );
 
         try {
@@ -61,7 +75,7 @@ public class ChallengeProcessorService {
             throw new SSLCertificateException(e);
         }
 
-        ScheduledFuture<?> updateChecker = getWithTimeout(
+        ScheduledFuture<Void> updateChecker = getWithTimeout(
                 challengeListener,
                 config.getTokenRequestedTimeoutSeconds(),
                 challenge.getToken(),

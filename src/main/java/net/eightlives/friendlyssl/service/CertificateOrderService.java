@@ -2,6 +2,7 @@ package net.eightlives.friendlyssl.service;
 
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.exception.SSLCertificateException;
+import net.eightlives.friendlyssl.exception.UpdateFailedException;
 import org.shredzone.acme4j.Certificate;
 import org.shredzone.acme4j.Login;
 import org.shredzone.acme4j.Order;
@@ -10,7 +11,10 @@ import org.springframework.stereotype.Component;
 
 import java.security.KeyPair;
 import java.util.Optional;
-import java.util.concurrent.*;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 @Component
 public class CertificateOrderService {
@@ -31,8 +35,6 @@ public class CertificateOrderService {
     }
 
     public Optional<Certificate> orderCertificate(String domain, Login login, KeyPair domainKeyPair) {
-        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-
         try {
             Order order = login.getAccount()
                     .newOrder()
@@ -43,13 +45,12 @@ public class CertificateOrderService {
             byte[] csr = csrService.generateCSR(domain, domainKeyPair);
             order.execute(csr);
 
-            updateCheckerService.start(executor, order).get(config.getOrderTimeoutSeconds(), TimeUnit.SECONDS);
+            updateCheckerService.start(order).get(config.getOrderTimeoutSeconds(), TimeUnit.SECONDS);
 
             return Optional.ofNullable(order.getCertificate());
-        } catch (AcmeException | InterruptedException | ExecutionException | TimeoutException | CancellationException e) {
+        } catch (AcmeException | InterruptedException | ExecutionException | TimeoutException
+                | CancellationException | UpdateFailedException e) {
             throw new SSLCertificateException(e);
-        } finally {
-            executor.shutdown();
         }
     }
 }

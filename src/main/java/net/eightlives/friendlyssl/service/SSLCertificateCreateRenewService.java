@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
@@ -25,15 +26,18 @@ public class SSLCertificateCreateRenewService {
     private final AcmeAccountService accountService;
     private final PKCS12KeyStoreService keyStoreService;
     private final CertificateOrderHandlerService certificateOrderHandlerService;
+    private final Clock clock;
 
     public SSLCertificateCreateRenewService(FriendlySSLConfig config,
                                             AcmeAccountService accountService,
                                             PKCS12KeyStoreService keyStoreService,
-                                            CertificateOrderHandlerService certificateOrderHandlerService) {
+                                            CertificateOrderHandlerService certificateOrderHandlerService,
+                                            Clock clock) {
         this.config = config;
         this.accountService = accountService;
         this.keyStoreService = keyStoreService;
         this.certificateOrderHandlerService = certificateOrderHandlerService;
+        this.clock = clock;
     }
 
     public CertificateRenewal createOrRenew() {
@@ -46,7 +50,7 @@ public class SSLCertificateCreateRenewService {
             Optional<X509Certificate> existingCertificate = keyStoreService.getCertificate(config.getCertificateFriendlyName());
             if (existingCertificate.isPresent()) {
                 Instant renewTime = Instant.ofEpochMilli(existingCertificate.get().getNotAfter().getTime());
-                if (Instant.now().plus(config.getAutoRenewalHoursBefore(), ChronoUnit.HOURS).isBefore(renewTime)) {
+                if (clock.instant().plus(config.getAutoRenewalHoursBefore(), ChronoUnit.HOURS).isBefore(renewTime)) {
                     log.info("Existing certificate expiration time is " + renewTime);
                     return new CertificateRenewal(
                             CertificateRenewalStatus.ALREADY_VALID,
@@ -66,11 +70,14 @@ public class SSLCertificateCreateRenewService {
             return new CertificateRenewal(
                     CertificateRenewalStatus.SUCCESS,
                     Instant.ofEpochMilli(certificate.getCertificate().getNotAfter().getTime()));
-        } catch (SSLCertificateException e) {
+        } catch (IllegalArgumentException e) {
+            log.error("acmeSessionUrl " + config.getAcmeSessionUrl() + " is invalid", e);
+            throw e;
+        } catch (Exception e) {
             log.error("Exception while ordering certificate, retry in " + config.getErrorRetryWaitHours() + " hours", e);
             return new CertificateRenewal(
                     CertificateRenewalStatus.ERROR,
-                    Instant.now().plus(config.getErrorRetryWaitHours(), ChronoUnit.HOURS));
+                    clock.instant().plus(config.getErrorRetryWaitHours(), ChronoUnit.HOURS));
         }
     }
 }
