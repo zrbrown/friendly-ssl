@@ -8,9 +8,10 @@ import org.shredzone.acme4j.Certificate;
 import org.shredzone.acme4j.Login;
 import org.springframework.stereotype.Component;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.KeyPair;
 
 @Slf4j
@@ -33,7 +34,7 @@ public class CertificateOrderHandlerService {
         return certificateOrderService.orderCertificate(config.getDomain(), login, domainKeyPair)
                 .map(certificate -> {
                     if (!isRenewal) {
-                        try (OutputStream file = new FileOutputStream(config.getKeystoreFile())) {
+                        try (OutputStream file = Files.newOutputStream(Path.of(config.getKeystoreFile()))) {
                             byte[] keyStore = keyStoreService.generateKeyStore(
                                     certificate.getCertificateChain(),
                                     domainKeyPair.getPrivate());

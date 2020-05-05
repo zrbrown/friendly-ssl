@@ -9,12 +9,11 @@ import org.shredzone.acme4j.Session;
 import org.shredzone.acme4j.exception.AcmeException;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -53,17 +52,15 @@ public class TermsOfServiceService {
     }
 
     public boolean termsAccepted(URI termsOfServiceLink) {
-        File termsOfServiceFile = new File(config.getTermsOfServiceFile());
-
-        if (!termsOfServiceFile.exists()) {
-            return false;
-        }
-
         try {
-            TermsOfService[] termsOfService = objectMapper.readValue(termsOfServiceFile, TermsOfService[].class);
+            TermsOfService[] termsOfService = objectMapper.readValue(
+                    Files.newInputStream(Path.of(config.getTermsOfServiceFile())),
+                    TermsOfService[].class);
             return Stream.of(termsOfService)
                     .filter(tos -> termsOfServiceLink.toString().equals(tos.getTermsOfService()))
                     .anyMatch(tos -> tos.getAgreeToTerms().equalsIgnoreCase(AGREE_TO_TERMS_YES));
+        } catch (NoSuchFileException e) {
+            return false;
         } catch (IOException e) {
             log.error("Exception while trying to read from terms of service file " + config.getTermsOfServiceFile(), e);
             throw new SSLCertificateException(e);

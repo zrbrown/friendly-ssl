@@ -13,6 +13,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.security.KeyPair;
 
 @Slf4j
@@ -66,10 +69,10 @@ public class AcmeAccountService {
 
     private Reader getKeyReader(String filename) throws IOException {
         try {
-            return new FileReader(filename);
-        } catch (FileNotFoundException fnfe) {
+            return Files.newBufferedReader(Path.of(filename));
+        } catch (NoSuchFileException e) {
             KeyPair accountKeyPair = KeyPairUtils.createKeyPair(2048);
-            try (FileWriter fileWriter = new FileWriter(filename)) {
+            try (Writer fileWriter = Files.newBufferedWriter(Path.of(filename))) {
                 KeyPairUtils.writeKeyPair(accountKeyPair, fileWriter);
 
                 ByteArrayOutputStream keyBytes = new ByteArrayOutputStream();
