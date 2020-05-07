@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.factory.RecursiveTimerTaskFactory;
 import net.eightlives.friendlyssl.service.SSLCertificateCreateRenewService;
-import net.eightlives.friendlyssl.task.RecursiveTimerTask;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
