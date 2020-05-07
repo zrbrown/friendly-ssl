@@ -26,7 +26,8 @@ import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -35,6 +36,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class SSLCertificateCreateRenewServiceTest {
 
+    private static final Instant FIXED_CLOCK = Instant.from(OffsetDateTime.of(2020, 2, 3, 4, 5, 6, 0, ZoneOffset.UTC));
     private static final Instant CERT_EXPIRATION = Instant.from(OffsetDateTime.of(2012, 12, 22, 7, 41, 51, 0, ZoneOffset.UTC));
 
     private SSLCertificateCreateRenewService service;
@@ -51,7 +53,8 @@ class SSLCertificateCreateRenewServiceTest {
     @BeforeEach
     void setUp() {
         service = new SSLCertificateCreateRenewService(
-                config, accountService, keyStoreService, certificateOrderHandlerService, Clock.systemUTC()
+                config, accountService, keyStoreService, certificateOrderHandlerService,
+                Clock.fixed(FIXED_CLOCK, ZoneId.of("UTC"))
         );
     }
 
@@ -84,11 +87,7 @@ class SSLCertificateCreateRenewServiceTest {
 
             assertEquals(CertificateRenewalStatus.ERROR, renewal.getStatus());
 
-            Instant expectedRenew = Instant.now().plus(2, ChronoUnit.HOURS);
-            assertAll(() -> {
-                assertTrue(renewal.getTime().isBefore(expectedRenew.plus(5, ChronoUnit.SECONDS)));
-                assertTrue(renewal.getTime().isAfter(expectedRenew.minus(5, ChronoUnit.MILLIS)));
-            });
+            assertEquals(FIXED_CLOCK.plus(2, ChronoUnit.HOURS), renewal.getTime());
         }
 
         @DisplayName("When account service succeeds")
