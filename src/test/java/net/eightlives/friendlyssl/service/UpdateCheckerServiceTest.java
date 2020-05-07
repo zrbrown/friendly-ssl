@@ -1,11 +1,10 @@
 package net.eightlives.friendlyssl.service;
 
 import net.eightlives.friendlyssl.exception.UpdateFailedException;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.shredzone.acme4j.AcmeJsonResource;
@@ -26,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
+@Execution(ExecutionMode.CONCURRENT)
 @ExtendWith(MockitoExtension.class)
 class UpdateCheckerServiceTest {
 
@@ -158,6 +158,7 @@ class UpdateCheckerServiceTest {
         }
 
         @DisplayName("Retry delays")
+        @Tag("slow")
         @Nested
         class RetryDelays {
 
@@ -181,7 +182,7 @@ class UpdateCheckerServiceTest {
 
                 ScheduledFuture<Void> future = service.start(resource);
 
-                assertThrows(ExecutionException.class, () -> future.get(7, TimeUnit.SECONDS));
+                assertThrows(ExecutionException.class, () -> future.get(4, TimeUnit.SECONDS));
 
                 verify(resource, times(4)).update();
             }
@@ -197,7 +198,7 @@ class UpdateCheckerServiceTest {
 
                 ScheduledFuture<Void> future = service.start(resource);
 
-                future.get(7, TimeUnit.SECONDS);
+                future.get(4, TimeUnit.SECONDS);
 
                 assertTrue(future.isDone());
                 verify(resource, times(4)).update();
