@@ -1,28 +1,35 @@
 package net.eightlives.friendlyssl.listener;
 
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
-import net.eightlives.friendlyssl.model.CertificateRenewal;
-import net.eightlives.friendlyssl.model.CertificateRenewalStatus;
+import net.eightlives.friendlyssl.factory.RecursiveTimerTaskFactory;
 import net.eightlives.friendlyssl.service.SSLCertificateCreateRenewService;
+import net.eightlives.friendlyssl.task.RecursiveTimerTask;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 
 import java.security.Security;
-import java.time.Instant;
+import java.time.*;
 import java.time.temporal.ChronoUnit;
-import java.util.concurrent.CountDownLatch;
+import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.function.Supplier;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class FriendlySSLApplicationListenerTest {
+
+    private static final Instant FIXED_CLOCK = Instant.from(OffsetDateTime.of(2020, 2, 3, 4, 5, 6, 0, ZoneOffset.UTC));
+    private static final Instant RENEW_TIME = Instant.from(OffsetDateTime.of(2020, 2, 3, 4, 10, 6, 0, ZoneOffset.UTC));
 
     private FriendlySSLApplicationListener listener;
 
@@ -30,10 +37,15 @@ class FriendlySSLApplicationListenerTest {
     private FriendlySSLConfig config;
     @Mock
     private SSLCertificateCreateRenewService createRenewService;
+    @Mock
+    private RecursiveTimerTaskFactory timerTaskFactory;
+    @Mock
+    private Timer timer;
 
     @BeforeEach
     void setUp() {
-        listener = new FriendlySSLApplicationListener(config, createRenewService);
+        listener = new FriendlySSLApplicationListener(config, createRenewService, timerTaskFactory,
+                Clock.fixed(FIXED_CLOCK, ZoneId.of("UTC")), timer);
     }
 
     @DisplayName("Testing that security provider is correctly set")
@@ -53,26 +65,25 @@ class FriendlySSLApplicationListenerTest {
         ApplicationReadyEvent event = mock(ApplicationReadyEvent.class);
         listener.onApplicationEvent(event);
 
+        verify(timer, times(0)).schedule(any(TimerTask.class), anyLong());
         verify(createRenewService, times(0)).createOrRenew();
     }
 
     @DisplayName("Testing that create or renew service is correctly scheduled when auto renew is enabled")
     @Test
-    @Timeout(value = 2)
-    void onApplicationEventConfigEnabled() throws InterruptedException {
+    void onApplicationEventConfigEnabled() {
         when(config.isAutoRenewEnabled()).thenReturn(true);
-        CountDownLatch latch = new CountDownLatch(5);
-        when(createRenewService.createOrRenew()).thenAnswer(invocation -> {
-            latch.countDown();
-            return new CertificateRenewal(CertificateRenewalStatus.SUCCESS,
-                    Instant.now().plus(200, ChronoUnit.MILLIS));
-        });
+        RecursiveTimerTask timerTask = mock(RecursiveTimerTask.class);
+        when(timerTaskFactory.create(same(timer), any(Supplier.class))).thenReturn(timerTask);
 
         ApplicationReadyEvent event = mock(ApplicationReadyEvent.class);
         listener.onApplicationEvent(event);
 
-        latch.await();
+        ArgumentCaptor<RecursiveTimerTask> timerTaskArg = ArgumentCaptor.forClass(RecursiveTimerTask.class);
+        ArgumentCaptor<Date> dateArg = ArgumentCaptor.forClass(Date.class);
+        verify(timer, times(1)).schedule(timerTaskArg.capture(), dateArg.capture());
 
-        verify(createRenewService, times(5)).createOrRenew();
+        assertEquals(timerTask, timerTaskArg.getValue());
+        assertEquals(Date.from(FIXED_CLOCK.plus(1, ChronoUnit.SECONDS)), dateArg.getValue());
     }
 }

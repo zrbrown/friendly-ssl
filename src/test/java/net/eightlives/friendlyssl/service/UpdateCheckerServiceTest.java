@@ -31,11 +31,8 @@ class UpdateCheckerServiceTest {
 
     private static final Instant FIXED_CLOCK = Instant.from(OffsetDateTime.of(2020, 2, 3, 4, 5, 6, 0, ZoneOffset.UTC));
     private static final JSON VALID_STATUS_JSON = JSON.parse("{\"status\" : \"VALID\"}");
-    ;
     private static final JSON INVALID_STATUS_JSON = JSON.parse("{\"status\" : \"INVALID\"}");
-    ;
     private static final JSON PENDING_STATUS_JSON = JSON.parse("{\"status\" : \"PENDING\"}");
-    ;
 
     private UpdateCheckerService service;
 
