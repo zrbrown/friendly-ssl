@@ -2,7 +2,6 @@ package net.eightlives.friendlyssl.service;
 
 import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
-import net.eightlives.friendlyssl.exception.SSLCertificateException;
 import net.eightlives.friendlyssl.model.CertificateRenewal;
 import net.eightlives.friendlyssl.model.CertificateRenewalStatus;
 import org.shredzone.acme4j.Certificate;
