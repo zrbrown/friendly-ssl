@@ -3,6 +3,8 @@ package net.eightlives.friendlyssl.service;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.shredzone.acme4j.util.KeyPairUtils;
@@ -21,6 +23,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
+@Execution(ExecutionMode.CONCURRENT)
 @ExtendWith(MockitoExtension.class)
 class PKCS12KeyStoreServiceTest {
 
