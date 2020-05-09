@@ -21,7 +21,7 @@ public class CertificateController {
         this.createRenewService = createRenewService;
     }
 
-    @GetMapping(path = "/order", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/order", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CertificateRenewal> order() {
         CertificateRenewal certificateRenewal = createRenewService.createOrRenew();
 
