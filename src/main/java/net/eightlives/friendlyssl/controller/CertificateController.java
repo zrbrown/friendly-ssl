@@ -4,7 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.model.CertificateRenewal;
 import net.eightlives.friendlyssl.service.SSLCertificateCreateRenewService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,6 +21,7 @@ public class CertificateController {
         this.createRenewService = createRenewService;
     }
 
+    @GetMapping(path = "/order", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CertificateRenewal> order() {
         CertificateRenewal certificateRenewal = createRenewService.createOrRenew();
 

@@ -30,9 +30,8 @@ public class CertificateChallengeController {
     public String getToken(@PathVariable String token) {
         log.debug("Challenge endpoint hit for token: " + token);
         String content = challengeTokenStore.getTokens().getOrDefault(token, "");
-        CompletableFuture.runAsync(() -> {
-            applicationEventPublisher.publishEvent(new ChallengeTokenRequested(this, token));
-        });
+        CompletableFuture.runAsync(
+                () -> applicationEventPublisher.publishEvent(new ChallengeTokenRequested(this, token)));
         log.debug("Returning this content to the ACME server: " + content);
         return content;
     }
