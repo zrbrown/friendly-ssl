@@ -3,15 +3,13 @@ package net.eightlives.friendlyssl.service;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.shredzone.acme4j.util.KeyPairUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
@@ -23,7 +21,6 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
-@Execution(ExecutionMode.CONCURRENT)
 @ExtendWith(MockitoExtension.class)
 class PKCS12KeyStoreServiceTest {
 
@@ -56,18 +53,18 @@ class PKCS12KeyStoreServiceTest {
             CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
             certificateChain = new ArrayList<>((Collection<? extends X509Certificate>)
                     certificateFactory.generateCertificates(Files.newInputStream(
-                            Paths.get("src", "test", "resources", "certificate_chain.pem")
+                            Path.of("src", "test", "resources", "certificate_chain.pem")
                     )));
 
             privateKey = KeyPairUtils.readKeyPair(Files.newBufferedReader(
-                    Paths.get("src", "test", "resources", "keypair.pem"))).getPrivate();
+                    Path.of("src", "test", "resources", "keypair.pem"))).getPrivate();
         }
 
         @DisplayName("Generated keystore should match snapshot in relevant areas")
         @RepeatedTest(value = 50)
         void generateKeystore() throws IOException {
             byte[] snapshot = Files.readAllBytes(
-                    Paths.get("src", "test", "resources", "existing_keystore.p12"));
+                    Path.of("src", "test", "resources", "existing_keystore.p12"));
             byte[] keystore = service.generateKeyStore(certificateChain, privateKey);
 
             assertEquals(snapshot.length, keystore.length);
@@ -106,14 +103,14 @@ class PKCS12KeyStoreServiceTest {
         void setUp() throws IOException, CertificateException {
             CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
             certificate = certificateFactory.generateCertificate(Files.newInputStream(
-                    Paths.get("src", "test", "resources", "certificate_chain.pem")));
+                    Path.of("src", "test", "resources", "certificate_chain.pem")));
         }
 
         @DisplayName("when key store file does not exist")
         @Test
         void keyStoreNotFound() {
             when(config.getKeystoreFile()).thenReturn(
-                    Paths.get("src", "test", "resources", "notreal.p12").toString());
+                    Path.of("src", "test", "resources", "notreal.p12").toString());
 
             assertNull(service.getKeyPair(certificate, PK_FRIENDLY_NAME));
         }
@@ -122,7 +119,7 @@ class PKCS12KeyStoreServiceTest {
         @Test
         void invalidKeyStore() {
             when(config.getKeystoreFile()).thenReturn(
-                    Paths.get("src", "test", "resources", "invalid.p12").toString());
+                    Path.of("src", "test", "resources", "invalid.p12").toString());
 
             assertNull(service.getKeyPair(certificate, PK_FRIENDLY_NAME));
         }
@@ -134,7 +131,7 @@ class PKCS12KeyStoreServiceTest {
             @BeforeEach
             void setUp() {
                 when(config.getKeystoreFile()).thenReturn(
-                        Paths.get("src", "test", "resources", "existing_keystore.p12").toString());
+                        Path.of("src", "test", "resources", "existing_keystore.p12").toString());
             }
 
             @DisplayName("when private key friendly name is not in the key store")
@@ -160,14 +157,14 @@ class PKCS12KeyStoreServiceTest {
         @BeforeEach
         void setUp() {
             when(config.getKeystoreFile()).thenReturn(
-                    Paths.get("src", "test", "resources", "existing_keystore.p12").toString());
+                    Path.of("src", "test", "resources", "existing_keystore.p12").toString());
         }
 
         @DisplayName("when key store file does not exist")
         @Test
         void keyStoreNotFound() {
             when(config.getKeystoreFile()).thenReturn(
-                    Paths.get("src", "test", "resources", "notreal.p12").toString());
+                    Path.of("src", "test", "resources", "notreal.p12").toString());
 
             assertEquals(Optional.empty(), service.getCertificate(PK_FRIENDLY_NAME));
         }
@@ -176,7 +173,7 @@ class PKCS12KeyStoreServiceTest {
         @Test
         void invalidKeyStore() {
             when(config.getKeystoreFile()).thenReturn(
-                    Paths.get("src", "test", "resources", "invalid.p12").toString());
+                    Path.of("src", "test", "resources", "invalid.p12").toString());
 
             assertEquals(Optional.empty(), service.getCertificate(PK_FRIENDLY_NAME));
         }
@@ -189,7 +186,7 @@ class PKCS12KeyStoreServiceTest {
             @Test
             void friendlyNameKeyNotFound() throws CertificateException, IOException {
                 when(config.getKeystoreFile()).thenReturn(
-                        Paths.get("src", "test", "resources", "existing_keystore.p12").toString());
+                        Path.of("src", "test", "resources", "existing_keystore.p12").toString());
 
                 assertEquals(Optional.empty(), service.getCertificate("NotFound"));
             }
@@ -198,11 +195,11 @@ class PKCS12KeyStoreServiceTest {
             @Test
             void validKeyStore() throws CertificateException, IOException {
                 when(config.getKeystoreFile()).thenReturn(
-                        Paths.get("src", "test", "resources", "existing_keystore.p12").toString());
+                        Path.of("src", "test", "resources", "existing_keystore.p12").toString());
 
                 CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
                 Certificate certificate = certificateFactory.generateCertificate(Files.newInputStream(
-                        Paths.get("src", "test", "resources", "certificate_chain.pem")));
+                        Path.of("src", "test", "resources", "certificate_chain.pem")));
 
                 assertEquals(Optional.of(certificate), service.getCertificate(PK_FRIENDLY_NAME));
             }

@@ -3,10 +3,12 @@ package net.eightlives.friendlyssl.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.exception.SSLCertificateException;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -19,13 +21,12 @@ import org.shredzone.acme4j.exception.AcmeException;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
-@Execution(ExecutionMode.CONCURRENT)
 @ExtendWith(MockitoExtension.class)
 class TermsOfServiceServiceTest {
 
@@ -97,7 +98,7 @@ class TermsOfServiceServiceTest {
         @Test
         void fileDoesNotExist() {
             when(config.getTermsOfServiceFile()).thenReturn(
-                    Paths.get("src", "test", "resources", "notreal").toString()
+                    Path.of("src", "test", "resources", "notreal").toString()
             );
 
             assertFalse(service.termsAccepted(termsOfServiceLink));
@@ -107,7 +108,7 @@ class TermsOfServiceServiceTest {
         @Test
         void invalidFormat() {
             when(config.getTermsOfServiceFile()).thenReturn(
-                    Paths.get("src", "test", "resources", "tos_invalid.json").toString()
+                    Path.of("src", "test", "resources", "tos_invalid.json").toString()
             );
 
             assertThrows(SSLCertificateException.class, () -> service.termsAccepted(termsOfServiceLink));
@@ -117,7 +118,7 @@ class TermsOfServiceServiceTest {
         @Test
         void linkNotFound() {
             when(config.getTermsOfServiceFile()).thenReturn(
-                    Paths.get("src", "test", "resources", "tos_no_match.json").toString()
+                    Path.of("src", "test", "resources", "tos_no_match.json").toString()
             );
 
             assertFalse(service.termsAccepted(termsOfServiceLink));
@@ -127,7 +128,7 @@ class TermsOfServiceServiceTest {
         @Test
         void fileEmpty() {
             when(config.getTermsOfServiceFile()).thenReturn(
-                    Paths.get("src", "test", "resources", "tos_unaccepted.json").toString()
+                    Path.of("src", "test", "resources", "tos_unaccepted.json").toString()
             );
 
             assertFalse(service.termsAccepted(termsOfServiceLink));
@@ -137,7 +138,7 @@ class TermsOfServiceServiceTest {
         @Test
         void linkUnaccepted() {
             when(config.getTermsOfServiceFile()).thenReturn(
-                    Paths.get("src", "test", "resources", "tos_unaccepted.json").toString()
+                    Path.of("src", "test", "resources", "tos_unaccepted.json").toString()
             );
 
             assertFalse(service.termsAccepted(termsOfServiceLink));
@@ -147,7 +148,7 @@ class TermsOfServiceServiceTest {
         @Test
         void linkAccepted() {
             when(config.getTermsOfServiceFile()).thenReturn(
-                    Paths.get("src", "test", "resources", "tos_accepted.json").toString()
+                    Path.of("src", "test", "resources", "tos_accepted.json").toString()
             );
 
             assertTrue(service.termsAccepted(termsOfServiceLink));
@@ -165,7 +166,7 @@ class TermsOfServiceServiceTest {
         @ValueSource(booleans = {true, false})
         void invalidFormat(boolean accept) {
             when(config.getTermsOfServiceFile()).thenReturn(
-                    Paths.get("src", "test", "resources", "tos_invalid.json").toString()
+                    Path.of("src", "test", "resources", "tos_invalid.json").toString()
             );
 
             assertThrows(SSLCertificateException.class, () -> service.writeTermsLink(termsOfServiceLink, accept));
@@ -174,87 +175,79 @@ class TermsOfServiceServiceTest {
         @DisplayName("When terms of service file doesn't exist")
         @ParameterizedTest(name = "with accept = {0}")
         @CsvSource(value = {"true, YES", "false, NO"})
-        void fileDoesNotExist(boolean accept, String expected) throws IOException {
+        void fileDoesNotExist(boolean accept, String expected, @TempDir Path temp) throws IOException {
             when(config.getTermsOfServiceFile()).thenReturn(
-                    Paths.get("src", "test", "resources", "not_exists").toString()
+                    temp.resolve("not_exists").toString()
             );
 
             service.writeTermsLink(termsOfServiceLink, accept);
 
             assertLinesMatch(
-                    Files.readAllLines(Paths.get("src", "test", "resources", "tos_expected.json")).stream()
+                    Files.readAllLines(Path.of("src", "test", "resources", "tos_expected.json")).stream()
                             .map(s -> s.replaceFirst("\\$expected", expected))
                             .collect(Collectors.toList()),
-                    Files.readAllLines(Paths.get("src", "test", "resources", "not_exists"))
+                    Files.readAllLines(temp.resolve("not_exists"))
             );
         }
 
         @DisplayName("When terms of service file doesn't contain link")
         @ParameterizedTest(name = "with accept = {0}")
         @CsvSource(value = {"true, tos_accepted.json", "false, tos_unaccepted.json"})
-        void fileDoesNotContainLink(boolean accept, String expectedFile) throws IOException {
+        void fileDoesNotContainLink(boolean accept, String expectedFile, @TempDir Path temp) throws IOException {
             Files.copy(
-                    Paths.get("src", "test", "resources", "tos_no_match.json"),
-                    Paths.get("src", "test", "resources", "tos_no_match_copy")
+                    Path.of("src", "test", "resources", "tos_no_match.json"),
+                    temp.resolve("tos_no_match_copy")
             );
             when(config.getTermsOfServiceFile()).thenReturn(
-                    Paths.get("src", "test", "resources", "tos_no_match_copy").toString()
+                    temp.resolve("tos_no_match_copy").toString()
             );
 
             service.writeTermsLink(termsOfServiceLink, accept);
 
             assertLinesMatch(
-                    Files.readAllLines(Paths.get("src", "test", "resources", expectedFile)),
-                    Files.readAllLines(Paths.get("src", "test", "resources", "tos_no_match_copy"))
+                    Files.readAllLines(Path.of("src", "test", "resources", expectedFile)),
+                    Files.readAllLines(temp.resolve("tos_no_match_copy"))
             );
         }
 
         @DisplayName("When terms of service file contains the link unaccepted")
         @ParameterizedTest(name = "with accept = {0}")
         @CsvSource(value = {"true, tos_accepted.json", "false, tos_unaccepted.json"})
-        void fileContainsUnacceptedLink(boolean accept, String expectedFile) throws IOException {
+        void fileContainsUnacceptedLink(boolean accept, String expectedFile, @TempDir Path temp) throws IOException {
             Files.copy(
-                    Paths.get("src", "test", "resources", "tos_unaccepted.json"),
-                    Paths.get("src", "test", "resources", "tos_unaccepted_copy")
+                    Path.of("src", "test", "resources", "tos_unaccepted.json"),
+                    temp.resolve("tos_unaccepted_copy")
             );
             when(config.getTermsOfServiceFile()).thenReturn(
-                    Paths.get("src", "test", "resources", "tos_unaccepted_copy").toString()
+                    temp.resolve("tos_unaccepted_copy").toString()
             );
 
             service.writeTermsLink(termsOfServiceLink, accept);
 
             assertLinesMatch(
-                    Files.readAllLines(Paths.get("src", "test", "resources", expectedFile)),
-                    Files.readAllLines(Paths.get("src", "test", "resources", "tos_unaccepted_copy"))
+                    Files.readAllLines(Path.of("src", "test", "resources", expectedFile)),
+                    Files.readAllLines(temp.resolve("tos_unaccepted_copy"))
             );
         }
 
         @DisplayName("When terms of service file contains the link accepted")
         @ParameterizedTest(name = "with accept = {0}")
         @CsvSource(value = {"true, tos_accepted.json", "false, tos_unaccepted.json"})
-        void fileContainsAcceptedLink(boolean accept, String expectedFile) throws IOException {
+        void fileContainsAcceptedLink(boolean accept, String expectedFile, @TempDir Path temp) throws IOException {
             Files.copy(
-                    Paths.get("src", "test", "resources", "tos_accepted.json"),
-                    Paths.get("src", "test", "resources", "tos_accepted_copy")
+                    Path.of("src", "test", "resources", "tos_accepted.json"),
+                    temp.resolve("tos_accepted_copy")
             );
             when(config.getTermsOfServiceFile()).thenReturn(
-                    Paths.get("src", "test", "resources", "tos_accepted_copy").toString()
+                    temp.resolve("tos_accepted_copy").toString()
             );
 
             service.writeTermsLink(termsOfServiceLink, accept);
 
             assertLinesMatch(
-                    Files.readAllLines(Paths.get("src", "test", "resources", expectedFile)),
-                    Files.readAllLines(Paths.get("src", "test", "resources", "tos_accepted_copy"))
+                    Files.readAllLines(Path.of("src", "test", "resources", expectedFile)),
+                    Files.readAllLines(temp.resolve("tos_accepted_copy"))
             );
-        }
-
-        @AfterEach
-        void tearDown() throws IOException {
-            Files.deleteIfExists(Paths.get("src", "test", "resources", "not_exists"));
-            Files.deleteIfExists(Paths.get("src", "test", "resources", "tos_no_match_copy"));
-            Files.deleteIfExists(Paths.get("src", "test", "resources", "tos_unaccepted_copy"));
-            Files.deleteIfExists(Paths.get("src", "test", "resources", "tos_accepted_copy"));
         }
     }
 }

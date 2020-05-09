@@ -3,12 +3,9 @@ package net.eightlives.friendlyssl.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@Execution(ExecutionMode.CONCURRENT)
 class LocalIdGeneratorServiceTest {
 
     private LocalIdGeneratorService service;

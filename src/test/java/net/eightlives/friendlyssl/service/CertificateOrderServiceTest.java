@@ -8,8 +8,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
@@ -20,7 +18,7 @@ import org.shredzone.acme4j.util.KeyPairUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.security.KeyPair;
 import java.util.Collections;
 import java.util.List;
@@ -32,7 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-@Execution(ExecutionMode.CONCURRENT)
 @ExtendWith(MockitoExtension.class)
 class CertificateOrderServiceTest {
 
@@ -65,7 +62,7 @@ class CertificateOrderServiceTest {
         when(account.newOrder()).thenReturn(orderBuilder);
         when(orderBuilder.domain(anyString())).thenReturn(orderBuilder);
         domainKeyPair = KeyPairUtils.readKeyPair(Files.newBufferedReader(
-                Paths.get("src", "test", "resources", "keypair.pem")));
+                Path.of("src", "test", "resources", "keypair.pem")));
         service = new CertificateOrderService(config, challengeProcessorService, csrService, updateCheckerService);
     }
 

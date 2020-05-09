@@ -3,10 +3,12 @@ package net.eightlives.friendlyssl.service;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.exception.KeyStoreGeneratorException;
 import net.eightlives.friendlyssl.exception.SSLCertificateException;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.shredzone.acme4j.Certificate;
@@ -15,18 +17,16 @@ import org.shredzone.acme4j.util.KeyPairUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@Execution(ExecutionMode.CONCURRENT)
 @ExtendWith(MockitoExtension.class)
 class CertificateOrderHandlerServiceTest {
 
@@ -49,7 +49,7 @@ class CertificateOrderHandlerServiceTest {
     void setUp() throws IOException {
         when(config.getDomain()).thenReturn("domain.com");
         domainKeyPair = KeyPairUtils.readKeyPair(Files.newBufferedReader(
-                Paths.get("src", "test", "resources", "keypair.pem")));
+                Path.of("src", "test", "resources", "keypair.pem")));
         service = new CertificateOrderHandlerService(config, certificateOrderService, keyStoreService);
     }
 
@@ -78,7 +78,7 @@ class CertificateOrderHandlerServiceTest {
         @BeforeEach
         void setUp() throws IOException {
             domainKeyPair = KeyPairUtils.readKeyPair(Files.newBufferedReader(
-                    Paths.get("src", "test", "resources", "keypair.pem")));
+                    Path.of("src", "test", "resources", "keypair.pem")));
             when(certificateOrderService.orderCertificate("domain.com", login, domainKeyPair))
                     .thenReturn(Optional.of(certificate));
         }
@@ -96,11 +96,13 @@ class CertificateOrderHandlerServiceTest {
         class NoRenewal {
 
             private List<X509Certificate> certChain = Collections.emptyList();
+            private Path keystoreFile;
 
             @BeforeEach
-            void setUp() {
-                when(config.getKeystoreFile()).thenReturn(
-                        Paths.get("src", "test", "resources", "keystore.p12").toString());
+            void setUp(@TempDir Path temp) {
+                keystoreFile = temp.resolve("not_exists");
+
+                when(config.getKeystoreFile()).thenReturn(keystoreFile.toString());
                 when(certificate.getCertificateChain()).thenReturn(certChain);
             }
 
@@ -126,12 +128,7 @@ class CertificateOrderHandlerServiceTest {
                 verify(keyStoreService, times(1))
                         .generateKeyStore(certChain, domainKeyPair.getPrivate());
 
-                Files.exists(Paths.get("src", "test", "resources", "keystore.p12"));
-            }
-
-            @AfterEach
-            void tearDown() throws IOException {
-                Files.deleteIfExists(Paths.get("src", "test", "resources", "keystore.p12"));
+                assertTrue(Files.exists(keystoreFile));
             }
         }
     }
