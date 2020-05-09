@@ -3,8 +3,6 @@ package net.eightlives.friendlyssl.service;
 import net.eightlives.friendlyssl.exception.UpdateFailedException;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.shredzone.acme4j.AcmeJsonResource;
@@ -25,7 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
-@Execution(ExecutionMode.CONCURRENT)
 @ExtendWith(MockitoExtension.class)
 class UpdateCheckerServiceTest {
 

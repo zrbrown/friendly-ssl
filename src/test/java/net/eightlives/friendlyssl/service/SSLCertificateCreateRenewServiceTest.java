@@ -9,8 +9,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.shredzone.acme4j.Login;
@@ -19,7 +17,7 @@ import org.shredzone.acme4j.util.KeyPairUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.security.KeyPair;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -35,7 +33,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@Execution(ExecutionMode.CONCURRENT)
 @ExtendWith(MockitoExtension.class)
 class SSLCertificateCreateRenewServiceTest {
 
@@ -113,7 +110,7 @@ class SSLCertificateCreateRenewServiceTest {
                 org.shredzone.acme4j.Certificate acmeCert = mock(org.shredzone.acme4j.Certificate.class);
                 CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
                 X509Certificate certificate = (X509Certificate) certificateFactory.generateCertificate(Files.newInputStream(
-                        Paths.get("src", "test", "resources", "certificate_chain.pem")));
+                        Path.of("src", "test", "resources", "certificate_chain.pem")));
                 when(acmeCert.getCertificate()).thenReturn(certificate);
                 when(certificateOrderHandlerService.handleCertificateOrder(eq(login), any(KeyPair.class), eq(false)))
                         .thenReturn(acmeCert);
@@ -134,7 +131,7 @@ class SSLCertificateCreateRenewServiceTest {
                 void setUp() throws CertificateException, IOException {
                     CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
                     certificate = Optional.of((X509Certificate) certificateFactory.generateCertificate(Files.newInputStream(
-                            Paths.get("src", "test", "resources", "certificate_chain.pem"))));
+                            Path.of("src", "test", "resources", "certificate_chain.pem"))));
 
                     when(keyStoreService.getCertificate("friendlyssl")).thenReturn(certificate);
                     when(config.getAutoRenewalHoursBefore()).thenReturn(3);
@@ -173,7 +170,7 @@ class SSLCertificateCreateRenewServiceTest {
                         org.shredzone.acme4j.Certificate acmeCert = mock(org.shredzone.acme4j.Certificate.class);
                         CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
                         X509Certificate certificate = (X509Certificate) certificateFactory.generateCertificate(Files.newInputStream(
-                                Paths.get("src", "test", "resources", "certificate_chain.pem")));
+                                Path.of("src", "test", "resources", "certificate_chain.pem")));
                         when(acmeCert.getCertificate()).thenReturn(certificate);
                         when(certificateOrderHandlerService.handleCertificateOrder(eq(login), any(KeyPair.class), eq(false)))
                                 .thenReturn(acmeCert);
@@ -198,7 +195,7 @@ class SSLCertificateCreateRenewServiceTest {
                         org.shredzone.acme4j.Certificate acmeCert = mock(org.shredzone.acme4j.Certificate.class);
                         CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
                         X509Certificate certificate = (X509Certificate) certificateFactory.generateCertificate(Files.newInputStream(
-                                Paths.get("src", "test", "resources", "certificate_chain.pem")));
+                                Path.of("src", "test", "resources", "certificate_chain.pem")));
                         when(acmeCert.getCertificate()).thenReturn(certificate);
                         when(certificateOrderHandlerService.handleCertificateOrder(login, keyPair, true))
                                 .thenReturn(acmeCert);

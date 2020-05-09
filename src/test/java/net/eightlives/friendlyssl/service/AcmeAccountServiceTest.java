@@ -5,8 +5,6 @@ import net.eightlives.friendlyssl.exception.SSLCertificateException;
 import net.eightlives.friendlyssl.factory.AccountBuilderFactory;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
@@ -22,14 +20,13 @@ import org.shredzone.acme4j.util.KeyPairUtils;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.security.KeyPair;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-@Execution(ExecutionMode.CONCURRENT)
 @ExtendWith(MockitoExtension.class)
 class AcmeAccountServiceTest {
 
@@ -74,7 +71,7 @@ class AcmeAccountServiceTest {
         @BeforeEach
         void setUp() throws IOException {
             accountKeyPair = KeyPairUtils.readKeyPair(Files.newBufferedReader(
-                    Paths.get("src", "test", "resources", "keypair.pem")));
+                    Path.of("src", "test", "resources", "keypair.pem")));
             when(termsOfServiceService.getTermsOfServiceLink(session)).thenReturn(TERMS_OF_SERVICE_LINK);
 
             when(accountBuilderFactory.accountBuilder()).thenReturn(accountBuilder);
@@ -86,7 +83,7 @@ class AcmeAccountServiceTest {
         @Nested
         class AccountKeyValueFileExists {
 
-            private final String accountFile = Paths.get("src", "test", "resources", "keypair.pem").toString();
+            private final String accountFile = Path.of("src", "test", "resources", "keypair.pem").toString();
 
             @BeforeEach
             void setUp() {
@@ -135,7 +132,7 @@ class AcmeAccountServiceTest {
         @ValueSource(strings = {"keypair.pem", "non-existing.pem"})
         void accountCreationSuccessful(String accountFile) throws AcmeException {
             when(config.getAccountPrivateKeyFile())
-                    .thenReturn(Paths.get("src", "test", "resources", accountFile).toString());
+                    .thenReturn(Path.of("src", "test", "resources", accountFile).toString());
             when(accountBuilder.createLogin(session)).thenReturn(login);
 
             Login responseLogin = service.getOrCreateAccountLogin(session);
@@ -150,7 +147,7 @@ class AcmeAccountServiceTest {
         @ValueSource(strings = {"keypair.pem", "non-existing.pem"})
         void accountCreationFailedTOSAccepted(String accountFile) throws AcmeException {
             when(config.getAccountPrivateKeyFile())
-                    .thenReturn(Paths.get("src", "test", "resources", accountFile).toString());
+                    .thenReturn(Path.of("src", "test", "resources", accountFile).toString());
             when(accountBuilder.createLogin(session))
                     .thenThrow(new AcmeException())
                     .thenReturn(login);
@@ -173,7 +170,7 @@ class AcmeAccountServiceTest {
         @ValueSource(strings = {"keypair.pem", "non-existing.pem"})
         void accountCreationFailedTOSUnaccepted(String accountFile) throws AcmeException {
             when(config.getAccountPrivateKeyFile())
-                    .thenReturn(Paths.get("src", "test", "resources", accountFile).toString());
+                    .thenReturn(Path.of("src", "test", "resources", accountFile).toString());
             when(accountBuilder.createLogin(session)).thenThrow(new AcmeException());
             when(termsOfServiceService.termsAccepted(TERMS_OF_SERVICE_LINK)).thenReturn(false);
             when(config.getTermsOfServiceFile()).thenReturn(TERMS_OF_SERVICE_LINK.toString());
@@ -188,7 +185,7 @@ class AcmeAccountServiceTest {
         @ValueSource(strings = {"keypair.pem", "non-existing.pem"})
         void acmeUserActionRequiredException(String accountFile) throws AcmeException {
             when(config.getAccountPrivateKeyFile())
-                    .thenReturn(Paths.get("src", "test", "resources", accountFile).toString());
+                    .thenReturn(Path.of("src", "test", "resources", accountFile).toString());
             when(accountBuilder.createLogin(session))
                     .thenThrow(new AcmeException())
                     .thenThrow(mock(AcmeUserActionRequiredException.class));
@@ -208,7 +205,7 @@ class AcmeAccountServiceTest {
         @ValueSource(strings = {"keypair.pem", "non-existing.pem"})
         void acmeException(String accountFile) throws AcmeException {
             when(config.getAccountPrivateKeyFile())
-                    .thenReturn(Paths.get("src", "test", "resources", accountFile).toString());
+                    .thenReturn(Path.of("src", "test", "resources", accountFile).toString());
             when(accountBuilder.createLogin(session))
                     .thenThrow(new AcmeException())
                     .thenThrow(new AcmeException());
@@ -222,7 +219,7 @@ class AcmeAccountServiceTest {
 
         @AfterEach
         void tearDown() throws IOException {
-            Files.deleteIfExists(Paths.get("src", "test", "resources", "non-existing.pem"));
+            Files.deleteIfExists(Path.of("src", "test", "resources", "non-existing.pem"));
         }
     }
 }
