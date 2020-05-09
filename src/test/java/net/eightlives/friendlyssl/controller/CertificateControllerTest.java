@@ -28,6 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Tag("controller")
+@Tag("slow")
 @ExtendWith(MockitoExtension.class)
 @WebMvcTest(controllers = CertificateController.class)
 class CertificateControllerTest {
