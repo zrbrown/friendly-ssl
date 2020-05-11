@@ -13,8 +13,8 @@ public class FriendlySSLConfig {
     private String accountEmail;
     private String certificateFriendlyName = "account.pem";
     private String accountPrivateKeyFile = "keystore.p12";
-    private String keystoreFile = "tos";
-    private String termsOfServiceFile = "";
+    private String keystoreFile = "keystore.p12";
+    private String termsOfServiceFile = "tos";
     private int orderTimeoutSeconds = 30;
     private int tokenRequestedTimeoutSeconds = 10;
     private int authChallengeTimeoutSeconds = 20;

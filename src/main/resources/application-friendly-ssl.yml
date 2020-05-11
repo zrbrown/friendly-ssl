@@ -13,11 +13,11 @@ friendly-ssl:
 
 # In consumer, the following are required to be defined:
 #
-#  friendlyssl:
+#  friendly-ssl:
 #    domain: domain.com
 #    account-email: your@email.com
 #
 # You will need to change the session url to a production one (default is LetsEncrypt staging):
 #
-#  friendlyssl:
+#  friendly-ssl:
 #    acme-session-url: acme://letsencrypt.org
