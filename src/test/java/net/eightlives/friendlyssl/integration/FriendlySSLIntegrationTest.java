@@ -1,6 +1,6 @@
 package net.eightlives.friendlyssl.integration;
 
-import net.eightlives.friendlyssl.PebbleTest;
+import net.eightlives.friendlyssl.annotation.PebbleTest;
 import net.eightlives.friendlyssl.annotation.FriendlySSL;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

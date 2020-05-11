@@ -1,4 +1,4 @@
-package net.eightlives.friendlyssl;
+package net.eightlives.friendlyssl.annotation;
 
 import net.eightlives.friendlyssl.integration.AcmeServerInitializer;
 import org.junit.jupiter.api.Tag;
