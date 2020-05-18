@@ -9,15 +9,10 @@ import org.shredzone.acme4j.AcmeJsonResource;
 import org.shredzone.acme4j.exception.AcmeException;
 import org.shredzone.acme4j.exception.AcmeRetryAfterException;
 import org.shredzone.acme4j.toolbox.JSON;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 
 import java.time.*;
 import java.time.temporal.ChronoUnit;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -36,7 +31,7 @@ class UpdateCheckerServiceTest {
     @Mock
     private AcmeJsonResource resource;
 
-    private final TaskScheduler scheduler = new ConcurrentTaskScheduler();
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     @DisplayName("Scheduler delay tests")
     @Nested
@@ -45,11 +40,13 @@ class UpdateCheckerServiceTest {
         @DisplayName("Resource updates successfully")
         @Test
         void updateSuccess() {
-            TaskScheduler mockScheduler = mock(TaskScheduler.class);
+            ScheduledExecutorService mockScheduler = mock(ScheduledExecutorService.class);
             service = new UpdateCheckerService(mockScheduler, Clock.fixed(FIXED_CLOCK, ZoneId.of("UTC")));
             service.start(resource);
 
-            verify(mockScheduler, times(1)).schedule(any(Runnable.class), eq(FIXED_CLOCK));
+            verify(mockScheduler, times(1)).schedule(any(Runnable.class),
+                    eq(0L),
+                    eq(TimeUnit.MILLISECONDS));
         }
 
         @DisplayName("Resource update returns a retry time")
@@ -58,11 +55,13 @@ class UpdateCheckerServiceTest {
             doThrow(new AcmeRetryAfterException("", FIXED_CLOCK.plus(30, ChronoUnit.SECONDS)))
                     .when(resource).update();
 
-            TaskScheduler mockScheduler = mock(TaskScheduler.class);
+            ScheduledExecutorService mockScheduler = mock(ScheduledExecutorService.class);
             service = new UpdateCheckerService(mockScheduler, Clock.fixed(FIXED_CLOCK, ZoneId.of("UTC")));
             service.start(resource);
 
-            verify(mockScheduler, times(1)).schedule(any(Runnable.class), eq(FIXED_CLOCK.plus(30, ChronoUnit.SECONDS)));
+            verify(mockScheduler, times(1)).schedule(any(Runnable.class),
+                    eq(30000L),
+                    eq(TimeUnit.MILLISECONDS));
         }
     }
 

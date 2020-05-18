@@ -2,6 +2,7 @@ package net.eightlives.friendlyssl.annotation;
 
 import net.eightlives.friendlyssl.config.ClockConfig;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
+import net.eightlives.friendlyssl.config.SchedulerConfig;
 import net.eightlives.friendlyssl.config.TimerConfig;
 import net.eightlives.friendlyssl.controller.CertificateChallengeController;
 import net.eightlives.friendlyssl.factory.AccountBuilderFactory;
@@ -21,6 +22,7 @@ import java.lang.annotation.*;
         FriendlySSLConfig.class,
         ClockConfig.class,
         TimerConfig.class,
+        SchedulerConfig.class,
         RecursiveTimerTaskFactory.class,
         FriendlySSLApplicationListener.class,
         CertificateChallengeController.class,
