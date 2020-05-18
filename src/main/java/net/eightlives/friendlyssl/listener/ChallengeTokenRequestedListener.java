@@ -42,7 +42,6 @@ public class ChallengeTokenRequestedListener implements ApplicationListener<Chal
         }
     }
 
-    //TODO rename
     public CompletableFuture<Void> getChallengeTokenVerification(Http01Challenge challenge, Authorization authorization) {
         challengeTokenStore.setToken(challenge.getToken(), challenge.getAuthorization());
 
