@@ -2,6 +2,8 @@ package net.eightlives.friendlyssl.listener;
 
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.factory.RecursiveTimerTaskFactory;
+import net.eightlives.friendlyssl.model.CertificateRenewal;
+import net.eightlives.friendlyssl.model.CertificateRenewalStatus;
 import net.eightlives.friendlyssl.service.SSLCertificateCreateRenewService;
 import net.eightlives.friendlyssl.task.RecursiveTimerTask;
 import org.junit.jupiter.api.BeforeEach;
@@ -74,7 +76,11 @@ class FriendlySSLApplicationListenerTest {
     void onApplicationEventConfigEnabled() {
         when(config.isAutoRenewEnabled()).thenReturn(true);
         RecursiveTimerTask timerTask = mock(RecursiveTimerTask.class);
-        when(timerTaskFactory.create(same(timer), any(Supplier.class))).thenReturn(timerTask);
+        ArgumentCaptor<Supplier<Instant>> createOrRenewSupplier = ArgumentCaptor.forClass(Supplier.class);
+        when(timerTaskFactory.create(same(timer), createOrRenewSupplier.capture())).thenReturn(timerTask);
+        CertificateRenewal renewal = new CertificateRenewal(CertificateRenewalStatus.SUCCESS,
+                Instant.ofEpochMilli(100000));
+        when(createRenewService.createOrRenew()).thenReturn(renewal);
 
         ApplicationReadyEvent event = mock(ApplicationReadyEvent.class);
         listener.onApplicationEvent(event);
@@ -85,5 +91,6 @@ class FriendlySSLApplicationListenerTest {
 
         assertEquals(timerTask, timerTaskArg.getValue());
         assertEquals(Date.from(FIXED_CLOCK.plus(1, ChronoUnit.SECONDS)), dateArg.getValue());
+        assertEquals(renewal.getTime(), createOrRenewSupplier.getValue().get());
     }
 }
