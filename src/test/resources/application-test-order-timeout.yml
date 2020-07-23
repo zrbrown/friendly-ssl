@@ -1,0 +1,3 @@
+friendly-ssl:
+  terms-of-service-file: src/test/resources/integration/tos_accepted
+  order-timeout-seconds: 0

@@ -6,7 +6,7 @@ friendly-ssl:
   keystore-file: keystore.p12
   terms-of-service-file: tos
   order-timeout-seconds: 30
-  token-requested-timeout-seconds: 10
+  token-requested-timeout-seconds: 30
   auth-challenge-timeout-seconds: 20
   auto-renewal-hours-before: 72
   error-retry-wait-hours: 1

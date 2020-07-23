@@ -1,5 +1,0 @@
-friendly-ssl:
-  auto-renew-enabled: true
-  account-private-key-file: keypair.pem
-  domain: eightlives.net
-  account-email: fry@planetxpress.com

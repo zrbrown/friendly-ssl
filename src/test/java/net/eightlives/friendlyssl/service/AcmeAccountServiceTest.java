@@ -12,13 +12,18 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.shredzone.acme4j.AccountBuilder;
 import org.shredzone.acme4j.Login;
+import org.shredzone.acme4j.Problem;
 import org.shredzone.acme4j.Session;
 import org.shredzone.acme4j.exception.AcmeException;
+import org.shredzone.acme4j.exception.AcmeServerException;
 import org.shredzone.acme4j.exception.AcmeUserActionRequiredException;
+import org.shredzone.acme4j.toolbox.JSON;
 import org.shredzone.acme4j.util.KeyPairUtils;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyPair;
@@ -31,6 +36,7 @@ import static org.mockito.Mockito.*;
 class AcmeAccountServiceTest {
 
     private AcmeAccountService service;
+    private AcmeServerException accountDoesNotExistException;
 
     @Mock
     private FriendlySSLConfig config;
@@ -42,8 +48,11 @@ class AcmeAccountServiceTest {
     private Session session;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws MalformedURLException {
         service = new AcmeAccountService(config, termsOfServiceService, accountBuilderFactory);
+        accountDoesNotExistException = new AcmeServerException(new Problem(
+                JSON.parse("{\"type\":\"urn:ietf:params:acme:error:accountDoesNotExist\"}"),
+                new URL("http://localhost")));
     }
 
     @DisplayName("getting TOS link throws SSLCertificateException")
@@ -105,11 +114,11 @@ class AcmeAccountServiceTest {
                 assertEquals(accountKeyPair.getPrivate(), keyPair.getPrivate());
             }
 
-            @DisplayName("when account creation fails, but TOS accepted")
+            @DisplayName("when account doesn't exist, but TOS accepted")
             @Test
-            void accountCreationFailedTOSAccepted() throws AcmeException {
+            void accountNotExistsTOSAccepted() throws AcmeException, MalformedURLException {
                 when(accountBuilder.createLogin(session))
-                        .thenThrow(new AcmeException())
+                        .thenThrow(accountDoesNotExistException)
                         .thenReturn(login);
                 when(accountBuilder.addEmail("test@test.com")).thenReturn(accountBuilder);
                 when(accountBuilder.agreeToTermsOfService()).thenReturn(accountBuilder);
@@ -142,14 +151,25 @@ class AcmeAccountServiceTest {
             verify(accountBuilder, times(1)).createLogin(session);
         }
 
-        @DisplayName("when account creation fails, but TOS accepted")
+        @DisplayName("when account creation throws an AcmeException")
         @ParameterizedTest(name = "for file {0}")
         @ValueSource(strings = {"keypair.pem", "non-existing.pem"})
-        void accountCreationFailedTOSAccepted(String accountFile) throws AcmeException {
+        void accountCreationAcmeException(String accountFile) throws AcmeException {
+            when(config.getAccountPrivateKeyFile())
+                    .thenReturn(Path.of("src", "test", "resources", accountFile).toString());
+            when(accountBuilder.createLogin(session)).thenThrow(new AcmeException());
+
+            assertThrows(SSLCertificateException.class, () -> service.getOrCreateAccountLogin(session));
+        }
+
+        @DisplayName("when account doesn't exist, but TOS accepted")
+        @ParameterizedTest(name = "for file {0}")
+        @ValueSource(strings = {"keypair.pem", "non-existing.pem"})
+        void accountNotExistsTOSAccepted(String accountFile) throws AcmeException, MalformedURLException {
             when(config.getAccountPrivateKeyFile())
                     .thenReturn(Path.of("src", "test", "resources", accountFile).toString());
             when(accountBuilder.createLogin(session))
-                    .thenThrow(new AcmeException())
+                    .thenThrow(accountDoesNotExistException)
                     .thenReturn(login);
             when(accountBuilder.addEmail("test@test.com")).thenReturn(accountBuilder);
             when(accountBuilder.agreeToTermsOfService()).thenReturn(accountBuilder);
@@ -165,13 +185,13 @@ class AcmeAccountServiceTest {
             verify(accountBuilder, atLeastOnce()).createLogin(session);
         }
 
-        @DisplayName("when account creation fails, but TOS not accepted")
+        @DisplayName("when account does not exist, and TOS not accepted")
         @ParameterizedTest(name = "for file {0}")
         @ValueSource(strings = {"keypair.pem", "non-existing.pem"})
-        void accountCreationFailedTOSUnaccepted(String accountFile) throws AcmeException {
+        void accountNotExistsTOSUnaccepted(String accountFile) throws AcmeException, MalformedURLException {
             when(config.getAccountPrivateKeyFile())
                     .thenReturn(Path.of("src", "test", "resources", accountFile).toString());
-            when(accountBuilder.createLogin(session)).thenThrow(new AcmeException());
+            when(accountBuilder.createLogin(session)).thenThrow(accountDoesNotExistException);
             when(termsOfServiceService.termsAccepted(TERMS_OF_SERVICE_LINK)).thenReturn(false);
             when(config.getTermsOfServiceFile()).thenReturn(TERMS_OF_SERVICE_LINK.toString());
 
@@ -180,14 +200,14 @@ class AcmeAccountServiceTest {
             verify(termsOfServiceService, times(1)).writeTermsLink(TERMS_OF_SERVICE_LINK, false);
         }
 
-        @DisplayName("when AcmeUserActionRequiredException occurs")
+        @DisplayName("when AcmeUserActionRequiredException occurs when new account creation is attempted")
         @ParameterizedTest(name = "for file {0}")
         @ValueSource(strings = {"keypair.pem", "non-existing.pem"})
-        void acmeUserActionRequiredException(String accountFile) throws AcmeException {
+        void acmeUserActionRequiredException(String accountFile) throws AcmeException, MalformedURLException {
             when(config.getAccountPrivateKeyFile())
                     .thenReturn(Path.of("src", "test", "resources", accountFile).toString());
             when(accountBuilder.createLogin(session))
-                    .thenThrow(new AcmeException())
+                    .thenThrow(accountDoesNotExistException)
                     .thenThrow(mock(AcmeUserActionRequiredException.class));
             when(accountBuilder.addEmail("test@test.com")).thenReturn(accountBuilder);
             when(accountBuilder.agreeToTermsOfService()).thenReturn(accountBuilder);
@@ -200,14 +220,14 @@ class AcmeAccountServiceTest {
             verify(termsOfServiceService, times(1)).writeTermsLink(TERMS_OF_SERVICE_LINK, false);
         }
 
-        @DisplayName("when AcmeException occurs when account creation fails and TOS accepted")
+        @DisplayName("when AcmeException occurs when new account creation is attempted")
         @ParameterizedTest(name = "for file {0}")
         @ValueSource(strings = {"keypair.pem", "non-existing.pem"})
-        void acmeException(String accountFile) throws AcmeException {
+        void acmeException(String accountFile) throws AcmeException, MalformedURLException {
             when(config.getAccountPrivateKeyFile())
                     .thenReturn(Path.of("src", "test", "resources", accountFile).toString());
             when(accountBuilder.createLogin(session))
-                    .thenThrow(new AcmeException())
+                    .thenThrow(accountDoesNotExistException)
                     .thenThrow(new AcmeException());
             when(accountBuilder.addEmail("test@test.com")).thenReturn(accountBuilder);
             when(accountBuilder.agreeToTermsOfService()).thenReturn(accountBuilder);
