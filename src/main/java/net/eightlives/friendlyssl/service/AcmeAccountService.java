@@ -74,7 +74,7 @@ public class AcmeAccountService {
             termsOfServiceService.writeTermsLink(termsOfServiceLink, false);
             throw new SSLCertificateException(e);
         } catch (IOException | AcmeException e) {
-            log.error("Error while retrieving or creating ACME Login", e);
+            log.error("Error while retrieving or creating ACME Login");
             throw new SSLCertificateException(e);
         }
     }
