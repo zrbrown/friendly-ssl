@@ -1,9 +1,9 @@
 package net.eightlives.friendlyssl.integration;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
+import net.eightlives.friendlyssl.config.FriendlySSLConfig;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
@@ -14,12 +14,19 @@ import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@ContextConfiguration(initializers = NoNonceRejectTest.class)
+@ContextConfiguration(initializers = UnexpiredCertificateTest.class)
 @ActiveProfiles({"test-base", "test-tos-accepted"})
-class NoNonceRejectTest implements IntegrationTest {
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+class UnexpiredCertificateTest implements IntegrationTest {
 
     static {
         Testcontainers.exposeHostPorts(5002);
@@ -36,17 +43,23 @@ class NoNonceRejectTest implements IntegrationTest {
                     BindMode.READ_ONLY
             );
 
+    @Autowired
+    FriendlySSLConfig config;
+
     @Override
     public GenericContainer getPebbleContainer() {
         return pebbleContainer;
     }
 
-    @DisplayName("Start server and certificate order does not respond as valid in time")
+    File keystore;
+
+    @Order(1)
+    @DisplayName("Start server and certificate does not exist")
     @Timeout(20)
     @ExtendWith(OutputCaptureExtension.class)
     @DirtiesContext
     @Test
-    void orderTimeout(CapturedOutput output) {
+    void noCertificate(CapturedOutput output) {
         testLogOutput(
                 List.of(
                         "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate create/renew",
@@ -58,5 +71,29 @@ class NoNonceRejectTest implements IntegrationTest {
                 ),
                 output
         );
+
+        assertTrue(Files.exists(Path.of(config.getKeystoreFile())));
+
+        keystore = Path.of(config.getKeystoreFile()).toFile();
+    }
+
+    @Order(2)
+    @DisplayName("Then start server and unexpired certificate exists")
+    @Timeout(20)
+    @ExtendWith(OutputCaptureExtension.class)
+    @DirtiesContext
+    @Test
+    void unexpiredCertificateExists(CapturedOutput output) {
+        testLogOutput(
+                List.of(
+                        "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate create/renew",
+                        "n.e.f.service.AcmeAccountService         : Using existing account login",
+                        "n.e.f.s.SSLCertificateCreateRenewService : Certificate account login accessed",
+                        "n.e.f.s.SSLCertificateCreateRenewService : Existing certificate expiration time is"
+                ),
+                output
+        );
+
+        assertEquals(keystore, Path.of(config.getKeystoreFile()).toFile());
     }
 }

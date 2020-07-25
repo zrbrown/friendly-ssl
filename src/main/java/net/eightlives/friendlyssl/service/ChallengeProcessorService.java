@@ -28,7 +28,7 @@ public class ChallengeProcessorService {
                 .map(auth -> {
                     Http01Challenge challenge = auth.findChallenge(Http01Challenge.TYPE);
                     if (challenge == null) {
-                        throw new SSLCertificateException(new IllegalStateException("HTTP Challenge does not exist"));
+                        throw new SSLCertificateException(new IllegalStateException("HTTP Challenge does not exist"));//TODO how is this handled?
                     }
                     return new AuthorizationAndChallenge(auth, challenge);
                 })

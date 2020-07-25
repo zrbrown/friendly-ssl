@@ -11,8 +11,8 @@ public class FriendlySSLConfig {
     private String acmeSessionUrl = "acme://letsencrypt.org/staging";
     private String domain;
     private String accountEmail;
-    private String certificateFriendlyName = "account.pem";
-    private String accountPrivateKeyFile = "keystore.p12";
+    private String certificateFriendlyName = "friendlyssl";
+    private String accountPrivateKeyFile = "account.pem";
     private String keystoreFile = "keystore.p12";
     private String termsOfServiceFile = "tos";
     private int orderTimeoutSeconds = 30;

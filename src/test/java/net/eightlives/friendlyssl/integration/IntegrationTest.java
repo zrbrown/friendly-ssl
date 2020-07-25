@@ -1,8 +1,8 @@
 package net.eightlives.friendlyssl.integration;
 
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.parallel.Execution;
@@ -44,13 +44,13 @@ public interface IntegrationTest extends ApplicationContextInitializer<Configura
 
     GenericContainer getPebbleContainer();
 
-    @BeforeEach
-    default void setUp() throws IOException {
+    @BeforeAll
+    default void setUpAll() throws IOException {
         Files.createDirectory(TEMP);
     }
 
-    @AfterEach
-    default void tearDown() throws IOException {
+    @AfterAll
+    default void tearDownAll() throws IOException {
         Files.walk(TEMP)
                 .filter(path -> path != TEMP)
                 .map(Path::toFile)

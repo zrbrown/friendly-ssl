@@ -46,6 +46,7 @@ public class SSLCertificateCreateRenewService {
             Login login = accountService.getOrCreateAccountLogin(session);
             log.info("Certificate account login accessed");
 
+            //TODO move above account login?
             Optional<X509Certificate> existingCertificate = keyStoreService.getCertificate(config.getCertificateFriendlyName());
             if (existingCertificate.isPresent()) {
                 Instant renewTime = Instant.ofEpochMilli(existingCertificate.get().getNotAfter().getTime());

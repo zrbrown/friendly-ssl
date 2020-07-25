@@ -1,9 +1,7 @@
 package net.eightlives.friendlyssl.integration;
 
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,6 +14,7 @@ import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -23,9 +22,10 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@ContextConfiguration(initializers = PartialNonceRejectTest.class)
+@ContextConfiguration(initializers = AccountReuseTest.class)
 @ActiveProfiles({"test-base", "test-tos-accepted"})
-class PartialNonceRejectTest implements IntegrationTest {
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+class AccountReuseTest implements IntegrationTest {
 
     static {
         Testcontainers.exposeHostPorts(5002);
@@ -35,7 +35,7 @@ class PartialNonceRejectTest implements IntegrationTest {
             .withCommand("pebble -config /test/my-pebble-config.json")
             .withExposedPorts(14000, 15000)
             .withEnv("PEBBLE_VA_NOSLEEP", "1")
-            .withEnv("PEBBLE_WFE_NONCEREJECT", "50")
+            .withEnv("PEBBLE_WFE_NONCEREJECT", "0")
             .withClasspathResourceMapping(
                     "pebble-config.json",
                     "/test/my-pebble-config.json",
@@ -50,16 +50,41 @@ class PartialNonceRejectTest implements IntegrationTest {
         return pebbleContainer;
     }
 
-    @DisplayName("Start server and certificate 50% of nonces are rejected")
+    @Order(1)
+    @DisplayName("Start server and account does not exist")
     @Timeout(20)
     @ExtendWith(OutputCaptureExtension.class)
     @DirtiesContext
     @Test
-    void partialNonceReject(CapturedOutput output) {
+    void accountDoesNotExist(CapturedOutput output) throws IOException {
         testLogOutput(
                 List.of(
                         "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate create/renew",
                         "n.e.f.service.AcmeAccountService         : Account does not exist. Creating account.",
+                        "n.e.f.s.SSLCertificateCreateRenewService : Certificate account login accessed",
+                        "n.e.f.s.SSLCertificateCreateRenewService : Beginning certificate order. Renewal: false",
+                        "n.e.f.service.UpdateCheckerService       : Resource is valid",
+                        "n.e.f.s.SSLCertificateCreateRenewService : Certificate renewal successful. New certificate expiration time is"
+                ),
+                output
+        );
+
+        assertTrue(Files.exists(Path.of(config.getKeystoreFile())));
+
+        Files.delete(Path.of(config.getKeystoreFile()));
+    }
+
+    @Order(2)
+    @DisplayName("Then start server and account exists")
+    @Timeout(20)
+    @ExtendWith(OutputCaptureExtension.class)
+    @DirtiesContext
+    @Test
+    void accountExists(CapturedOutput output) {
+        testLogOutput(
+                List.of(
+                        "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate create/renew",
+                        "n.e.f.service.AcmeAccountService         : Using existing account login",
                         "n.e.f.s.SSLCertificateCreateRenewService : Certificate account login accessed",
                         "n.e.f.s.SSLCertificateCreateRenewService : Beginning certificate order. Renewal: false",
                         "n.e.f.service.UpdateCheckerService       : Resource is valid",

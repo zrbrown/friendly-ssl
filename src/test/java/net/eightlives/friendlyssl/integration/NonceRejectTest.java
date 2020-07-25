@@ -41,12 +41,12 @@ class NonceRejectTest implements IntegrationTest {
         return pebbleContainer;
     }
 
-    @DisplayName("Start server and certificate order does not respond as valid in time")
+    @DisplayName("Start server and every nonce is rejected")
     @Timeout(20)
     @ExtendWith(OutputCaptureExtension.class)
     @DirtiesContext
     @Test
-    void orderTimeout(CapturedOutput output) {
+    void nonceReject(CapturedOutput output) {
         testLogOutput(
                 List.of(
                         "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate create/renew",
