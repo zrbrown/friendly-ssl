@@ -17,7 +17,7 @@ import org.testcontainers.junit.jupiter.Container;
 import java.util.List;
 
 @SpringBootTest
-@ContextConfiguration(initializers = TokenRequestedTimeoutTest.class)
+@ContextConfiguration(initializers = TokenRequestedTimeoutTest.class, classes = TestApp.class)
 @ActiveProfiles({"test-base", "test-token-requested-timeout"})
 class TokenRequestedTimeoutTest implements IntegrationTest {
 

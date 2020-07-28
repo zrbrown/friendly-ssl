@@ -17,7 +17,7 @@ import org.testcontainers.containers.GenericContainer;
 import java.util.List;
 
 @SpringBootTest
-@ContextConfiguration(initializers = NonceRejectTest.class)
+@ContextConfiguration(initializers = NonceRejectTest.class, classes = TestApp.class)
 @ActiveProfiles({"test-base", "test-tos-accepted"})
 class NonceRejectTest implements IntegrationTest {
 

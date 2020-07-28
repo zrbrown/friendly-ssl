@@ -150,7 +150,7 @@ class SSLCertificateCreateRenewServiceTest {
                     CertificateRenewal renewal = service.createOrRenew();
 
                     assertEquals(CertificateRenewalStatus.ALREADY_VALID, renewal.getStatus());
-                    assertEquals(EXISTING_KEYSTORE_CERT_EXPIRATION, renewal.getTime());
+                    assertEquals(EXISTING_KEYSTORE_CERT_EXPIRATION.minus(3, ChronoUnit.HOURS), renewal.getTime());
                 }
 
                 @DisplayName("When certificate meets auto renewal threshold")

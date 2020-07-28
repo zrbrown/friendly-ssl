@@ -54,7 +54,7 @@ public class SSLCertificateCreateRenewService {
                     log.info("Existing certificate expiration time is " + renewTime);
                     return new CertificateRenewal(
                             CertificateRenewalStatus.ALREADY_VALID,
-                            renewTime);
+                            renewTime.minus(config.getAutoRenewalHoursBefore(), ChronoUnit.HOURS));
                 }
             }
 

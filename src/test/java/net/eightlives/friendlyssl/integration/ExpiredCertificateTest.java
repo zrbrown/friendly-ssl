@@ -23,7 +23,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@ContextConfiguration(initializers = ExpiredCertificateTest.class)
+@ContextConfiguration(initializers = ExpiredCertificateTest.class, classes = TestApp.class)
 @ActiveProfiles({"test-base", "test-existing-keystore"})
 class ExpiredCertificateTest implements IntegrationTest {
 

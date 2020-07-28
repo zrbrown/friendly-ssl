@@ -17,7 +17,7 @@ import org.testcontainers.junit.jupiter.Container;
 import java.util.List;
 
 @SpringBootTest
-@ContextConfiguration(initializers = MinimumConfigTest.class)
+@ContextConfiguration(initializers = MinimumConfigTest.class, classes = TestApp.class)
 @ActiveProfiles("test-base")
 class MinimumConfigTest implements IntegrationTest {
 

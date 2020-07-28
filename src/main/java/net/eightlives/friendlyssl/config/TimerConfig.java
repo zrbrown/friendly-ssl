@@ -3,13 +3,14 @@ package net.eightlives.friendlyssl.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Timer;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 @Configuration
 public class TimerConfig {
 
     @Bean(name = "ssl-certificate-monitor")
-    public Timer timer() {
-        return new Timer("SSL Certificate Monitor", true);
+    public ScheduledExecutorService timer() {
+        return Executors.newSingleThreadScheduledExecutor();
     }
 }

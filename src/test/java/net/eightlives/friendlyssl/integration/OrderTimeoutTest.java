@@ -17,7 +17,7 @@ import org.testcontainers.containers.GenericContainer;
 import java.util.List;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@ContextConfiguration(initializers = OrderTimeoutTest.class)
+@ContextConfiguration(initializers = OrderTimeoutTest.class, classes = TestApp.class)
 @ActiveProfiles({"test-base", "test-order-timeout"})
 class OrderTimeoutTest implements IntegrationTest {
 

@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@ContextConfiguration(initializers = UnexpiredCertificateTest.class)
+@ContextConfiguration(initializers = UnexpiredCertificateTest.class, classes = TestApp.class)
 @ActiveProfiles({"test-base", "test-tos-accepted"})
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class UnexpiredCertificateTest implements IntegrationTest {

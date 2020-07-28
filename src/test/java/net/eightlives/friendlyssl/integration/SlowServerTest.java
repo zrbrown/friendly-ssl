@@ -17,7 +17,7 @@ import org.testcontainers.containers.GenericContainer;
 import java.util.List;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@ContextConfiguration(initializers = SlowServerTest.class)
+@ContextConfiguration(initializers = SlowServerTest.class, classes = TestApp.class)
 @ActiveProfiles({"test-base", "test-tos-accepted"})
 class SlowServerTest implements IntegrationTest {
 

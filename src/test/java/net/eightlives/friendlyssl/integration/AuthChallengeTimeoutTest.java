@@ -18,7 +18,7 @@ import org.testcontainers.junit.jupiter.Container;
 import java.util.List;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@ContextConfiguration(initializers = AuthChallengeTimeoutTest.class)
+@ContextConfiguration(initializers = AuthChallengeTimeoutTest.class, classes = TestApp.class)
 @ActiveProfiles({"test-base", "test-auth-challenge-timeout"})
 class AuthChallengeTimeoutTest implements IntegrationTest {
 

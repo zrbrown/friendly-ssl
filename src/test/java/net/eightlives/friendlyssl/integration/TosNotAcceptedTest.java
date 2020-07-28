@@ -17,7 +17,7 @@ import org.testcontainers.junit.jupiter.Container;
 import java.util.List;
 
 @SpringBootTest
-@ContextConfiguration(initializers = TosNotAcceptedTest.class)
+@ContextConfiguration(initializers = TosNotAcceptedTest.class, classes = TestApp.class)
 @ActiveProfiles({"test-base", "test-tos-unaccepted"})
 public class TosNotAcceptedTest implements IntegrationTest {
 

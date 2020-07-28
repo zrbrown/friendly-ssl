@@ -11,11 +11,9 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
 import java.security.Security;
-import java.sql.Date;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Timer;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
@@ -24,18 +22,15 @@ public class FriendlySSLApplicationListener implements ApplicationListener<Appli
     private final FriendlySSLConfig config;
     private final SSLCertificateCreateRenewService createRenewService;
     private final RecursiveTimerTaskFactory timerTaskFactory;
-    private final Clock clock;
-    private final Timer timer;
+    private final ScheduledExecutorService timer;
 
     public FriendlySSLApplicationListener(FriendlySSLConfig config,
                                           SSLCertificateCreateRenewService createRenewService,
                                           RecursiveTimerTaskFactory timerTaskFactory,
-                                          Clock clock,
-                                          @Qualifier("ssl-certificate-monitor") Timer timer) {
+                                          @Qualifier("ssl-certificate-monitor") ScheduledExecutorService timer) {
         this.config = config;
         this.createRenewService = createRenewService;
         this.timerTaskFactory = timerTaskFactory;
-        this.clock = clock;
         this.timer = timer;
     }
 
@@ -45,9 +40,7 @@ public class FriendlySSLApplicationListener implements ApplicationListener<Appli
 
         if (config.isAutoRenewEnabled()) {
             log.info("Auto-renew SSL enabled, starting timer");
-            timer.schedule(
-                    timerTaskFactory.create(timer, this::createOrRenewTime),
-                    Date.from(clock.instant().plus(1, ChronoUnit.SECONDS)));
+            timer.schedule(timerTaskFactory.create(timer, this::createOrRenewTime), 1, TimeUnit.SECONDS);
         }
     }
 

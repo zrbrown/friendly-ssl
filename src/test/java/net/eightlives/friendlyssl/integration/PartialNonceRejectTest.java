@@ -23,7 +23,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@ContextConfiguration(initializers = PartialNonceRejectTest.class)
+@ContextConfiguration(initializers = PartialNonceRejectTest.class, classes = TestApp.class)
 @ActiveProfiles({"test-base", "test-tos-accepted"})
 class PartialNonceRejectTest implements IntegrationTest {
 

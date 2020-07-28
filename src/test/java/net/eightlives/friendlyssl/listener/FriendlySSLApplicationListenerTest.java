@@ -16,11 +16,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 
 import java.security.Security;
-import java.time.*;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -42,12 +42,11 @@ class FriendlySSLApplicationListenerTest {
     @Mock
     private RecursiveTimerTaskFactory timerTaskFactory;
     @Mock
-    private Timer timer;
+    private ScheduledExecutorService timer;
 
     @BeforeEach
     void setUp() {
-        listener = new FriendlySSLApplicationListener(config, createRenewService, timerTaskFactory,
-                Clock.fixed(FIXED_CLOCK, ZoneId.of("UTC")), timer);
+        listener = new FriendlySSLApplicationListener(config, createRenewService, timerTaskFactory, timer);
     }
 
     @DisplayName("Testing that security provider is correctly set")
@@ -67,7 +66,7 @@ class FriendlySSLApplicationListenerTest {
         ApplicationReadyEvent event = mock(ApplicationReadyEvent.class);
         listener.onApplicationEvent(event);
 
-        verify(timer, times(0)).schedule(any(TimerTask.class), anyLong());
+        verify(timer, times(0)).schedule(any(Runnable.class), anyLong(), eq(TimeUnit.SECONDS));
         verify(createRenewService, times(0)).createOrRenew();
     }
 
@@ -86,11 +85,11 @@ class FriendlySSLApplicationListenerTest {
         listener.onApplicationEvent(event);
 
         ArgumentCaptor<RecursiveTimerTask> timerTaskArg = ArgumentCaptor.forClass(RecursiveTimerTask.class);
-        ArgumentCaptor<Date> dateArg = ArgumentCaptor.forClass(Date.class);
-        verify(timer, times(1)).schedule(timerTaskArg.capture(), dateArg.capture());
+        ArgumentCaptor<Long> secondsArg = ArgumentCaptor.forClass(Long.class);
+        verify(timer, times(1)).schedule(timerTaskArg.capture(), secondsArg.capture(), eq(TimeUnit.SECONDS));
 
         assertEquals(timerTask, timerTaskArg.getValue());
-        assertEquals(Date.from(FIXED_CLOCK.plus(1, ChronoUnit.SECONDS)), dateArg.getValue());
+        assertEquals(1, secondsArg.getValue());
         assertEquals(renewal.getTime(), createOrRenewSupplier.getValue().get());
     }
 }

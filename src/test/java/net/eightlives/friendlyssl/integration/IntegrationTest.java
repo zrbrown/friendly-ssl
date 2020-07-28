@@ -77,4 +77,23 @@ public interface IntegrationTest extends ApplicationContextInitializer<Configura
                         .map(Optional::get)
                         .collect(Collectors.joining("\n")) + "\n\n");
     }
+
+    default void testLogOutputExact(List<String> expectedLogs, CapturedOutput actualOutput) {
+        while (!actualOutput.getOut().contains(expectedLogs.get(expectedLogs.size() - 1))) {
+            Thread.onSpinWait();
+        }
+
+        assertArrayEquals(
+                expectedLogs.toArray(),
+                actualOutput.getOut().lines()
+                        .filter(line -> expectedLogs.stream().anyMatch(line::contains))
+                        .map(line -> expectedLogs.stream().filter(line::contains).findFirst())
+                        .map(Optional::get)
+                        .toArray(),
+                () -> "Actual output:\n" + actualOutput.getOut().lines()
+                        .filter(line -> expectedLogs.stream().anyMatch(line::contains))
+                        .map(line -> expectedLogs.stream().filter(line::contains).findFirst())
+                        .map(Optional::get)
+                        .collect(Collectors.joining("\n")) + "\n\n");
+    }
 }
