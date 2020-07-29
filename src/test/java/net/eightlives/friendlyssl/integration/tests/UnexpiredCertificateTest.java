@@ -1,6 +1,8 @@
-package net.eightlives.friendlyssl.integration;
+package net.eightlives.friendlyssl.integration.tests;
 
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
+import net.eightlives.friendlyssl.integration.IntegrationTest;
+import net.eightlives.friendlyssl.integration.TestApp;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;

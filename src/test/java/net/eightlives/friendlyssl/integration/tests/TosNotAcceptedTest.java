@@ -1,5 +1,7 @@
-package net.eightlives.friendlyssl.integration;
+package net.eightlives.friendlyssl.integration.tests;
 
+import net.eightlives.friendlyssl.integration.IntegrationTest;
+import net.eightlives.friendlyssl.integration.TestApp;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -17,9 +19,9 @@ import org.testcontainers.junit.jupiter.Container;
 import java.util.List;
 
 @SpringBootTest
-@ContextConfiguration(initializers = MinimumConfigTest.class, classes = TestApp.class)
-@ActiveProfiles("test-base")
-class MinimumConfigTest implements IntegrationTest {
+@ContextConfiguration(initializers = TosNotAcceptedTest.class, classes = TestApp.class)
+@ActiveProfiles({"test-base", "test-tos-unaccepted"})
+public class TosNotAcceptedTest implements IntegrationTest {
 
     @Container
     static GenericContainer pebbleContainer = new GenericContainer("letsencrypt/pebble")
@@ -38,18 +40,21 @@ class MinimumConfigTest implements IntegrationTest {
         return pebbleContainer;
     }
 
-    @DisplayName("Start server and token request does not hit ACME challenge endpoint in time")
+    @DisplayName("Start server with no accepted terms of service")
     @Timeout(20)
     @ExtendWith(OutputCaptureExtension.class)
     @DirtiesContext
     @Test
-    void minimumConfig(CapturedOutput output) {
-        testLogOutput(List.of(
-                "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate create/renew",
-                "n.e.f.service.AcmeAccountService         : Account does not exist. Terms of service must be accepted in file src/test/resources/temp/tos before account can be created",
-                "n.e.f.s.SSLCertificateCreateRenewService : Exception while ordering certificate, retry in 1 hours",
-                "org.shredzone.acme4j.exception.AcmeServerException: unable to find existing account for only-return-existing request"
+    void tosNotAccepted(CapturedOutput output) {
+        testLogOutput(
+                List.of(
+                        "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate create/renew",
+                        "n.e.f.service.AcmeAccountService         : Account does not exist. Terms of service must be accepted in file src/test/resources/integration/tos_unaccepted before account can be created",
+                        "n.e.f.s.SSLCertificateCreateRenewService : Exception while ordering certificate, retry in 1 hours",
+                        "net.eightlives.friendlyssl.exception.SSLCertificateException: Exception while handling SSL certificate management"
                 ),
-                output);
+                output
+        );
     }
 }
+

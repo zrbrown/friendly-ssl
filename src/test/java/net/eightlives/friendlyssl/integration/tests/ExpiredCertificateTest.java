@@ -1,6 +1,8 @@
-package net.eightlives.friendlyssl.integration;
+package net.eightlives.friendlyssl.integration.tests;
 
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
+import net.eightlives.friendlyssl.integration.IntegrationTest;
+import net.eightlives.friendlyssl.integration.TestApp;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;

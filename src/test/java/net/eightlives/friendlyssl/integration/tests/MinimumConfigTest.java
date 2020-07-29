@@ -1,5 +1,7 @@
-package net.eightlives.friendlyssl.integration;
+package net.eightlives.friendlyssl.integration.tests;
 
+import net.eightlives.friendlyssl.integration.IntegrationTest;
+import net.eightlives.friendlyssl.integration.TestApp;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -17,9 +19,9 @@ import org.testcontainers.junit.jupiter.Container;
 import java.util.List;
 
 @SpringBootTest
-@ContextConfiguration(initializers = TokenRequestedTimeoutTest.class, classes = TestApp.class)
-@ActiveProfiles({"test-base", "test-token-requested-timeout"})
-class TokenRequestedTimeoutTest implements IntegrationTest {
+@ContextConfiguration(initializers = MinimumConfigTest.class, classes = TestApp.class)
+@ActiveProfiles("test-base")
+class MinimumConfigTest implements IntegrationTest {
 
     @Container
     static GenericContainer pebbleContainer = new GenericContainer("letsencrypt/pebble")
@@ -43,19 +45,13 @@ class TokenRequestedTimeoutTest implements IntegrationTest {
     @ExtendWith(OutputCaptureExtension.class)
     @DirtiesContext
     @Test
-    void tokenRequestedTimeout(CapturedOutput output) {
-        testLogOutput(
-                List.of(
-                        "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate create/renew",
-                        "n.e.f.service.AcmeAccountService         : Account does not exist. Creating account.",
-                        "n.e.f.s.SSLCertificateCreateRenewService : Certificate account login accessed",
-                        "n.e.f.s.SSLCertificateCreateRenewService : Beginning certificate order. Renewal: false",
-                        "n.e.f.s.SSLCertificateCreateRenewService : Exception while ordering certificate, retry in 1 hours",
-                        "net.eightlives.friendlyssl.exception.SSLCertificateException: Exception while handling SSL certificate management",
-                        "Caused by: java.util.concurrent.ExecutionException: java.util.concurrent.TimeoutException"
+    void minimumConfig(CapturedOutput output) {
+        testLogOutput(List.of(
+                "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate create/renew",
+                "n.e.f.service.AcmeAccountService         : Account does not exist. Terms of service must be accepted in file src/test/resources/temp/tos before account can be created",
+                "n.e.f.s.SSLCertificateCreateRenewService : Exception while ordering certificate, retry in 1 hours",
+                "org.shredzone.acme4j.exception.AcmeServerException: unable to find existing account for only-return-existing request"
                 ),
-                output
-        );
+                output);
     }
 }
-
