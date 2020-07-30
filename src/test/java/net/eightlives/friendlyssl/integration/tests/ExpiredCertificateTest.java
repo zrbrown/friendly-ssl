@@ -3,9 +3,7 @@ package net.eightlives.friendlyssl.integration.tests;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.integration.IntegrationTest;
 import net.eightlives.friendlyssl.integration.TestApp;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,11 +16,12 @@ import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ContextConfiguration(initializers = ExpiredCertificateTest.class, classes = TestApp.class)
@@ -52,12 +51,24 @@ class ExpiredCertificateTest implements IntegrationTest {
         return pebbleContainer;
     }
 
+    byte[] keystore;
+
+    @BeforeEach
+    void setUp() throws IOException {
+        keystore = Files.readAllBytes(Path.of(config.getKeystoreFile()));
+    }
+
+    @AfterEach
+    void tearDown() throws IOException {
+        Files.newOutputStream(Path.of(config.getKeystoreFile())).write(keystore);
+    }
+
     @DisplayName("Start server and existing certificate is expired")
     @Timeout(20)
     @ExtendWith(OutputCaptureExtension.class)
     @DirtiesContext
     @Test
-    void expiredCertificate(CapturedOutput output) {
+    void expiredCertificate(CapturedOutput output) throws IOException {
         testLogOutput(
                 List.of(
                         "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate create/renew",
@@ -70,6 +81,17 @@ class ExpiredCertificateTest implements IntegrationTest {
                 output
         );
 
-        assertTrue(Files.exists(Path.of(config.getKeystoreFile())));
+        byte[] newKeystore = Files.readAllBytes(Path.of(config.getKeystoreFile()));
+
+        if (keystore.length == newKeystore.length) {
+            for (int i = 0; i < newKeystore.length; i++) {
+                if (newKeystore[i] != keystore[i]) {
+                    break;
+                }
+                if (i == newKeystore.length - 1) {
+                    fail("Keystore should have changed after certificate renewal");
+                }
+            }
+        }
     }
 }

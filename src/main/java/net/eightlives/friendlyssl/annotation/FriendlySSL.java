@@ -30,6 +30,7 @@ import java.lang.annotation.*;
         CertificateChallengeController.class,
         CertificateController.class,
         TermsOfServiceController.class,
+        AutoRenewService.class,
         AcmeAccountService.class,
         CertificateOrderHandlerService.class,
         CertificateOrderService.class,

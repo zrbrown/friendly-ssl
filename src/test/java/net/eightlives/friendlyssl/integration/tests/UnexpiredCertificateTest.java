@@ -16,12 +16,12 @@ import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 
-import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -53,7 +53,7 @@ class UnexpiredCertificateTest implements IntegrationTest {
         return pebbleContainer;
     }
 
-    File keystore;
+    byte[] keystore;
 
     @Order(1)
     @DisplayName("Start server and certificate does not exist")
@@ -61,7 +61,7 @@ class UnexpiredCertificateTest implements IntegrationTest {
     @ExtendWith(OutputCaptureExtension.class)
     @DirtiesContext
     @Test
-    void noCertificate(CapturedOutput output) {
+    void noCertificate(CapturedOutput output) throws IOException {
         testLogOutput(
                 List.of(
                         "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate create/renew",
@@ -76,7 +76,7 @@ class UnexpiredCertificateTest implements IntegrationTest {
 
         assertTrue(Files.exists(Path.of(config.getKeystoreFile())));
 
-        keystore = Path.of(config.getKeystoreFile()).toFile();
+        keystore = Files.readAllBytes(Path.of(config.getKeystoreFile()));
     }
 
     @Order(2)
@@ -85,17 +85,14 @@ class UnexpiredCertificateTest implements IntegrationTest {
     @ExtendWith(OutputCaptureExtension.class)
     @DirtiesContext
     @Test
-    void unexpiredCertificateExists(CapturedOutput output) {
+    void unexpiredCertificateExists(CapturedOutput output) throws IOException {
         testLogOutput(
                 List.of(
-                        "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate create/renew",
-                        "n.e.f.service.AcmeAccountService         : Using existing account login",
-                        "n.e.f.s.SSLCertificateCreateRenewService : Certificate account login accessed",
-                        "n.e.f.s.SSLCertificateCreateRenewService : Existing certificate expiration time is"
+                        "n.e.f.service.AutoRenewService           : Existing certificate expiration time is"
                 ),
                 output
         );
 
-        assertEquals(keystore, Path.of(config.getKeystoreFile()).toFile());
+        assertArrayEquals(keystore, Files.readAllBytes(Path.of(config.getKeystoreFile())));
     }
 }

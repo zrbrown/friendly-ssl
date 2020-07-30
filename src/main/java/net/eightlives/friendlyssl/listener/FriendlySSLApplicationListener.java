@@ -3,7 +3,7 @@ package net.eightlives.friendlyssl.listener;
 import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.factory.RecursiveTimerTaskFactory;
-import net.eightlives.friendlyssl.service.SSLCertificateCreateRenewService;
+import net.eightlives.friendlyssl.service.AutoRenewService;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -20,16 +20,16 @@ import java.util.concurrent.TimeUnit;
 public class FriendlySSLApplicationListener implements ApplicationListener<ApplicationReadyEvent> {
 
     private final FriendlySSLConfig config;
-    private final SSLCertificateCreateRenewService createRenewService;
+    private final AutoRenewService autoRenewService;
     private final RecursiveTimerTaskFactory timerTaskFactory;
     private final ScheduledExecutorService timer;
 
     public FriendlySSLApplicationListener(FriendlySSLConfig config,
-                                          SSLCertificateCreateRenewService createRenewService,
+                                          AutoRenewService autoRenewService,
                                           RecursiveTimerTaskFactory timerTaskFactory,
                                           @Qualifier("ssl-certificate-monitor") ScheduledExecutorService timer) {
         this.config = config;
-        this.createRenewService = createRenewService;
+        this.autoRenewService = autoRenewService;
         this.timerTaskFactory = timerTaskFactory;
         this.timer = timer;
     }
@@ -40,11 +40,11 @@ public class FriendlySSLApplicationListener implements ApplicationListener<Appli
 
         if (config.isAutoRenewEnabled()) {
             log.info("Auto-renew SSL enabled, starting timer");
-            timer.schedule(timerTaskFactory.create(timer, this::createOrRenewTime), 1, TimeUnit.SECONDS);
+            timer.schedule(timerTaskFactory.create(timer, this::autoRenewTime), 1, TimeUnit.SECONDS);
         }
     }
 
-    private Instant createOrRenewTime() {
-        return createRenewService.createOrRenew().getTime();
+    private Instant autoRenewTime() {
+        return autoRenewService.autoRenew().getTime();
     }
 }
