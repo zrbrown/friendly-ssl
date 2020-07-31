@@ -44,13 +44,13 @@ class PartialNonceRejectTest implements IntegrationTest {
                     BindMode.READ_ONLY
             );
 
-    @Autowired
-    FriendlySSLConfig config;
-
     @Override
     public GenericContainer getPebbleContainer() {
         return pebbleContainer;
     }
+
+    @Autowired
+    FriendlySSLConfig config;
 
     @DisplayName("Start server and certificate 50% of nonces are rejected")
     @Timeout(20)

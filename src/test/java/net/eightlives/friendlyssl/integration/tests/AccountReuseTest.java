@@ -44,13 +44,13 @@ class AccountReuseTest implements IntegrationTest {
                     BindMode.READ_ONLY
             );
 
-    @Autowired
-    FriendlySSLConfig config;
-
     @Override
     public GenericContainer getPebbleContainer() {
         return pebbleContainer;
     }
+
+    @Autowired
+    FriendlySSLConfig config;
 
     @Order(1)
     @DisplayName("Start server and account does not exist")

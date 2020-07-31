@@ -48,20 +48,20 @@ class TermsOfServiceAcceptTest implements IntegrationTest {
                     BindMode.READ_ONLY
             );
 
-    @Autowired
-    FriendlySSLConfig config;
-
     @Override
     public GenericContainer getPebbleContainer() {
         return pebbleContainer;
     }
 
-    @DisplayName("Renew certificate manually")
+    @Autowired
+    FriendlySSLConfig config;
+
+    @DisplayName("After failing to login to account, accept TOS and renew certificate")
     @Timeout(20)
     @ExtendWith(OutputCaptureExtension.class)
     @DirtiesContext
     @Test
-    void manualRenew(CapturedOutput output) throws IOException, InterruptedException {
+    void acceptTos(CapturedOutput output) throws IOException, InterruptedException {
         testLogOutput(
                 List.of(
                         "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate create/renew",

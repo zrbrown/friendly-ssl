@@ -57,13 +57,13 @@ class CertificateAutoRenewalTest implements IntegrationTest {
                     BindMode.READ_ONLY
             );
 
-    @Autowired
-    FriendlySSLConfig config;
-
     @Override
     public GenericContainer getPebbleContainer() {
         return pebbleContainer;
     }
+
+    @Autowired
+    FriendlySSLConfig config;
 
     @FriendlySSL
     @SpringBootApplication

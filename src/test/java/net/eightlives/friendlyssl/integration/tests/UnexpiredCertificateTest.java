@@ -45,13 +45,13 @@ class UnexpiredCertificateTest implements IntegrationTest {
                     BindMode.READ_ONLY
             );
 
-    @Autowired
-    FriendlySSLConfig config;
-
     @Override
     public GenericContainer getPebbleContainer() {
         return pebbleContainer;
     }
+
+    @Autowired
+    FriendlySSLConfig config;
 
     byte[] keystore;
 
