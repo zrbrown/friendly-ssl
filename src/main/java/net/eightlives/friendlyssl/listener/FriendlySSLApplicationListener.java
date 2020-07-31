@@ -2,30 +2,36 @@ package net.eightlives.friendlyssl.listener;
 
 import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
-import net.eightlives.friendlyssl.service.SSLCertificateCreateRenewService;
-import net.eightlives.friendlyssl.task.RecursiveTimerTask;
+import net.eightlives.friendlyssl.factory.RecursiveTimerTaskFactory;
+import net.eightlives.friendlyssl.service.AutoRenewService;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
 import java.security.Security;
-import java.sql.Date;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Timer;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
 public class FriendlySSLApplicationListener implements ApplicationListener<ApplicationReadyEvent> {
 
     private final FriendlySSLConfig config;
-    private final SSLCertificateCreateRenewService createRenewService;
+    private final AutoRenewService autoRenewService;
+    private final RecursiveTimerTaskFactory timerTaskFactory;
+    private final ScheduledExecutorService timer;
 
     public FriendlySSLApplicationListener(FriendlySSLConfig config,
-                                          SSLCertificateCreateRenewService createRenewService) {
+                                          AutoRenewService autoRenewService,
+                                          RecursiveTimerTaskFactory timerTaskFactory,
+                                          @Qualifier("ssl-certificate-monitor") ScheduledExecutorService timer) {
         this.config = config;
-        this.createRenewService = createRenewService;
+        this.autoRenewService = autoRenewService;
+        this.timerTaskFactory = timerTaskFactory;
+        this.timer = timer;
     }
 
     @Override
@@ -34,14 +40,11 @@ public class FriendlySSLApplicationListener implements ApplicationListener<Appli
 
         if (config.isAutoRenewEnabled()) {
             log.info("Auto-renew SSL enabled, starting timer");
-            Timer timer = new Timer("SSL Certificate Monitor", true);
-            timer.schedule(
-                    new RecursiveTimerTask(timer, this::createOrRenewTime),
-                    Date.from(Instant.now().plus(1, ChronoUnit.SECONDS)));
+            timer.schedule(timerTaskFactory.create(timer, this::autoRenewTime), 1, TimeUnit.SECONDS);
         }
     }
 
-    private Instant createOrRenewTime() {
-        return createRenewService.createOrRenew().getTime();
+    private Instant autoRenewTime() {
+        return autoRenewService.autoRenew().getTime();
     }
 }

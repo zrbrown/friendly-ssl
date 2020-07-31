@@ -9,10 +9,12 @@ import org.shredzone.acme4j.Session;
 import org.shredzone.acme4j.exception.AcmeException;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,17 +52,15 @@ public class TermsOfServiceService {
     }
 
     public boolean termsAccepted(URI termsOfServiceLink) {
-        File termsOfServiceFile = new File(config.getTermsOfServiceFile());
-
-        if (!termsOfServiceFile.exists()) {
-            return false;
-        }
-
         try {
-            TermsOfService[] termsOfService = objectMapper.readValue(termsOfServiceFile, TermsOfService[].class);
+            TermsOfService[] termsOfService = objectMapper.readValue(
+                    Files.newInputStream(Path.of(config.getTermsOfServiceFile())),
+                    TermsOfService[].class);
             return Stream.of(termsOfService)
                     .filter(tos -> termsOfServiceLink.toString().equals(tos.getTermsOfService()))
                     .anyMatch(tos -> tos.getAgreeToTerms().equalsIgnoreCase(AGREE_TO_TERMS_YES));
+        } catch (NoSuchFileException e) {
+            return false;
         } catch (IOException e) {
             log.error("Exception while trying to read from terms of service file " + config.getTermsOfServiceFile(), e);
             throw new SSLCertificateException(e);
@@ -68,29 +68,27 @@ public class TermsOfServiceService {
     }
 
     public void writeTermsLink(URI termsOfServiceLink, boolean accept) {
-        File termsOfServiceFile = new File(config.getTermsOfServiceFile());
+        Path termsOfServiceFile = Path.of(config.getTermsOfServiceFile());
 
-        if (!termsOfServiceFile.exists()) {
-            try {
-                termsOfServiceFile.createNewFile();
-
-                try (FileWriter writer = new FileWriter(termsOfServiceFile)) {
-                    writer.write("[]");
-                }
-            } catch (IOException e) {
-                log.error("Exception while creating terms of service file " + config.getTermsOfServiceFile(), e);
-                throw new SSLCertificateException(e);
-            }
+        try {
+            Files.createFile(termsOfServiceFile);
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(
+                    Files.newBufferedWriter(termsOfServiceFile), new TermsOfService[0]
+            );
+        } catch (FileAlreadyExistsException ignored) {
+        } catch (IOException e) {
+            log.error("Exception while creating terms of service file " + config.getTermsOfServiceFile(), e);
+            throw new SSLCertificateException(e);
         }
 
         try {
-            TermsOfService[] termsOfService = objectMapper.readValue(termsOfServiceFile, TermsOfService[].class);
+            TermsOfService[] termsOfService = objectMapper.readValue(Files.newBufferedReader(termsOfServiceFile), TermsOfService[].class);
             List<TermsOfService> allTerms = Stream.of(termsOfService)
                     .filter(tos -> !termsOfServiceLink.toString().equals(tos.getTermsOfService()))
                     .collect(Collectors.toList());
             allTerms.add(new TermsOfService(termsOfServiceLink.toString(), accept ? AGREE_TO_TERMS_YES : AGREE_TO_TERMS_NO));
 
-            objectMapper.writerWithDefaultPrettyPrinter().writeValue(termsOfServiceFile, allTerms);
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(Files.newBufferedWriter(termsOfServiceFile), allTerms);
         } catch (IOException e) {
             log.error("Exception while trying to read or write to terms of service file " + config.getTermsOfServiceFile(), e);
             throw new SSLCertificateException(e);

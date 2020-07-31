@@ -1,0 +1,2 @@
+friendly-ssl:
+  terms-of-service-file: src/test/resources/integration/tos_unaccepted

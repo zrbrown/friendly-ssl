@@ -16,9 +16,10 @@ import org.bouncycastle.pkcs.bc.BcPKCS12PBEOutputEncryptorBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS12SafeBagBuilder;
 import org.springframework.stereotype.Component;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -90,10 +91,17 @@ public class PKCS12KeyStoreService {
     public KeyPair getKeyPair(Certificate certificate, String privateKeyFriendlyName) {
         try {
             KeyStore store = KeyStore.getInstance(KEYSTORE_TYPE);
-            store.load(new FileInputStream(config.getKeystoreFile()), "".toCharArray());
+            store.load(Files.newInputStream(Path.of(config.getKeystoreFile())), "".toCharArray());
 
             KeyFactory keyFactory = KeyFactory.getInstance(KEYFACTORY_TYPE);
             Key key = store.getKey(privateKeyFriendlyName, "".toCharArray());
+            if (key == null) {
+                log.error("Private key friendly name " + privateKeyFriendlyName +
+                        " not found in keystore " + config.getKeystoreFile() +
+                        " when loading keystore");
+                return null;
+            }
+
             PrivateKey privateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(key.getEncoded()));
 
             return new KeyPair(certificate.getPublicKey(), privateKey);
@@ -109,8 +117,8 @@ public class PKCS12KeyStoreService {
             KeyStore store = KeyStore.getInstance(KEYSTORE_TYPE);
 
             try {
-                store.load(new FileInputStream(config.getKeystoreFile()), "".toCharArray());
-            } catch (FileNotFoundException e) {
+                store.load(Files.newInputStream(Path.of(config.getKeystoreFile())), "".toCharArray());
+            } catch (NoSuchFileException e) {
                 return Optional.empty();
             }
 
