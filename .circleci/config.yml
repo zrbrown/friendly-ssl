@@ -2,20 +2,6 @@ version: 2.1
 
 orbs:
   maven: circleci/maven@1.0.1
-  
-executors:
-  default:
-    description: |
-      Java version
-    docker:
-    - image: cimg/openjdk:<<parameters.tag>>
-    parameters:
-      tag:
-        default: "14.0.1"
-        description: |
-          Can be changed to any of the available tags listed on the DockerHub for this image.
-          https://hub.docker.com/r/cimg/openjdk/tags
-        type: string
 
 workflows:
   maven_test:
