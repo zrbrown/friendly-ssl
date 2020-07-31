@@ -53,9 +53,9 @@ public class AcmeAccountService {
                 URI exceptionType = e.getProblem().getType();
                 if (exceptionType.equals(ACCOUNT_NOT_EXISTS)) {
                     if (!termsOfServiceService.termsAccepted(termsOfServiceLink)) {
-                        log.error("Account does not exist. Terms of service must be accepted in file " + config.getTermsOfServiceFile() + " before account can be created");
                         termsOfServiceService.writeTermsLink(termsOfServiceLink, false);
-                        throw new SSLCertificateException(e);
+                        throw new SSLCertificateException(new IllegalStateException(
+                                "Account does not exist. Terms of service must be accepted in file " + config.getTermsOfServiceFile() + " before account can be created"));
                     }
 
                     log.info("Account does not exist. Creating account.");

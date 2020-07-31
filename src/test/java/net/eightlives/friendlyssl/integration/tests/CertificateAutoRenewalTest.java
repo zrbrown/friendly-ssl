@@ -6,7 +6,6 @@ import net.eightlives.friendlyssl.integration.IntegrationTest;
 import net.eightlives.friendlyssl.util.TestConstants;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -41,7 +40,6 @@ import static org.mockito.Mockito.when;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ContextConfiguration(initializers = CertificateAutoRenewalTest.class, classes = CertificateRenewalApp.class)
 @ActiveProfiles({"test-base", "test-tos-accepted", "test-existing-keystore", "test-override-beans"})
-@ExtendWith(MockitoExtension.class)
 class CertificateAutoRenewalTest implements IntegrationTest {
 
     static {
