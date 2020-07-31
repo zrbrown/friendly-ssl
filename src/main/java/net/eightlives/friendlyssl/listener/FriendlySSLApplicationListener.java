@@ -45,6 +45,6 @@ public class FriendlySSLApplicationListener implements ApplicationListener<Appli
     }
 
     private Instant autoRenewTime() {
-        return autoRenewService.autoRenew().getTime();
+        return autoRenewService.autoRenew().time();
     }
 }

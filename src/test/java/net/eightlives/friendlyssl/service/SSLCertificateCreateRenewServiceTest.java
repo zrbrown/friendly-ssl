@@ -84,9 +84,9 @@ class SSLCertificateCreateRenewServiceTest {
 
             CertificateRenewal renewal = service.createOrRenew(null);
 
-            assertEquals(CertificateRenewalStatus.ERROR, renewal.getStatus());
+            assertEquals(CertificateRenewalStatus.ERROR, renewal.status());
 
-            assertEquals(FIXED_CLOCK.plus(2, ChronoUnit.HOURS), renewal.getTime());
+            assertEquals(FIXED_CLOCK.plus(2, ChronoUnit.HOURS), renewal.time());
         }
 
         @DisplayName("When account service succeeds")
@@ -114,8 +114,8 @@ class SSLCertificateCreateRenewServiceTest {
 
                 CertificateRenewal renewal = service.createOrRenew(null);
 
-                assertEquals(CertificateRenewalStatus.SUCCESS, renewal.getStatus());
-                assertEquals(EXISTING_KEYSTORE_CERT_EXPIRATION, renewal.getTime());
+                assertEquals(CertificateRenewalStatus.SUCCESS, renewal.status());
+                assertEquals(EXISTING_KEYSTORE_CERT_EXPIRATION, renewal.time());
             }
 
             @DisplayName("When existing certificate is non-null")
@@ -153,8 +153,8 @@ class SSLCertificateCreateRenewServiceTest {
 
                     CertificateRenewal renewal = service.createOrRenew(certificate);
 
-                    assertEquals(CertificateRenewalStatus.SUCCESS, renewal.getStatus());
-                    assertEquals(EXISTING_KEYSTORE_CERT_EXPIRATION, renewal.getTime());
+                    assertEquals(CertificateRenewalStatus.SUCCESS, renewal.status());
+                    assertEquals(EXISTING_KEYSTORE_CERT_EXPIRATION, renewal.time());
                 }
 
                 @DisplayName("When keystore service finds the certificate by name")
@@ -178,8 +178,8 @@ class SSLCertificateCreateRenewServiceTest {
 
                     CertificateRenewal renewal = service.createOrRenew(certificate);
 
-                    assertEquals(CertificateRenewalStatus.SUCCESS, renewal.getStatus());
-                    assertEquals(EXISTING_KEYSTORE_CERT_EXPIRATION, renewal.getTime());
+                    assertEquals(CertificateRenewalStatus.SUCCESS, renewal.status());
+                    assertEquals(EXISTING_KEYSTORE_CERT_EXPIRATION, renewal.time());
                 }
             }
         }

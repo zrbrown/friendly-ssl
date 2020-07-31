@@ -57,8 +57,8 @@ public class TermsOfServiceService {
                     Files.newInputStream(Path.of(config.getTermsOfServiceFile())),
                     TermsOfService[].class);
             return Stream.of(termsOfService)
-                    .filter(tos -> termsOfServiceLink.toString().equals(tos.getTermsOfService()))
-                    .anyMatch(tos -> tos.getAgreeToTerms().equalsIgnoreCase(AGREE_TO_TERMS_YES));
+                    .filter(tos -> termsOfServiceLink.toString().equals(tos.termsOfService()))
+                    .anyMatch(tos -> tos.agreeToTerms().equalsIgnoreCase(AGREE_TO_TERMS_YES));
         } catch (NoSuchFileException e) {
             return false;
         } catch (IOException e) {
@@ -84,7 +84,7 @@ public class TermsOfServiceService {
         try {
             TermsOfService[] termsOfService = objectMapper.readValue(Files.newBufferedReader(termsOfServiceFile), TermsOfService[].class);
             List<TermsOfService> allTerms = Stream.of(termsOfService)
-                    .filter(tos -> !termsOfServiceLink.toString().equals(tos.getTermsOfService()))
+                    .filter(tos -> !termsOfServiceLink.toString().equals(tos.termsOfService()))
                     .collect(Collectors.toList());
             allTerms.add(new TermsOfService(termsOfServiceLink.toString(), accept ? AGREE_TO_TERMS_YES : AGREE_TO_TERMS_NO));
 
