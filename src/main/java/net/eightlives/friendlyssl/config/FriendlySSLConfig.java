@@ -11,12 +11,12 @@ public class FriendlySSLConfig {
     private String acmeSessionUrl = "acme://letsencrypt.org/staging";
     private String domain;
     private String accountEmail;
-    private String certificateFriendlyName = "account.pem";
-    private String accountPrivateKeyFile = "keystore.p12";
-    private String keystoreFile = "tos";
-    private String termsOfServiceFile = "";
+    private String certificateFriendlyName = "friendlyssl";
+    private String accountPrivateKeyFile = "account.pem";
+    private String keystoreFile = "keystore.p12";
+    private String termsOfServiceFile = "tos";
     private int orderTimeoutSeconds = 30;
-    private int tokenRequestedTimeoutSeconds = 10;
+    private int tokenRequestedTimeoutSeconds = 30;
     private int authChallengeTimeoutSeconds = 20;
     private int autoRenewalHoursBefore = 72;
     private int errorRetryWaitHours = 1;

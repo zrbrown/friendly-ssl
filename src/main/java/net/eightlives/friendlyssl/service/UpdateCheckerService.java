@@ -6,9 +6,10 @@ import org.shredzone.acme4j.AcmeJsonResource;
 import org.shredzone.acme4j.Status;
 import org.shredzone.acme4j.exception.AcmeException;
 import org.shredzone.acme4j.exception.AcmeRetryAfterException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
+import java.time.Clock;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -18,9 +19,18 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class UpdateCheckerService {
 
-    public ScheduledFuture<?> start(ScheduledExecutorService executor, AcmeJsonResource resource) {
+    private final ScheduledExecutorService scheduler;
+    private final Clock clock;
+
+    public UpdateCheckerService(@Qualifier("update-checker-scheduler") ScheduledExecutorService scheduler,
+                                Clock clock) {
+        this.scheduler = scheduler;
+        this.clock = clock;
+    }
+
+    public ScheduledFuture<Void> start(AcmeJsonResource resource) {
         long millisecondsUntilRetry = updateAcmeJsonResource(resource);
-        return executor.schedule(() -> {
+        return (ScheduledFuture<Void>) scheduler.schedule(() -> {
             while (true) {
                 try {
                     Status status = resource.getJSON().get("status").asStatus();
@@ -47,7 +57,7 @@ public class UpdateCheckerService {
             resource.update();
             return 0;
         } catch (AcmeRetryAfterException e) {
-            return Instant.now().until(e.getRetryAfter(), ChronoUnit.MILLIS);
+            return clock.instant().until(e.getRetryAfter(), ChronoUnit.MILLIS);
         } catch (AcmeException e) {
             throw new UpdateFailedException();
         }

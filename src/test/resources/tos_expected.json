@@ -1,0 +1,4 @@
+[ {
+  "termsOfService" : "http://localhost:8000",
+  "agreeToTerms" : "$expected"
+} ]
