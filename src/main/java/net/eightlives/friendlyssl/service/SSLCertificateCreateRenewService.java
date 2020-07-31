@@ -15,7 +15,6 @@ import java.security.cert.X509Certificate;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Optional;
 
 @Slf4j
 @Component

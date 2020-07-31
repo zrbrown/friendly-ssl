@@ -24,7 +24,6 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
-import java.util.Optional;
 
 import static net.eightlives.friendlyssl.util.TestConstants.EXISTING_KEYSTORE_CERT_EXPIRATION;
 import static org.junit.jupiter.api.Assertions.assertEquals;

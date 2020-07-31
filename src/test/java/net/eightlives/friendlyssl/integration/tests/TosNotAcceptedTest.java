@@ -49,9 +49,9 @@ public class TosNotAcceptedTest implements IntegrationTest {
         testLogOutput(
                 List.of(
                         "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate create/renew",
-                        "n.e.f.service.AcmeAccountService         : Account does not exist. Terms of service must be accepted in file src/test/resources/integration/tos_unaccepted before account can be created",
                         "n.e.f.s.SSLCertificateCreateRenewService : Exception while ordering certificate, retry in 1 hours",
-                        "net.eightlives.friendlyssl.exception.SSLCertificateException: Exception while handling SSL certificate management"
+                        "net.eightlives.friendlyssl.exception.SSLCertificateException: Exception while handling SSL certificate management",
+                        "Caused by: java.lang.IllegalStateException: Account does not exist. Terms of service must be accepted in file src/test/resources/integration/tos_unaccepted before account can be created"
                 ),
                 output
         );
