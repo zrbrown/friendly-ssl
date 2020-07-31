@@ -1,64 +1,128 @@
 package net.eightlives.friendlyssl.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.model.CertificateRenewal;
 import net.eightlives.friendlyssl.model.CertificateRenewalStatus;
+import net.eightlives.friendlyssl.service.PKCS12KeyStoreService;
 import net.eightlives.friendlyssl.service.SSLCertificateCreateRenewService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.mockito.Mock;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.web.servlet.MockMvc;
 
+import java.security.cert.X509Certificate;
 import java.time.Instant;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Tag("controller")
+@Tag("slow")
 @ExtendWith(MockitoExtension.class)
+@WebMvcTest(controllers = CertificateController.class)
 class CertificateControllerTest {
 
-    private CertificateController controller;
+    @Import(CertificateController.class)
+    @SpringBootApplication
+    static class TestApp {
+    }
 
-    @Mock
+    @Autowired
+    private MockMvc mvc;
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockBean
+    private FriendlySSLConfig config;
+    @MockBean
     private SSLCertificateCreateRenewService createRenewService;
+    @MockBean
+    private PKCS12KeyStoreService keyStoreService;
 
     @BeforeEach
     void setUp() {
-        controller = new CertificateController(createRenewService);
+        when(config.getCertificateFriendlyName()).thenReturn("friendly-test");
     }
 
     @DisplayName("Test order returns 200")
     @ParameterizedTest(name = "for {0}")
-    @CsvSource(value = {"SUCCESS", "ALREADY_VALID"})
-    void ok(String status) {
-        CertificateRenewal renewal = new CertificateRenewal(
-                CertificateRenewalStatus.valueOf(status),
-                Instant.ofEpochSecond(100000));
-        when(createRenewService.createOrRenew()).thenReturn(renewal);
+    @ArgumentsSource(OkStatusAndCertificateProvider.class)
+    @Execution(ExecutionMode.SAME_THREAD)
+    void ok(CertificateRenewalStatus status, X509Certificate certificate) throws Exception {
+        when(keyStoreService.getCertificate("friendly-test")).thenReturn(Optional.ofNullable(certificate));
+        CertificateRenewal renewal = new CertificateRenewal(status, Instant.ofEpochSecond(100000));
+        when(createRenewService.createOrRenew(certificate)).thenReturn(renewal);
 
-        ResponseEntity<CertificateRenewal> response = controller.order();
+        mvc.perform(get("/friendly-ssl/certificate/order"))
+                .andExpect(status().isOk())
+                .andExpect(result -> assertEquals(
+                        objectMapper.writer().writeValueAsString(renewal),
+                        result.getResponse().getContentAsString()
+                ));
+    }
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(renewal, response.getBody());
+    static class OkStatusAndCertificateProvider implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            X509Certificate certificate = mock(X509Certificate.class);
+
+            return Stream.of(
+                    Arguments.of(CertificateRenewalStatus.SUCCESS, certificate),
+                    Arguments.of(CertificateRenewalStatus.SUCCESS, null),
+                    Arguments.of(CertificateRenewalStatus.ALREADY_VALID, certificate),
+                    Arguments.of(CertificateRenewalStatus.ALREADY_VALID, null)
+            );
+        }
     }
 
     @DisplayName("Test order returns 500")
     @ParameterizedTest(name = "for {0}")
-    @CsvSource(value = {"ERROR"})
-    void error(String status) {
-        CertificateRenewal renewal = new CertificateRenewal(
-                CertificateRenewalStatus.valueOf(status),
-                Instant.ofEpochSecond(100000));
-        when(createRenewService.createOrRenew()).thenReturn(renewal);
+    @ArgumentsSource(ErrorStatusAndCertificateProvider.class)
+    @Execution(ExecutionMode.SAME_THREAD)
+    void error(CertificateRenewalStatus status, X509Certificate certificate) throws Exception {
+        when(keyStoreService.getCertificate("friendly-test")).thenReturn(Optional.ofNullable(certificate));
+        CertificateRenewal renewal = new CertificateRenewal(status, Instant.ofEpochSecond(100000));
+        when(createRenewService.createOrRenew(certificate)).thenReturn(renewal);
 
-        ResponseEntity<CertificateRenewal> response = controller.order();
+        mvc.perform(get("/friendly-ssl/certificate/order"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(result -> assertTrue(
+                        result.getResponse().getContentAsString().isBlank()
+                ));
+    }
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertNull(response.getBody());
+    static class ErrorStatusAndCertificateProvider implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            X509Certificate certificate = mock(X509Certificate.class);
+
+            return Stream.of(
+                    Arguments.of(CertificateRenewalStatus.ERROR, certificate),
+                    Arguments.of(CertificateRenewalStatus.ERROR, null)
+            );
+        }
     }
 }

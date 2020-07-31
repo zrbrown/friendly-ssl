@@ -30,18 +30,17 @@ public class CertificateOrderHandlerService {
         this.keyStoreService = keyStoreService;
     }
 
-    public Certificate handleCertificateOrder(Login login, KeyPair domainKeyPair, boolean isRenewal) {
+    public Certificate handleCertificateOrder(Login login, KeyPair domainKeyPair) {
         return certificateOrderService.orderCertificate(config.getDomain(), login, domainKeyPair)
                 .map(certificate -> {
-                    if (!isRenewal) {
-                        try (OutputStream file = Files.newOutputStream(Path.of(config.getKeystoreFile()))) {
-                            byte[] keyStore = keyStoreService.generateKeyStore(
-                                    certificate.getCertificateChain(),
-                                    domainKeyPair.getPrivate());
-                            file.write(keyStore);
-                        } catch (IOException | KeyStoreGeneratorException e) {
-                            log.error("Exception while creating keystore", e);
-                        }
+                    try (OutputStream file = Files.newOutputStream(Path.of(config.getKeystoreFile()))) {
+                        byte[] keyStore = keyStoreService.generateKeyStore(
+                                certificate.getCertificateChain(),
+                                domainKeyPair.getPrivate());
+                        file.write(keyStore);
+                    } catch (IOException | KeyStoreGeneratorException e) {
+                        //TODO throw exception here?
+                        log.error("Exception while creating keystore", e);
                     }
 
                     return certificate;

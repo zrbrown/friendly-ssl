@@ -7,6 +7,7 @@ import net.eightlives.friendlyssl.factory.AccountBuilderFactory;
 import org.shredzone.acme4j.Login;
 import org.shredzone.acme4j.Session;
 import org.shredzone.acme4j.exception.AcmeException;
+import org.shredzone.acme4j.exception.AcmeServerException;
 import org.shredzone.acme4j.exception.AcmeUserActionRequiredException;
 import org.shredzone.acme4j.util.KeyPairUtils;
 import org.springframework.stereotype.Component;
@@ -21,6 +22,8 @@ import java.security.KeyPair;
 @Slf4j
 @Component
 public class AcmeAccountService {
+
+    private static final URI ACCOUNT_NOT_EXISTS = URI.create("urn:ietf:params:acme:error:accountDoesNotExist");
 
     private final FriendlySSLConfig config;
     private final TermsOfServiceService termsOfServiceService;
@@ -40,21 +43,30 @@ public class AcmeAccountService {
         try (Reader keyReader = getKeyReader(config.getAccountPrivateKeyFile())) {
             KeyPair accountKeyPair = KeyPairUtils.readKeyPair(keyReader);
             try {
-                return accountBuilderFactory.accountBuilder()
+                Login login = accountBuilderFactory.accountBuilder()
                         .useKeyPair(accountKeyPair)
                         .onlyExisting()
                         .createLogin(session);
-            } catch (AcmeException e) {
-                if (!termsOfServiceService.termsAccepted(termsOfServiceLink)) {
-                    log.error("Terms of service must be accepted in file " + config.getTermsOfServiceFile(), e);
-                    termsOfServiceService.writeTermsLink(termsOfServiceLink, false);
-                    throw new SSLCertificateException(new RuntimeException("Terms of service must be accepted in file " + config.getTermsOfServiceFile()));
+                log.info("Using existing account login");
+                return login;
+            } catch (AcmeServerException e) {
+                URI exceptionType = e.getProblem().getType();
+                if (exceptionType.equals(ACCOUNT_NOT_EXISTS)) {
+                    if (!termsOfServiceService.termsAccepted(termsOfServiceLink)) {
+                        termsOfServiceService.writeTermsLink(termsOfServiceLink, false);
+                        throw new SSLCertificateException(new IllegalStateException(
+                                "Account does not exist. Terms of service must be accepted in file " + config.getTermsOfServiceFile() + " before account can be created"));
+                    }
+
+                    log.info("Account does not exist. Creating account.");
+                    return accountBuilderFactory.accountBuilder()
+                            .useKeyPair(accountKeyPair)
+                            .addEmail(config.getAccountEmail())
+                            .agreeToTermsOfService()
+                            .createLogin(session);
                 }
-                return accountBuilderFactory.accountBuilder()
-                        .useKeyPair(accountKeyPair)
-                        .addEmail(config.getAccountEmail())
-                        .agreeToTermsOfService()
-                        .createLogin(session);
+
+                throw e;
             }
         } catch (AcmeUserActionRequiredException e) {
             log.error("Account retrieval failed due to user action required (terms of service probably changed). See " + e.getInstance() +
@@ -62,7 +74,7 @@ public class AcmeAccountService {
             termsOfServiceService.writeTermsLink(termsOfServiceLink, false);
             throw new SSLCertificateException(e);
         } catch (IOException | AcmeException e) {
-            log.error("Error while retrieving or creating ACME Login", e);
+            log.error("Error while retrieving or creating ACME Login");
             throw new SSLCertificateException(e);
         }
     }

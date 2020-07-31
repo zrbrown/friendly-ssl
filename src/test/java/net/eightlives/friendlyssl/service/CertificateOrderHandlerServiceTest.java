@@ -59,7 +59,7 @@ class CertificateOrderHandlerServiceTest {
         when(certificateOrderService.orderCertificate("domain.com", login, domainKeyPair))
                 .thenThrow(new SSLCertificateException(new RuntimeException()));
 
-        assertThrows(SSLCertificateException.class, () -> service.handleCertificateOrder(login, domainKeyPair, false));
+        assertThrows(SSLCertificateException.class, () -> service.handleCertificateOrder(login, domainKeyPair));
     }
 
     @DisplayName("CertificateOrderService does not return a certificate")
@@ -68,68 +68,51 @@ class CertificateOrderHandlerServiceTest {
         when(certificateOrderService.orderCertificate("domain.com", login, domainKeyPair))
                 .thenReturn(Optional.empty());
 
-        assertThrows(SSLCertificateException.class, () -> service.handleCertificateOrder(login, domainKeyPair, false));
+        assertThrows(SSLCertificateException.class, () -> service.handleCertificateOrder(login, domainKeyPair));
     }
 
     @DisplayName("When CertificateOrderService returns a certificate")
     @Nested
     class CertificateOrderServiceSucceeds {
 
+        private List<X509Certificate> certChain = Collections.emptyList();
+        private Path keystoreFile;
+
         @BeforeEach
-        void setUp() throws IOException {
+        void setUp(@TempDir Path temp) throws IOException {
             domainKeyPair = KeyPairUtils.readKeyPair(Files.newBufferedReader(
                     Path.of("src", "test", "resources", "keypair.pem")));
             when(certificateOrderService.orderCertificate("domain.com", login, domainKeyPair))
                     .thenReturn(Optional.of(certificate));
+            keystoreFile = temp.resolve("not_exists");
+
+            when(config.getKeystoreFile()).thenReturn(keystoreFile.toString());
+            when(certificate.getCertificateChain()).thenReturn(certChain);
         }
 
-        @DisplayName("and this is a renewal, the ordered certificate should be returned")
+        @DisplayName("and KeyStoreGeneratorException is thrown")
         @Test
-        void isRenewal() {
-            Certificate cert = service.handleCertificateOrder(login, domainKeyPair, true);
+        void keystoreGeneratorException() {
+            when(keyStoreService.generateKeyStore(certChain, domainKeyPair.getPrivate()))
+                    .thenThrow(new KeyStoreGeneratorException(new RuntimeException()));
 
+            Certificate cert = service.handleCertificateOrder(login, domainKeyPair);
             assertSame(certificate, cert);
         }
 
-        @DisplayName("and this is not a renewal")
-        @Nested
-        class NoRenewal {
+        @DisplayName("then key store file is generated and written")
+        @Test
+        void keyStoreFileWritten() {
+            when(keyStoreService.generateKeyStore(certChain, domainKeyPair.getPrivate()))
+                    .thenReturn("this is a certificate".getBytes());
 
-            private List<X509Certificate> certChain = Collections.emptyList();
-            private Path keystoreFile;
+            Certificate cert = service.handleCertificateOrder(login, domainKeyPair);
+            assertSame(certificate, cert);
 
-            @BeforeEach
-            void setUp(@TempDir Path temp) {
-                keystoreFile = temp.resolve("not_exists");
+            verify(keyStoreService, times(1))
+                    .generateKeyStore(certChain, domainKeyPair.getPrivate());
 
-                when(config.getKeystoreFile()).thenReturn(keystoreFile.toString());
-                when(certificate.getCertificateChain()).thenReturn(certChain);
-            }
-
-            @DisplayName("and KeyStoreGeneratorException is thrown")
-            @Test
-            void keystoreGeneratorException() {
-                when(keyStoreService.generateKeyStore(certChain, domainKeyPair.getPrivate()))
-                        .thenThrow(new KeyStoreGeneratorException(new RuntimeException()));
-
-                Certificate cert = service.handleCertificateOrder(login, domainKeyPair, false);
-                assertSame(certificate, cert);
-            }
-
-            @DisplayName("then key store file is generated and written")
-            @Test
-            void keyStoreFileWritten() {
-                when(keyStoreService.generateKeyStore(certChain, domainKeyPair.getPrivate()))
-                        .thenReturn("this is a certificate".getBytes());
-
-                Certificate cert = service.handleCertificateOrder(login, domainKeyPair, false);
-                assertSame(certificate, cert);
-
-                verify(keyStoreService, times(1))
-                        .generateKeyStore(certChain, domainKeyPair.getPrivate());
-
-                assertTrue(Files.exists(keystoreFile));
-            }
+            assertTrue(Files.exists(keystoreFile));
         }
     }
 }

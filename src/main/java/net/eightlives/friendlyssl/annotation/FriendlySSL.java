@@ -5,6 +5,8 @@ import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.config.SchedulerConfig;
 import net.eightlives.friendlyssl.config.TimerConfig;
 import net.eightlives.friendlyssl.controller.CertificateChallengeController;
+import net.eightlives.friendlyssl.controller.CertificateController;
+import net.eightlives.friendlyssl.controller.TermsOfServiceController;
 import net.eightlives.friendlyssl.factory.AccountBuilderFactory;
 import net.eightlives.friendlyssl.factory.RecursiveTimerTaskFactory;
 import net.eightlives.friendlyssl.listener.ChallengeTokenRequestedListener;
@@ -26,6 +28,9 @@ import java.lang.annotation.*;
         RecursiveTimerTaskFactory.class,
         FriendlySSLApplicationListener.class,
         CertificateChallengeController.class,
+        CertificateController.class,
+        TermsOfServiceController.class,
+        AutoRenewService.class,
         AcmeAccountService.class,
         CertificateOrderHandlerService.class,
         CertificateOrderService.class,

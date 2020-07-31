@@ -15,7 +15,6 @@ import java.security.cert.X509Certificate;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Optional;
 
 @Slf4j
 @Component
@@ -39,32 +38,24 @@ public class SSLCertificateCreateRenewService {
         this.clock = clock;
     }
 
-    public CertificateRenewal createOrRenew() {
+    public CertificateRenewal createOrRenew(X509Certificate existingCertificate) {
         try {
             log.info("Starting certificate create/renew");
             Session session = new Session(config.getAcmeSessionUrl());
             Login login = accountService.getOrCreateAccountLogin(session);
             log.info("Certificate account login accessed");
 
-            Optional<X509Certificate> existingCertificate = keyStoreService.getCertificate(config.getCertificateFriendlyName());
-            if (existingCertificate.isPresent()) {
-                Instant renewTime = Instant.ofEpochMilli(existingCertificate.get().getNotAfter().getTime());
-                if (clock.instant().plus(config.getAutoRenewalHoursBefore(), ChronoUnit.HOURS).isBefore(renewTime)) {
-                    log.info("Existing certificate expiration time is " + renewTime);
-                    return new CertificateRenewal(
-                            CertificateRenewalStatus.ALREADY_VALID,
-                            renewTime);
-                }
+            KeyPair domainKeyPair = null;
+            if (existingCertificate != null) {
+                domainKeyPair = keyStoreService.getKeyPair(existingCertificate, config.getCertificateFriendlyName());
+            }
+            boolean isRenewal = domainKeyPair != null;
+            if (domainKeyPair == null) {
+                domainKeyPair = KeyPairUtils.createKeyPair(2048);
             }
 
-            KeyPair domainKeyPair = existingCertificate.map(
-                    certificate -> keyStoreService.getKeyPair(certificate, config.getCertificateFriendlyName()))
-                    .orElse(null);
-            boolean isRenewal = domainKeyPair != null;
-            domainKeyPair = domainKeyPair == null ? KeyPairUtils.createKeyPair(2048) : domainKeyPair;
-
             log.info("Beginning certificate order. Renewal: " + isRenewal);
-            Certificate certificate = certificateOrderHandlerService.handleCertificateOrder(login, domainKeyPair, isRenewal);
+            Certificate certificate = certificateOrderHandlerService.handleCertificateOrder(login, domainKeyPair);
             log.info("Certificate renewal successful. New certificate expiration time is " + certificate.getCertificate().getNotAfter());
             return new CertificateRenewal(
                     CertificateRenewalStatus.SUCCESS,

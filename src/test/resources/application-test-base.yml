@@ -1,0 +1,10 @@
+friendly-ssl:
+  auto-renew-enabled: true
+  domain: host.testcontainers.internal
+  account-email: fry@planetxpress.com
+  account-private-key-file: src/test/resources/temp/account.pem
+  keystore-file: src/test/resources/temp/keystore.p12
+  terms-of-service-file: src/test/resources/temp/tos
+
+server:
+  port: 5002

@@ -24,8 +24,8 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
-import java.util.Optional;
 
+import static net.eightlives.friendlyssl.util.TestConstants.EXISTING_KEYSTORE_CERT_EXPIRATION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,7 +37,6 @@ import static org.mockito.Mockito.when;
 class SSLCertificateCreateRenewServiceTest {
 
     private static final Instant FIXED_CLOCK = Instant.from(OffsetDateTime.of(2020, 2, 3, 4, 5, 6, 0, ZoneOffset.UTC));
-    private static final Instant CERT_EXPIRATION = Instant.from(OffsetDateTime.of(2012, 12, 22, 7, 41, 51, 0, ZoneOffset.UTC));
 
     private SSLCertificateCreateRenewService service;
 
@@ -63,7 +62,7 @@ class SSLCertificateCreateRenewServiceTest {
     void invalidURL() {
         when(config.getAcmeSessionUrl()).thenReturn("fake");
 
-        assertThrows(IllegalArgumentException.class, () -> service.createOrRenew());
+        assertThrows(IllegalArgumentException.class, () -> service.createOrRenew(null));
     }
 
     @DisplayName("When session URL is valid")
@@ -83,7 +82,7 @@ class SSLCertificateCreateRenewServiceTest {
             );
             when(config.getErrorRetryWaitHours()).thenReturn(2);
 
-            CertificateRenewal renewal = service.createOrRenew();
+            CertificateRenewal renewal = service.createOrRenew(null);
 
             assertEquals(CertificateRenewalStatus.ERROR, renewal.getStatus());
 
@@ -100,111 +99,87 @@ class SSLCertificateCreateRenewServiceTest {
             @BeforeEach
             void setUp() {
                 when(accountService.getOrCreateAccountLogin(any(Session.class))).thenReturn(login);
-                when(config.getCertificateFriendlyName()).thenReturn("friendlyssl");
             }
 
-            @DisplayName("When keystore returns an empty certificate")
+            @DisplayName("When existing certificate is null")
             @Test
             void emptyCertificate() throws CertificateException, IOException {
-                when(keyStoreService.getCertificate("friendlyssl")).thenReturn(Optional.empty());
                 org.shredzone.acme4j.Certificate acmeCert = mock(org.shredzone.acme4j.Certificate.class);
                 CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
                 X509Certificate certificate = (X509Certificate) certificateFactory.generateCertificate(Files.newInputStream(
                         Path.of("src", "test", "resources", "certificate_chain.pem")));
                 when(acmeCert.getCertificate()).thenReturn(certificate);
-                when(certificateOrderHandlerService.handleCertificateOrder(eq(login), any(KeyPair.class), eq(false)))
+                when(certificateOrderHandlerService.handleCertificateOrder(eq(login), any(KeyPair.class)))
                         .thenReturn(acmeCert);
 
-                CertificateRenewal renewal = service.createOrRenew();
+                CertificateRenewal renewal = service.createOrRenew(null);
 
                 assertEquals(CertificateRenewalStatus.SUCCESS, renewal.getStatus());
-                assertEquals(CERT_EXPIRATION, renewal.getTime());
+                assertEquals(EXISTING_KEYSTORE_CERT_EXPIRATION, renewal.getTime());
             }
 
-            @DisplayName("When keystore returns an existing certificate")
+            @DisplayName("When existing certificate is non-null")
             @Nested
             class KeystoreExistingCertificate {
 
-                private Optional<X509Certificate> certificate;
+                private X509Certificate certificate;
 
                 @BeforeEach
                 void setUp() throws CertificateException, IOException {
                     CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-                    certificate = Optional.of((X509Certificate) certificateFactory.generateCertificate(Files.newInputStream(
-                            Path.of("src", "test", "resources", "certificate_chain.pem"))));
+                    certificate = (X509Certificate) certificateFactory.generateCertificate(Files.newInputStream(
+                            Path.of("src", "test", "resources", "certificate_chain.pem")));
 
-                    when(keyStoreService.getCertificate("friendlyssl")).thenReturn(certificate);
-                    when(config.getAutoRenewalHoursBefore()).thenReturn(3);
+                    when(config.getCertificateFriendlyName()).thenReturn("friendlyssl");
                 }
 
-                @DisplayName("When certificate does not meet auto renewal threshold")
+                @DisplayName("When keystore service cannot find the certificate by name")
                 @Test
-                void certificateValid() {
+                void keystoreNoCertificateFound() throws CertificateException, IOException {
                     service = new SSLCertificateCreateRenewService(
                             config, accountService, keyStoreService, certificateOrderHandlerService,
-                            Clock.fixed(CERT_EXPIRATION.minus(3, ChronoUnit.HOURS)
-                                            .minus(1, ChronoUnit.SECONDS),
-                                    ZoneId.of("UTC"))
+                            Clock.fixed(EXISTING_KEYSTORE_CERT_EXPIRATION.minus(3, ChronoUnit.HOURS)
+                                    , ZoneId.of("UTC"))
                     );
+                    when(keyStoreService.getKeyPair(certificate, "friendlyssl"))
+                            .thenReturn(null);
+                    org.shredzone.acme4j.Certificate acmeCert = mock(org.shredzone.acme4j.Certificate.class);
+                    CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+                    X509Certificate certificate = (X509Certificate) certificateFactory.generateCertificate(Files.newInputStream(
+                            Path.of("src", "test", "resources", "certificate_chain.pem")));
+                    when(acmeCert.getCertificate()).thenReturn(certificate);
+                    when(certificateOrderHandlerService.handleCertificateOrder(eq(login), any(KeyPair.class)))
+                            .thenReturn(acmeCert);
 
-                    CertificateRenewal renewal = service.createOrRenew();
+                    CertificateRenewal renewal = service.createOrRenew(certificate);
 
-                    assertEquals(CertificateRenewalStatus.ALREADY_VALID, renewal.getStatus());
-                    assertEquals(CERT_EXPIRATION, renewal.getTime());
+                    assertEquals(CertificateRenewalStatus.SUCCESS, renewal.getStatus());
+                    assertEquals(EXISTING_KEYSTORE_CERT_EXPIRATION, renewal.getTime());
                 }
 
-                @DisplayName("When certificate meets auto renewal threshold")
-                @Nested
-                class CertificateExpired {
+                @DisplayName("When keystore service finds the certificate by name")
+                @Test
+                void keystoreCertificateFound() throws CertificateException, IOException {
+                    service = new SSLCertificateCreateRenewService(
+                            config, accountService, keyStoreService, certificateOrderHandlerService,
+                            Clock.fixed(EXISTING_KEYSTORE_CERT_EXPIRATION.minus(3, ChronoUnit.HOURS)
+                                    , ZoneId.of("UTC"))
+                    );
+                    KeyPair keyPair = KeyPairUtils.createKeyPair(2048);
+                    when(keyStoreService.getKeyPair(certificate, "friendlyssl"))
+                            .thenReturn(keyPair);
+                    org.shredzone.acme4j.Certificate acmeCert = mock(org.shredzone.acme4j.Certificate.class);
+                    CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+                    X509Certificate certificate = (X509Certificate) certificateFactory.generateCertificate(Files.newInputStream(
+                            Path.of("src", "test", "resources", "certificate_chain.pem")));
+                    when(acmeCert.getCertificate()).thenReturn(certificate);
+                    when(certificateOrderHandlerService.handleCertificateOrder(login, keyPair))
+                            .thenReturn(acmeCert);
 
-                    @DisplayName("When keystore service cannot find the certificate by name")
-                    @Test
-                    void keystoreNoCertificateFound() throws CertificateException, IOException {
-                        service = new SSLCertificateCreateRenewService(
-                                config, accountService, keyStoreService, certificateOrderHandlerService,
-                                Clock.fixed(CERT_EXPIRATION.minus(3, ChronoUnit.HOURS)
-                                        , ZoneId.of("UTC"))
-                        );
-                        when(keyStoreService.getKeyPair(certificate.get(), "friendlyssl"))
-                                .thenReturn(null);
-                        org.shredzone.acme4j.Certificate acmeCert = mock(org.shredzone.acme4j.Certificate.class);
-                        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-                        X509Certificate certificate = (X509Certificate) certificateFactory.generateCertificate(Files.newInputStream(
-                                Path.of("src", "test", "resources", "certificate_chain.pem")));
-                        when(acmeCert.getCertificate()).thenReturn(certificate);
-                        when(certificateOrderHandlerService.handleCertificateOrder(eq(login), any(KeyPair.class), eq(false)))
-                                .thenReturn(acmeCert);
+                    CertificateRenewal renewal = service.createOrRenew(certificate);
 
-                        CertificateRenewal renewal = service.createOrRenew();
-
-                        assertEquals(CertificateRenewalStatus.SUCCESS, renewal.getStatus());
-                        assertEquals(CERT_EXPIRATION, renewal.getTime());
-                    }
-
-                    @DisplayName("When keystore service finds the certificate by name")
-                    @Test
-                    void keystoreCertificateFound() throws CertificateException, IOException {
-                        service = new SSLCertificateCreateRenewService(
-                                config, accountService, keyStoreService, certificateOrderHandlerService,
-                                Clock.fixed(CERT_EXPIRATION.minus(3, ChronoUnit.HOURS)
-                                        , ZoneId.of("UTC"))
-                        );
-                        KeyPair keyPair = KeyPairUtils.createKeyPair(2048);
-                        when(keyStoreService.getKeyPair(certificate.get(), "friendlyssl"))
-                                .thenReturn(keyPair);
-                        org.shredzone.acme4j.Certificate acmeCert = mock(org.shredzone.acme4j.Certificate.class);
-                        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-                        X509Certificate certificate = (X509Certificate) certificateFactory.generateCertificate(Files.newInputStream(
-                                Path.of("src", "test", "resources", "certificate_chain.pem")));
-                        when(acmeCert.getCertificate()).thenReturn(certificate);
-                        when(certificateOrderHandlerService.handleCertificateOrder(login, keyPair, true))
-                                .thenReturn(acmeCert);
-
-                        CertificateRenewal renewal = service.createOrRenew();
-
-                        assertEquals(CertificateRenewalStatus.SUCCESS, renewal.getStatus());
-                        assertEquals(CERT_EXPIRATION, renewal.getTime());
-                    }
+                    assertEquals(CertificateRenewalStatus.SUCCESS, renewal.getStatus());
+                    assertEquals(EXISTING_KEYSTORE_CERT_EXPIRATION, renewal.getTime());
                 }
             }
         }

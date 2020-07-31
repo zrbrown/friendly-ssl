@@ -5,7 +5,10 @@ import javax.validation.constraints.NotNull;
 public class TermsOfServiceAgreeRequest {
 
     @NotNull
-    private final String termsOfServiceLink;
+    private String termsOfServiceLink;
+
+    public TermsOfServiceAgreeRequest() {
+    }
 
     public TermsOfServiceAgreeRequest(String termsOfServiceLink) {
         this.termsOfServiceLink = termsOfServiceLink;
@@ -13,5 +16,9 @@ public class TermsOfServiceAgreeRequest {
 
     public String getTermsOfServiceLink() {
         return termsOfServiceLink;
+    }
+
+    public void setTermsOfServiceLink(String termsOfServiceLink) {
+        this.termsOfServiceLink = termsOfServiceLink;
     }
 }
