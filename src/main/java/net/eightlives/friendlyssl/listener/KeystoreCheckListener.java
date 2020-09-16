@@ -28,8 +28,14 @@ import org.springframework.boot.SpringApplicationRunListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigInteger;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -58,12 +64,10 @@ public class KeystoreCheckListener implements SpringApplicationRunListener {
         application.getAllSources().stream()
                 .filter(source -> source == application.getMainApplicationClass())
                 .findFirst()
-                .ifPresent(unused -> {
-                    createSelfSignedIfKeystoreInvalid(
-                            environment.getProperty("friendly-ssl.keystore-file"),
-                            environment.getProperty("friendly-ssl.certificate-friendly-name"),
-                            environment.getProperty("friendly-ssl.domain"));
-                });
+                .ifPresent(unused -> createSelfSignedIfKeystoreInvalid(
+                        environment.getProperty("friendly-ssl.keystore-file"),
+                        environment.getProperty("friendly-ssl.certificate-friendly-name"),
+                        environment.getProperty("friendly-ssl.domain")));
     }
 
 
@@ -71,25 +75,31 @@ public class KeystoreCheckListener implements SpringApplicationRunListener {
                                                    String domain) {
         try {
             KeyStore store = KeyStore.getInstance(KEYSTORE_TYPE);
-
-            File keystoreFile = new File(keystoreLocation);
-
+            Path keystorePath = Path.of(keystoreLocation);
             Certificate certificate = null;
+
             try {
-                store.load(new FileInputStream(keystoreFile), "".toCharArray());
+                Files.createFile(keystorePath);
+                log.info("Keystore file " + keystoreLocation + " created.");
+            } catch (FileAlreadyExistsException e) {
+                store.load(new FileInputStream(keystorePath.toFile()), "".toCharArray());
+                log.info("Existing keystore file " + keystoreLocation + " loaded.");
                 certificate = store.getCertificate(certificateFriendlyName);
-            } catch (FileNotFoundException ignored) {
-                keystoreFile.createNewFile();
-            } catch (KeyStoreException ignored) {
+                log.info("Existing keystore file " + keystoreLocation + " contains certificate named " + certificateFriendlyName + ": " + (certificate != null));
             }
 
             if (certificate == null) {
-                try (OutputStream file = new FileOutputStream(keystoreFile)) {
+                try (OutputStream file = new FileOutputStream(keystorePath.toFile())) {
                     file.write(generateSelfSignedCertificateKeystore(certificateFriendlyName, domain));
+                    log.info("Self-signed certificate named " + certificateFriendlyName);
                 }
             }
         } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e) {
-            e.printStackTrace(); //TODO
+            if (e.getCause() instanceof UnrecoverableKeyException) {
+                log.error("Cannot load keystore file " + keystoreLocation + " - likely due to keystore having a password, which is unsupported.");
+            } else {
+                log.error("Error while validating certificate on startup", e);
+            }
         }
     }
 
