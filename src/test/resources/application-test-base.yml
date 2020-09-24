@@ -5,6 +5,13 @@ friendly-ssl:
   account-private-key-file: src/test/resources/temp/account.pem
   keystore-file: src/test/resources/temp/keystore.p12
   terms-of-service-file: src/test/resources/temp/tos
+  certificate-friendly-name: friendlyssl
 
 server:
-  port: 5002
+  port: 443
+  ssl:
+    enabled: true
+    key-store: src/test/resources/temp/keystore.p12
+    key-store-password:
+    keyStoreType: PKCS12
+    keyAlias: friendlyssl

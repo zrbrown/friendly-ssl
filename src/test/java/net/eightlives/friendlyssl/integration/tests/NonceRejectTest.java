@@ -24,7 +24,7 @@ import java.util.List;
 class NonceRejectTest implements IntegrationTest {
 
     static {
-        Testcontainers.exposeHostPorts(5002);
+        Testcontainers.exposeHostPorts(5002, 443);
     }
 
     static GenericContainer pebbleContainer = new GenericContainer("letsencrypt/pebble")
@@ -51,6 +51,8 @@ class NonceRejectTest implements IntegrationTest {
     void nonceReject(CapturedOutput output) {
         testLogOutput(
                 List.of(
+                        "n.e.f.service.AutoRenewService           : Auto-renew starting...",
+                        "n.e.f.service.AutoRenewService           : Existing certificate expiration time is",
                         "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate create/renew",
                         "o.s.acme4j.connector.DefaultConnection   : Bad Replay Nonce, trying again (attempt 1/10)",
                         "o.s.acme4j.connector.DefaultConnection   : Bad Replay Nonce, trying again (attempt 2/10)",

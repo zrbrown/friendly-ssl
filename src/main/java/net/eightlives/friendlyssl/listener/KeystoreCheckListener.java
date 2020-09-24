@@ -62,7 +62,6 @@ public class KeystoreCheckListener implements SpringApplicationRunListener {
     @Override
     public void environmentPrepared(ConfigurableEnvironment environment) {
         application.getAllSources().stream()
-                .filter(source -> source == application.getMainApplicationClass())
                 .findFirst()
                 .ifPresent(unused -> createSelfSignedIfKeystoreInvalid(
                         environment.getProperty("friendly-ssl.keystore-file"),
@@ -79,6 +78,7 @@ public class KeystoreCheckListener implements SpringApplicationRunListener {
             Certificate certificate = null;
 
             try {
+                Files.createDirectories(keystorePath.getParent());
                 Files.createFile(keystorePath);
                 log.info("Keystore file " + keystoreLocation + " created.");
             } catch (FileAlreadyExistsException e) {

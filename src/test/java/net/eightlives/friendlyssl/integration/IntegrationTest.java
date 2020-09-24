@@ -46,7 +46,7 @@ public interface IntegrationTest extends ApplicationContextInitializer<Configura
 
     @BeforeAll
     default void setUpAll() throws IOException {
-        Files.createDirectory(TEMP);
+        Files.createDirectories(TEMP);
     }
 
     @AfterAll

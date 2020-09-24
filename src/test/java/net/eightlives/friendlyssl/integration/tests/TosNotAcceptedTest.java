@@ -48,6 +48,8 @@ public class TosNotAcceptedTest implements IntegrationTest {
     void tosNotAccepted(CapturedOutput output) {
         testLogOutput(
                 List.of(
+                        "n.e.f.service.AutoRenewService           : Auto-renew starting...",
+                        "n.e.f.service.AutoRenewService           : Existing certificate expiration time is",
                         "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate create/renew",
                         "n.e.f.s.SSLCertificateCreateRenewService : Exception while ordering certificate, retry in 1 hours",
                         "net.eightlives.friendlyssl.exception.SSLCertificateException: Exception while handling SSL certificate management",
