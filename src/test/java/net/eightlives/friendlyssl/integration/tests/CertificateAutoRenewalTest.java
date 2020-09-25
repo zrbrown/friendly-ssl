@@ -3,11 +3,8 @@ package net.eightlives.friendlyssl.integration.tests;
 import net.eightlives.friendlyssl.annotation.FriendlySSL;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.integration.IntegrationTest;
+import net.eightlives.friendlyssl.integration.TestApp;
 import net.eightlives.friendlyssl.util.TestConstants;
-import org.apache.catalina.Context;
-import org.apache.catalina.connector.Connector;
-import org.apache.tomcat.util.descriptor.web.SecurityCollection;
-import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +12,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
-import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.annotation.DirtiesContext;
@@ -73,7 +68,7 @@ class CertificateAutoRenewalTest implements IntegrationTest {
 
     @FriendlySSL
     @SpringBootApplication
-    static class CertificateRenewalApp {
+    static class CertificateRenewalApp extends TestApp {
 
         @Bean
         @Primary
@@ -90,32 +85,6 @@ class CertificateAutoRenewalTest implements IntegrationTest {
                     .thenReturn(renewThreshold);
 
             return clock;
-        }
-
-        @Bean
-        public ServletWebServerFactory servletContainer() {
-            TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory() {
-                @Override
-                protected void postProcessContext(Context context) {
-                    SecurityConstraint securityConstraint = new SecurityConstraint();
-                    securityConstraint.setUserConstraint("CONFIDENTIAL");
-                    SecurityCollection securityCollection = new SecurityCollection();
-                    securityCollection.addPattern("/*");
-                    securityConstraint.addCollection(securityCollection);
-                    context.addConstraint(securityConstraint);
-                }
-            };
-            tomcat.addAdditionalTomcatConnectors(redirectConnector());
-            return tomcat;
-        }
-
-        private Connector redirectConnector() {
-            Connector connector = new Connector(TomcatServletWebServerFactory.DEFAULT_PROTOCOL);
-            connector.setScheme("http");
-            connector.setPort(5002);
-            connector.setSecure(false);
-            connector.setRedirectPort(443);
-            return connector;
         }
     }
 
