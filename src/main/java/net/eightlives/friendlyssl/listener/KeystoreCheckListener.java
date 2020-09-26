@@ -139,7 +139,7 @@ public class KeystoreCheckListener implements SpringApplicationRunListener {
             BcPKCS12MacCalculatorBuilder macBuilder = new BcPKCS12MacCalculatorBuilder();
             macBuilder.setIterationCount(2048);
 
-            PKCS12PfxPdu pfx = pfxBuilder.build(macBuilder, "PASSWORD".toCharArray());
+            PKCS12PfxPdu pfx = pfxBuilder.build(macBuilder, "".toCharArray());
             return pfx.getEncoded(ASN1Encoding.DL);
         } catch (IOException | PKCSException | OperatorCreationException e) {
             log.error("Error while generating self-signed certificate", e);
