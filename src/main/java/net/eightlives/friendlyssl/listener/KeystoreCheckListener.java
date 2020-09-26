@@ -1,6 +1,7 @@
 package net.eightlives.friendlyssl.listener;
 
 import lombok.extern.slf4j.Slf4j;
+import net.eightlives.friendlyssl.exception.SSLCertificateException;
 import org.bouncycastle.asn1.ASN1Encoding;
 import org.bouncycastle.asn1.DERBMPString;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
@@ -69,7 +70,6 @@ public class KeystoreCheckListener implements SpringApplicationRunListener {
                         environment.getProperty("friendly-ssl.domain")));
     }
 
-
     private void createSelfSignedIfKeystoreInvalid(String keystoreLocation, String certificateFriendlyName,
                                                    String domain) {
         try {
@@ -117,7 +117,7 @@ public class KeystoreCheckListener implements SpringApplicationRunListener {
                     Date.from(Instant.now()), Date.from(Instant.now().plus(1, ChronoUnit.DAYS)),
                     name, SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded())
             ).build(signer).toASN1Structure();
-            var certBagBuilder = new PKCS12SafeBagBuilder(certificate);
+            PKCS12SafeBagBuilder certBagBuilder = new PKCS12SafeBagBuilder(certificate);
             certBagBuilder.addBagAttribute(PKCSObjectIdentifiers.pkcs_9_at_friendlyName, new DERBMPString(certificateFriendlyName));
             PKCS12SafeBag[] certBags = new PKCS12SafeBag[]{certBagBuilder.build()};
 
@@ -139,11 +139,11 @@ public class KeystoreCheckListener implements SpringApplicationRunListener {
             BcPKCS12MacCalculatorBuilder macBuilder = new BcPKCS12MacCalculatorBuilder();
             macBuilder.setIterationCount(2048);
 
-            PKCS12PfxPdu pfx = pfxBuilder.build(macBuilder, "".toCharArray());
+            PKCS12PfxPdu pfx = pfxBuilder.build(macBuilder, "PASSWORD".toCharArray());
             return pfx.getEncoded(ASN1Encoding.DL);
         } catch (IOException | PKCSException | OperatorCreationException e) {
-            e.printStackTrace(); //TODO
-            throw new RuntimeException();
+            log.error("Error while generating self-signed certificate", e);
+            throw new SSLCertificateException(e);
         }
     }
 
