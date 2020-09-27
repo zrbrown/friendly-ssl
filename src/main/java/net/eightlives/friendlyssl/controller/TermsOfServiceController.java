@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.exception.SSLCertificateException;
 import net.eightlives.friendlyssl.model.TermsOfServiceAgreeRequest;
 import net.eightlives.friendlyssl.service.TermsOfServiceService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import javax.validation.Valid;
 import java.net.URI;
 
 @Slf4j
+@ConditionalOnExpression("'${friendly-ssl.endpoints-include}'.contains('tos')")
 @RestController
 @RequestMapping("/friendly-ssl/tos")
 public class TermsOfServiceController {

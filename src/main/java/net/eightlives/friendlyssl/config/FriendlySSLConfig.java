@@ -3,6 +3,9 @@ package net.eightlives.friendlyssl.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Configuration
 @ConfigurationProperties(prefix = "friendly-ssl")
 public class FriendlySSLConfig {
@@ -20,6 +23,7 @@ public class FriendlySSLConfig {
     private int authChallengeTimeoutSeconds = 20;
     private int autoRenewalHoursBefore = 72;
     private int errorRetryWaitHours = 1;
+    private List<String> endpointsInclude = new ArrayList<>();
 
     public boolean isAutoRenewEnabled() {
         return autoRenewEnabled;
@@ -123,5 +127,13 @@ public class FriendlySSLConfig {
 
     public void setErrorRetryWaitHours(int errorRetryWaitHours) {
         this.errorRetryWaitHours = errorRetryWaitHours;
+    }
+
+    public List<String> getEndpointsInclude() {
+        return endpointsInclude;
+    }
+
+    public void setEndpointsInclude(List<String> endpointsInclude) {
+        this.endpointsInclude = endpointsInclude;
     }
 }
