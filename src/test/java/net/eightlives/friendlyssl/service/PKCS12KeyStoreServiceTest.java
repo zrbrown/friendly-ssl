@@ -64,7 +64,7 @@ class PKCS12KeyStoreServiceTest {
         @RepeatedTest(value = 50)
         void generateKeystore() throws IOException {
             byte[] snapshot = Files.readAllBytes(
-                    Path.of("src", "test", "resources", "existing_keystore.p12"));
+                    Path.of("src", "test", "resources", "existing_old_keystore.p12"));
             byte[] keystore = service.generateKeyStore(certificateChain, privateKey);
 
             assertEquals(snapshot.length, keystore.length);
@@ -131,7 +131,7 @@ class PKCS12KeyStoreServiceTest {
             @BeforeEach
             void setUp() {
                 when(config.getKeystoreFile()).thenReturn(
-                        Path.of("src", "test", "resources", "existing_keystore.p12").toString());
+                        Path.of("src", "test", "resources", "existing_old_keystore.p12").toString());
             }
 
             @DisplayName("when private key friendly name is not in the key store")
@@ -157,7 +157,7 @@ class PKCS12KeyStoreServiceTest {
         @BeforeEach
         void setUp() {
             when(config.getKeystoreFile()).thenReturn(
-                    Path.of("src", "test", "resources", "existing_keystore.p12").toString());
+                    Path.of("src", "test", "resources", "existing_old_keystore.p12").toString());
         }
 
         @DisplayName("when key store file does not exist")
@@ -186,7 +186,7 @@ class PKCS12KeyStoreServiceTest {
             @Test
             void friendlyNameKeyNotFound() throws CertificateException, IOException {
                 when(config.getKeystoreFile()).thenReturn(
-                        Path.of("src", "test", "resources", "existing_keystore.p12").toString());
+                        Path.of("src", "test", "resources", "existing_old_keystore.p12").toString());
 
                 assertEquals(Optional.empty(), service.getCertificate("NotFound"));
             }
@@ -195,7 +195,7 @@ class PKCS12KeyStoreServiceTest {
             @Test
             void validKeyStore() throws CertificateException, IOException {
                 when(config.getKeystoreFile()).thenReturn(
-                        Path.of("src", "test", "resources", "existing_keystore.p12").toString());
+                        Path.of("src", "test", "resources", "existing_old_keystore.p12").toString());
 
                 CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
                 Certificate certificate = certificateFactory.generateCertificate(Files.newInputStream(

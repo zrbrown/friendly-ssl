@@ -113,7 +113,7 @@ public class KeystoreCheckListenerTest {
         assertArrayEquals(keystore, Files.readAllBytes(keystorePath));
 
         assertTrue(output.getOut().lines().anyMatch(
-                line -> line.contains("ERROR net.eightlives.friendlyssl.listener.KeystoreCheckListener - Cannot load keystore file src/test/resources/password_keystore.p12 - likely due to keystore having a password, which is unsupported.")
+                line -> line.contains("Cannot load keystore file src/test/resources/password_keystore.p12 - likely due to keystore having a password, which is unsupported.")
         ));
     }
 

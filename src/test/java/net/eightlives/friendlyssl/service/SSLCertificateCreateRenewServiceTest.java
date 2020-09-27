@@ -25,7 +25,6 @@ import java.security.cert.X509Certificate;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
 
-import static net.eightlives.friendlyssl.util.TestConstants.EXISTING_KEYSTORE_CERT_EXPIRATION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,6 +36,7 @@ import static org.mockito.Mockito.when;
 class SSLCertificateCreateRenewServiceTest {
 
     private static final Instant FIXED_CLOCK = Instant.from(OffsetDateTime.of(2020, 2, 3, 4, 5, 6, 0, ZoneOffset.UTC));
+    public static final Instant CERT_EXPIRATION = Instant.from(OffsetDateTime.of(2012, 12, 22, 7, 41, 51, 0, ZoneOffset.UTC));
 
     private SSLCertificateCreateRenewService service;
 
@@ -115,7 +115,7 @@ class SSLCertificateCreateRenewServiceTest {
                 CertificateRenewal renewal = service.createOrRenew(null);
 
                 assertEquals(CertificateRenewalStatus.SUCCESS, renewal.getStatus());
-                assertEquals(EXISTING_KEYSTORE_CERT_EXPIRATION, renewal.getTime());
+                assertEquals(CERT_EXPIRATION, renewal.getTime());
             }
 
             @DisplayName("When existing certificate is non-null")
@@ -138,7 +138,7 @@ class SSLCertificateCreateRenewServiceTest {
                 void keystoreNoCertificateFound() throws CertificateException, IOException {
                     service = new SSLCertificateCreateRenewService(
                             config, accountService, keyStoreService, certificateOrderHandlerService,
-                            Clock.fixed(EXISTING_KEYSTORE_CERT_EXPIRATION.minus(3, ChronoUnit.HOURS)
+                            Clock.fixed(CERT_EXPIRATION.minus(3, ChronoUnit.HOURS)
                                     , ZoneId.of("UTC"))
                     );
                     when(keyStoreService.getKeyPair(certificate, "friendlyssl"))
@@ -154,7 +154,7 @@ class SSLCertificateCreateRenewServiceTest {
                     CertificateRenewal renewal = service.createOrRenew(certificate);
 
                     assertEquals(CertificateRenewalStatus.SUCCESS, renewal.getStatus());
-                    assertEquals(EXISTING_KEYSTORE_CERT_EXPIRATION, renewal.getTime());
+                    assertEquals(CERT_EXPIRATION, renewal.getTime());
                 }
 
                 @DisplayName("When keystore service finds the certificate by name")
@@ -162,7 +162,7 @@ class SSLCertificateCreateRenewServiceTest {
                 void keystoreCertificateFound() throws CertificateException, IOException {
                     service = new SSLCertificateCreateRenewService(
                             config, accountService, keyStoreService, certificateOrderHandlerService,
-                            Clock.fixed(EXISTING_KEYSTORE_CERT_EXPIRATION.minus(3, ChronoUnit.HOURS)
+                            Clock.fixed(CERT_EXPIRATION.minus(3, ChronoUnit.HOURS)
                                     , ZoneId.of("UTC"))
                     );
                     KeyPair keyPair = KeyPairUtils.createKeyPair(2048);
@@ -179,7 +179,7 @@ class SSLCertificateCreateRenewServiceTest {
                     CertificateRenewal renewal = service.createOrRenew(certificate);
 
                     assertEquals(CertificateRenewalStatus.SUCCESS, renewal.getStatus());
-                    assertEquals(EXISTING_KEYSTORE_CERT_EXPIRATION, renewal.getTime());
+                    assertEquals(CERT_EXPIRATION, renewal.getTime());
                 }
             }
         }

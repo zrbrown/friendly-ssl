@@ -19,15 +19,18 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
-import static net.eightlives.friendlyssl.util.TestConstants.EXISTING_KEYSTORE_CERT_EXPIRATION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class AutoRenewServiceTest {
+
+    public static final Instant CERT_EXPIRATION = Instant.from(OffsetDateTime.of(2012, 12, 22, 7, 41, 51, 0, ZoneOffset.UTC));
 
     private AutoRenewService service;
 
@@ -77,20 +80,20 @@ public class AutoRenewServiceTest {
         @DisplayName("When certificate is unexpired")
         @Test
         void certificateUnexpired() {
-            when(clock.instant()).thenReturn(EXISTING_KEYSTORE_CERT_EXPIRATION
+            when(clock.instant()).thenReturn(CERT_EXPIRATION
                     .minus(3, ChronoUnit.HOURS)
                     .minus(1, ChronoUnit.SECONDS));
 
             CertificateRenewal result = service.autoRenew();
 
             assertEquals(CertificateRenewalStatus.ALREADY_VALID, result.getStatus());
-            assertEquals(EXISTING_KEYSTORE_CERT_EXPIRATION.minus(3, ChronoUnit.HOURS), result.getTime());
+            assertEquals(CERT_EXPIRATION.minus(3, ChronoUnit.HOURS), result.getTime());
         }
 
         @DisplayName("When certificate is expired")
         @Test
         void certificateExpired() {
-            when(clock.instant()).thenReturn(EXISTING_KEYSTORE_CERT_EXPIRATION
+            when(clock.instant()).thenReturn(CERT_EXPIRATION
                     .minus(3, ChronoUnit.HOURS));
             CertificateRenewal renewal = new CertificateRenewal(CertificateRenewalStatus.SUCCESS, Instant.now());
             when(createRenewService.createOrRenew(certificate)).thenReturn(renewal);
