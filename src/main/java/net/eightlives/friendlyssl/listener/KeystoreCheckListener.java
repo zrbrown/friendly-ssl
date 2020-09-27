@@ -49,10 +49,7 @@ public class KeystoreCheckListener implements SpringApplicationRunListener {
 
     private static final String KEYSTORE_TYPE = "PKCS12";
 
-    private final SpringApplication application;
-
     public KeystoreCheckListener(SpringApplication application, String[] args) {
-        this.application = application;
     }
 
     @Override
@@ -62,12 +59,13 @@ public class KeystoreCheckListener implements SpringApplicationRunListener {
 
     @Override
     public void environmentPrepared(ConfigurableEnvironment environment) {
-        application.getAllSources().stream()
-                .findFirst()
-                .ifPresent(unused -> createSelfSignedIfKeystoreInvalid(
-                        environment.getProperty("friendly-ssl.keystore-file"),
-                        environment.getProperty("friendly-ssl.certificate-friendly-name"),
-                        environment.getProperty("friendly-ssl.domain")));
+        String keystoreLocation = environment.getProperty("friendly-ssl.keystore-file");
+        String certificateFriendlyName = environment.getProperty("friendly-ssl.certificate-friendly-name");
+        String domain = environment.getProperty("friendly-ssl.domain");
+
+        if (keystoreLocation != null && certificateFriendlyName != null && domain != null) {
+            createSelfSignedIfKeystoreInvalid(keystoreLocation, certificateFriendlyName, domain);
+        }
     }
 
     private void createSelfSignedIfKeystoreInvalid(String keystoreLocation, String certificateFriendlyName,
@@ -78,7 +76,9 @@ public class KeystoreCheckListener implements SpringApplicationRunListener {
             Certificate certificate = null;
 
             try {
-                Files.createDirectories(keystorePath.getParent());
+                if (keystorePath.getParent() != null) {
+                    Files.createDirectories(keystorePath.getParent());
+                }
                 Files.createFile(keystorePath);
                 log.info("Keystore file " + keystoreLocation + " created.");
             } catch (FileAlreadyExistsException e) {

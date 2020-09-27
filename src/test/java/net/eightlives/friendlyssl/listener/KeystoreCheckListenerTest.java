@@ -3,9 +3,10 @@ package net.eightlives.friendlyssl.listener;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -20,7 +21,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
@@ -31,25 +31,58 @@ public class KeystoreCheckListenerTest {
     private KeystoreCheckListener listener;
 
     @Mock
-    private SpringApplication application;
-    @Mock
     private ConfigurableEnvironment environment;
+
+    private final Path notExists = Path.of("not_exists.p12");
 
     @BeforeEach
     void setUp() {
-        listener = new KeystoreCheckListener(application, null);
+        listener = new KeystoreCheckListener(null, null);
 
-        when(application.getAllSources()).thenReturn(Set.of(""));
-
+        when(environment.getProperty("friendly-ssl.keystore-file")).thenReturn(notExists.toString());
         when(environment.getProperty("friendly-ssl.domain")).thenReturn("test.me");
         when(environment.getProperty("friendly-ssl.certificate-friendly-name")).thenReturn("friendlyssl");
+    }
+
+    @AfterEach
+    void tearDown() throws IOException {
+        Files.deleteIfExists(notExists);
+    }
+
+    @DisplayName("When a required property ")
+    @ParameterizedTest(name = "{0} has not been set")
+    @ValueSource(strings = {"friendly-ssl.keystore-file", "friendly-ssl.certificate-friendly-name", "friendly-ssl.domain"})
+    void requiredPropertyMissing(String property) {
+        when(environment.getProperty(property)).thenReturn(null);
+
+        listener.environmentPrepared(environment);
+
+        assertTrue(Files.notExists(notExists));
     }
 
     @DisplayName("When an existing certificate is not present")
     @Test
     void certificateNotExists(@TempDir Path temp) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
         Path notExists = temp.resolve("not_exists.p12");
+        when(environment.getProperty("friendly-ssl.keystore-file")).thenReturn(notExists.toString());
 
+        listener.environmentPrepared(environment);
+
+        KeyStore store = KeyStore.getInstance("PKCS12");
+        store.load(Files.newInputStream(notExists), "".toCharArray());
+        X509Certificate certificate = (X509Certificate) store.getCertificate("friendlyssl");
+
+        assertTrue(Instant.ofEpochMilli(certificate.getNotAfter().getTime())
+                .isBefore(Instant.now().plus(1, ChronoUnit.DAYS)));
+        assertEquals("DC=NET, DC=EIGHTLIVES, DC=FRIENDLYSSL, CN=test.me",
+                certificate.getIssuerDN().getName());
+        assertEquals("DC=NET, DC=EIGHTLIVES, DC=FRIENDLYSSL, CN=test.me",
+                certificate.getSubjectDN().getName());
+    }
+
+    @DisplayName("When an existing certificate is not present and keystore path has no parent directory")
+    @Test
+    void certificateNotExistsNoParent() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
         when(environment.getProperty("friendly-ssl.keystore-file")).thenReturn(notExists.toString());
 
         listener.environmentPrepared(environment);
