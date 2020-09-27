@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class PartialNonceRejectTest implements IntegrationTest {
 
     static {
-        Testcontainers.exposeHostPorts(5002);
+        Testcontainers.exposeHostPorts(5002, 443);
     }
 
     static GenericContainer pebbleContainer = new GenericContainer("letsencrypt/pebble")
@@ -60,10 +60,12 @@ class PartialNonceRejectTest implements IntegrationTest {
     void partialNonceReject(CapturedOutput output) {
         testLogOutput(
                 List.of(
+                        "n.e.f.service.AutoRenewService           : Auto-renew starting...",
+                        "n.e.f.service.AutoRenewService           : Existing certificate expiration time is",
                         "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate create/renew",
                         "n.e.f.service.AcmeAccountService         : Account does not exist. Creating account.",
                         "n.e.f.s.SSLCertificateCreateRenewService : Certificate account login accessed",
-                        "n.e.f.s.SSLCertificateCreateRenewService : Beginning certificate order. Renewal: false",
+                        "n.e.f.s.SSLCertificateCreateRenewService : Beginning certificate order.",
                         "n.e.f.service.UpdateCheckerService       : Resource is valid",
                         "n.e.f.s.SSLCertificateCreateRenewService : Certificate renewal successful. New certificate expiration time is"
                 ),

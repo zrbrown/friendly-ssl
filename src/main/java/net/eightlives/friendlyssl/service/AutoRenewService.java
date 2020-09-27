@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
 @Slf4j
@@ -30,10 +32,12 @@ public class AutoRenewService {
     }
 
     public CertificateRenewal autoRenew() {
+        log.info("Auto-renew starting...");
         return keyStoreService.getCertificate(config.getCertificateFriendlyName()).map(certificate -> {
             Instant renewTime = Instant.ofEpochMilli(certificate.getNotAfter().getTime());
+            log.info("Existing certificate expiration time is " +
+                    DateTimeFormatter.RFC_1123_DATE_TIME.format(renewTime.atZone(ZoneOffset.UTC)));
             if (clock.instant().plus(config.getAutoRenewalHoursBefore(), ChronoUnit.HOURS).isBefore(renewTime)) {
-                log.info("Existing certificate expiration time is " + renewTime);
                 return new CertificateRenewal(
                         CertificateRenewalStatus.ALREADY_VALID,
                         renewTime.minus(config.getAutoRenewalHoursBefore(), ChronoUnit.HOURS));

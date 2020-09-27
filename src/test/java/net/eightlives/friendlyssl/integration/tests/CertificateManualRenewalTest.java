@@ -1,18 +1,14 @@
 package net.eightlives.friendlyssl.integration.tests;
 
-import net.eightlives.friendlyssl.annotation.FriendlySSL;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.integration.IntegrationTest;
-import net.eightlives.friendlyssl.util.TestConstants;
+import net.eightlives.friendlyssl.integration.TestApp;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -27,23 +23,19 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Clock;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
-import static net.eightlives.friendlyssl.integration.tests.CertificateAutoRenewalTest.CertificateRenewalApp;
+import static net.eightlives.friendlyssl.util.TestUtils.trustAllCertsContext;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@ContextConfiguration(initializers = CertificateManualRenewalTest.class, classes = CertificateRenewalApp.class)
+@ContextConfiguration(initializers = CertificateManualRenewalTest.class, classes = TestApp.class)
 @ActiveProfiles({"test-base", "test-tos-accepted", "test-existing-keystore", "test-override-beans", "test-no-auto-renew"})
 class CertificateManualRenewalTest implements IntegrationTest {
 
     static {
-        Testcontainers.exposeHostPorts(5002);
+        Testcontainers.exposeHostPorts(5002, 443);
     }
 
     static GenericContainer pebbleContainer = new GenericContainer("letsencrypt/pebble")
@@ -65,22 +57,6 @@ class CertificateManualRenewalTest implements IntegrationTest {
     @Autowired
     FriendlySSLConfig config;
 
-    @FriendlySSL
-    @SpringBootApplication
-    static class CertificateRenewalApp {
-
-        @Bean
-        @Primary
-        public Clock clock() {
-            Clock clock = mock(Clock.class);
-
-            when(clock.instant())
-                    .thenReturn(TestConstants.EXISTING_KEYSTORE_CERT_EXPIRATION.minus(3, ChronoUnit.MONTHS));
-
-            return clock;
-        }
-    }
-
     byte[] keystore;
 
     @BeforeEach
@@ -100,10 +76,13 @@ class CertificateManualRenewalTest implements IntegrationTest {
     @Test
     void manualRenew(CapturedOutput output) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:5002/friendly-ssl/certificate/order"))
+                .uri(URI.create("https://localhost:443/friendly-ssl/certificate/order"))
                 .GET()
                 .build();
-        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = HttpClient.newBuilder()
+                .sslContext(trustAllCertsContext())
+                .build()
+                .send(request, HttpResponse.BodyHandlers.ofString());
 
         assertEquals(200, response.statusCode());
 
@@ -125,7 +104,7 @@ class CertificateManualRenewalTest implements IntegrationTest {
                         "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate create/renew",
                         "n.e.f.service.AcmeAccountService         : Account does not exist. Creating account.",
                         "n.e.f.s.SSLCertificateCreateRenewService : Certificate account login accessed",
-                        "n.e.f.s.SSLCertificateCreateRenewService : Beginning certificate order. Renewal: true",
+                        "n.e.f.s.SSLCertificateCreateRenewService : Beginning certificate order.",
                         "n.e.f.service.UpdateCheckerService       : Resource is valid",
                         "n.e.f.s.SSLCertificateCreateRenewService : Certificate renewal successful. New certificate expiration time is"
                 ),

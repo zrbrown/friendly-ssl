@@ -3,6 +3,7 @@ package net.eightlives.friendlyssl.integration.tests;
 import net.eightlives.friendlyssl.annotation.FriendlySSL;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.integration.IntegrationTest;
+import net.eightlives.friendlyssl.integration.TestApp;
 import net.eightlives.friendlyssl.util.TestConstants;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,7 +44,7 @@ import static org.mockito.Mockito.when;
 class CertificateAutoRenewalTest implements IntegrationTest {
 
     static {
-        Testcontainers.exposeHostPorts(5002);
+        Testcontainers.exposeHostPorts(5002, 443);
     }
 
     static GenericContainer pebbleContainer = new GenericContainer("letsencrypt/pebble")
@@ -67,7 +68,7 @@ class CertificateAutoRenewalTest implements IntegrationTest {
 
     @FriendlySSL
     @SpringBootApplication
-    static class CertificateRenewalApp {
+    static class CertificateRenewalApp extends TestApp {
 
         @Bean
         @Primary
@@ -107,11 +108,14 @@ class CertificateAutoRenewalTest implements IntegrationTest {
     void autoRenew(CapturedOutput output) throws IOException {
         testLogOutputExact(
                 List.of(
-                        "n.e.f.service.AutoRenewService           : Existing certificate expiration time is 2012-12-22T07:41:51Z",
+                        "n.e.f.service.AutoRenewService           : Auto-renew starting...",
+                        "n.e.f.service.AutoRenewService           : Existing certificate expiration time is Wed, 23 Sep 2020 03:04:15 GMT",
+                        "n.e.f.service.AutoRenewService           : Auto-renew starting...",
+                        "n.e.f.service.AutoRenewService           : Existing certificate expiration time is Wed, 23 Sep 2020 03:04:15 GMT",
                         "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate create/renew",
                         "n.e.f.service.AcmeAccountService         : Account does not exist. Creating account.",
                         "n.e.f.s.SSLCertificateCreateRenewService : Certificate account login accessed",
-                        "n.e.f.s.SSLCertificateCreateRenewService : Beginning certificate order. Renewal: true",
+                        "n.e.f.s.SSLCertificateCreateRenewService : Beginning certificate order.",
                         "n.e.f.s.SSLCertificateCreateRenewService : Certificate renewal successful. New certificate expiration time is"
                 ),
                 output

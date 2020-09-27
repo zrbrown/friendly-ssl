@@ -26,6 +26,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
 
+import static net.eightlives.friendlyssl.util.TestUtils.trustAllCertsContext;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -34,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class TermsOfServiceAcceptTest implements IntegrationTest {
 
     static {
-        Testcontainers.exposeHostPorts(5002);
+        Testcontainers.exposeHostPorts(5002, 443);
     }
 
     static GenericContainer pebbleContainer = new GenericContainer("letsencrypt/pebble")
@@ -64,6 +65,8 @@ class TermsOfServiceAcceptTest implements IntegrationTest {
     void acceptTos(CapturedOutput output) throws IOException, InterruptedException {
         testLogOutput(
                 List.of(
+                        "n.e.f.service.AutoRenewService           : Auto-renew starting...",
+                        "n.e.f.service.AutoRenewService           : Existing certificate expiration time is",
                         "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate create/renew",
                         "n.e.f.s.SSLCertificateCreateRenewService : Exception while ordering certificate, retry in 1 hours",
                         "net.eightlives.friendlyssl.exception.SSLCertificateException: Exception while handling SSL certificate management",
@@ -73,26 +76,34 @@ class TermsOfServiceAcceptTest implements IntegrationTest {
         );
 
         HttpRequest tosRequest = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:5002/friendly-ssl/tos/agree"))
+                .uri(URI.create("https://localhost:443/friendly-ssl/tos/agree"))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(
                         "{ \"termsOfServiceLink\": \"" + TestConstants.PEBBLE_TOS_LINK + "\" }"
                 ))
                 .build();
-        HttpResponse<String> tosResponse = HttpClient.newHttpClient().send(tosRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> tosResponse = HttpClient.newBuilder()
+                .sslContext(trustAllCertsContext())
+                .build()
+                .send(tosRequest, HttpResponse.BodyHandlers.ofString());
 
         assertEquals(200, tosResponse.statusCode());
 
         HttpRequest orderRequest = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:5002/friendly-ssl/certificate/order"))
+                .uri(URI.create("https://localhost:443/friendly-ssl/certificate/order"))
                 .GET()
                 .build();
-        HttpResponse<String> orderResponse = HttpClient.newHttpClient().send(orderRequest, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> orderResponse = HttpClient.newBuilder()
+                .sslContext(trustAllCertsContext())
+                .build()
+                .send(orderRequest, HttpResponse.BodyHandlers.ofString());
 
         assertEquals(200, orderResponse.statusCode());
 
         testLogOutputExact(
                 List.of(
+                        "n.e.f.service.AutoRenewService           : Auto-renew starting...",
+                        "n.e.f.service.AutoRenewService           : Existing certificate expiration time is",
                         "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate create/renew",
                         "n.e.f.s.SSLCertificateCreateRenewService : Exception while ordering certificate, retry in 1 hours",
                         "net.eightlives.friendlyssl.exception.SSLCertificateException: Exception while handling SSL certificate management",
@@ -100,7 +111,7 @@ class TermsOfServiceAcceptTest implements IntegrationTest {
                         "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate create/renew",
                         "n.e.f.service.AcmeAccountService         : Account does not exist. Creating account.",
                         "n.e.f.s.SSLCertificateCreateRenewService : Certificate account login accessed",
-                        "n.e.f.s.SSLCertificateCreateRenewService : Beginning certificate order. Renewal: false",
+                        "n.e.f.s.SSLCertificateCreateRenewService : Beginning certificate order.",
                         "n.e.f.s.SSLCertificateCreateRenewService : Certificate renewal successful. New certificate expiration time is"
                 ),
                 output

@@ -14,6 +14,8 @@ import java.security.KeyPair;
 import java.security.cert.X509Certificate;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
 @Slf4j
@@ -49,17 +51,17 @@ public class SSLCertificateCreateRenewService {
             if (existingCertificate != null) {
                 domainKeyPair = keyStoreService.getKeyPair(existingCertificate, config.getCertificateFriendlyName());
             }
-            boolean isRenewal = domainKeyPair != null;
             if (domainKeyPair == null) {
                 domainKeyPair = KeyPairUtils.createKeyPair(2048);
             }
 
-            log.info("Beginning certificate order. Renewal: " + isRenewal);
+            log.info("Beginning certificate order.");
             Certificate certificate = certificateOrderHandlerService.handleCertificateOrder(login, domainKeyPair);
-            log.info("Certificate renewal successful. New certificate expiration time is " + certificate.getCertificate().getNotAfter());
-            return new CertificateRenewal(
-                    CertificateRenewalStatus.SUCCESS,
-                    Instant.ofEpochMilli(certificate.getCertificate().getNotAfter().getTime()));
+            Instant certificateExpiration = Instant.ofEpochMilli(certificate.getCertificate().getNotAfter().getTime());
+            log.info("Certificate renewal successful. New certificate expiration time is " +
+                    DateTimeFormatter.RFC_1123_DATE_TIME.format(certificateExpiration.atZone(ZoneOffset.UTC)));
+
+            return new CertificateRenewal(CertificateRenewalStatus.SUCCESS, certificateExpiration);
         } catch (IllegalArgumentException e) {
             log.error("acmeSessionUrl " + config.getAcmeSessionUrl() + " is invalid", e);
             throw e;
