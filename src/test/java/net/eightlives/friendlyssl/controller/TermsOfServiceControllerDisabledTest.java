@@ -38,7 +38,7 @@ class TermsOfServiceControllerDisabledTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @DisplayName("Test endpoint returns a 404")
+    @DisplayName("Test TOS agree endpoint returns a 404")
     @Test
     @Execution(ExecutionMode.SAME_THREAD)
     void notFound() throws Exception {

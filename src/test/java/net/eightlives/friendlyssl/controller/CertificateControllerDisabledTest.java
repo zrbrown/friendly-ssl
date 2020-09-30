@@ -30,7 +30,7 @@ class CertificateControllerDisabledTest {
     @Autowired
     private MockMvc mvc;
 
-    @DisplayName("Test endpoint returns a 404")
+    @DisplayName("Test certificate order endpoint returns a 404")
     @Test
     @Execution(ExecutionMode.SAME_THREAD)
     void notFound() throws Exception {
