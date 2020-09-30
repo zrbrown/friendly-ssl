@@ -22,7 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.security.cert.X509Certificate;
@@ -41,9 +41,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Tag("slow")
 @ExtendWith(MockitoExtension.class)
 @WebMvcTest(controllers = CertificateController.class)
+@ActiveProfiles({"test-base", "test-existing-keystore"})
 class CertificateControllerTest {
 
-    @Import(CertificateController.class)
     @SpringBootApplication
     static class TestApp {
     }

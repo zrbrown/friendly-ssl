@@ -6,6 +6,7 @@ friendly-ssl:
   keystore-file: src/test/resources/temp/keystore.p12
   terms-of-service-file: src/test/resources/temp/tos
   certificate-friendly-name: friendlyssl
+  endpoints-include: certificate, tos
 
 server:
   port: 443
