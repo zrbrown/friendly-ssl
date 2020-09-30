@@ -15,8 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URI;
@@ -30,13 +30,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Tag("slow")
 @ExtendWith(MockitoExtension.class)
 @WebMvcTest(controllers = TermsOfServiceController.class)
+@ActiveProfiles({"test-base", "test-existing-keystore"})
 class TermsOfServiceControllerTest {
 
     private static final String TERMS_LINK = "http://localhost:8000";
     private static final URI TERMS_URI = URI.create(TERMS_LINK);
     private static final TermsOfServiceAgreeRequest TERMS_REQUEST = new TermsOfServiceAgreeRequest(TERMS_LINK);
 
-    @Import(TermsOfServiceController.class)
     @SpringBootApplication
     static class TestApp {
     }

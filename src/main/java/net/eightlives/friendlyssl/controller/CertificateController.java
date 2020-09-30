@@ -5,6 +5,7 @@ import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.model.CertificateRenewal;
 import net.eightlives.friendlyssl.service.PKCS12KeyStoreService;
 import net.eightlives.friendlyssl.service.SSLCertificateCreateRenewService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.security.cert.X509Certificate;
 
 @Slf4j
+@ConditionalOnExpression("'${friendly-ssl.endpoints-include}'.contains('certificate')")
 @RestController
 @RequestMapping("/friendly-ssl/certificate")
 public class CertificateController {

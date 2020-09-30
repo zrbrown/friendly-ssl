@@ -21,3 +21,9 @@ friendly-ssl:
 #
 #  friendly-ssl:
 #    acme-session-url: acme://letsencrypt.org
+#
+# To enable manual certificate endpoints, add them to this list
+# (don't forget to secure them with proper authentication/authorization):
+#
+#  friendly-ssl:
+#    endpoints-include: certificate, tos
