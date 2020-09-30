@@ -92,7 +92,7 @@ class CertificateOrderServiceTest {
         @DisplayName("and challenge processor throws an exception")
         @Test
         void challengeProcessorFails() {
-            when(challengeProcessorService.process(authorizations)).thenThrow(new SSLCertificateException(new RuntimeException()));
+            when(challengeProcessorService.process(authorizations)).thenThrow(new SSLCertificateException(""));
 
             assertThrows(SSLCertificateException.class, () -> service.orderCertificate(DOMAIN, login, domainKeyPair));
         }
@@ -132,7 +132,7 @@ class CertificateOrderServiceTest {
                 @Test
                 void csrServiceFails() {
                     when(csrService.generateCSR(DOMAIN, domainKeyPair))
-                            .thenThrow(new SSLCertificateException(new RuntimeException()));
+                            .thenThrow(new SSLCertificateException(""));
 
                     assertThrows(SSLCertificateException.class, () -> service.orderCertificate(DOMAIN, login, domainKeyPair));
                 }

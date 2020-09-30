@@ -45,7 +45,7 @@ public class TermsOfServiceService {
 
         if (termsOfServiceLink == null) {
             log.error("Could not retrieve terms of service link");
-            throw new SSLCertificateException(new IllegalStateException("Terms of service should not be null. There may be a problem with the provider."));
+            throw new SSLCertificateException("Terms of service should not be null. There may be a problem with the provider.");
         }
 
         return termsOfServiceLink;

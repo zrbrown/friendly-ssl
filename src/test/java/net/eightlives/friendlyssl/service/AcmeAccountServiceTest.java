@@ -59,7 +59,7 @@ class AcmeAccountServiceTest {
     @Test
     void getTermsOfServiceLinkException() {
         when(termsOfServiceService.getTermsOfServiceLink(session)).thenThrow(
-                new SSLCertificateException(new RuntimeException()));
+                new SSLCertificateException(""));
 
         assertThrows(SSLCertificateException.class, () -> service.getOrCreateAccountLogin(session));
     }

@@ -57,7 +57,7 @@ class CertificateOrderHandlerServiceTest {
     @Test
     void certificateOrderServiceThrowsException() {
         when(certificateOrderService.orderCertificate("domain.com", login, domainKeyPair))
-                .thenThrow(new SSLCertificateException(new RuntimeException()));
+                .thenThrow(new SSLCertificateException(""));
 
         assertThrows(SSLCertificateException.class, () -> service.handleCertificateOrder(login, domainKeyPair));
     }

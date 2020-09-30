@@ -68,7 +68,7 @@ class TermsOfServiceControllerTest {
     @Test
     @Execution(ExecutionMode.SAME_THREAD)
     void exception() throws Exception {
-        doThrow(new SSLCertificateException(new RuntimeException()))
+        doThrow(new SSLCertificateException(""))
                 .when(termsOfServiceService).writeTermsLink(TERMS_URI, true);
 
         mvc.perform(
