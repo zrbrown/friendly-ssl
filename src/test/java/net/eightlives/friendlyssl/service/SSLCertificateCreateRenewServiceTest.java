@@ -78,7 +78,7 @@ class SSLCertificateCreateRenewServiceTest {
         @Test
         void accountServiceException() {
             when(accountService.getOrCreateAccountLogin(any(Session.class))).thenThrow(
-                    new SSLCertificateException(new RuntimeException())
+                    new SSLCertificateException("")
             );
             when(config.getErrorRetryWaitHours()).thenReturn(2);
 

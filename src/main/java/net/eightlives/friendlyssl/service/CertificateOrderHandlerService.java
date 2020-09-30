@@ -44,6 +44,6 @@ public class CertificateOrderHandlerService {
                     }
 
                     return certificate;
-                }).orElseThrow(() -> new SSLCertificateException(new RuntimeException("Certificate was not returned")));
+                }).orElseThrow(() -> new SSLCertificateException("Certificate was not returned"));
     }
 }

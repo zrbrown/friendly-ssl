@@ -81,7 +81,7 @@ class ChallengeProcessorServiceTest {
             @Test
             void listenerException() {
                 when(challengeTokenRequestedListener.getChallengeTokenVerification(challenge, auth))
-                        .thenThrow(new SSLCertificateException(new RuntimeException()));
+                        .thenThrow(new SSLCertificateException(""));
 
                 assertThrows(SSLCertificateException.class, () -> service.process(List.of(auth)));
             }
@@ -110,7 +110,7 @@ class ChallengeProcessorServiceTest {
                 @DisplayName("and challenge future fails")
                 @Test
                 void challengeFutureFails() {
-                    challengeFuture.completeExceptionally(new SSLCertificateException(new RuntimeException()));
+                    challengeFuture.completeExceptionally(new SSLCertificateException(""));
 
                     Exception e = assertThrows(ExecutionException.class, () -> service.process(List.of(auth)).get(1, TimeUnit.SECONDS));
                     assertTrue(e.getCause() instanceof SSLCertificateException);
