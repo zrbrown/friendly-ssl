@@ -1,8 +1,8 @@
 version: 2.1
-machine: true
 
 jobs:
   test:
+    machine: ubuntu-2004:202008-01
     steps:
       - checkout
       - run: ./mvnw test
