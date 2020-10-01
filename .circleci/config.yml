@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: circleci/openjdk:stretch
+      - image: openjdk:15
         auth:
           username: mydockerhub-user
           password: $DOCKERHUB_PASSWORD
@@ -13,7 +13,7 @@ jobs:
 
   test:
     docker:
-      - image: circleci/openjdk:stretch
+      - image: openjdk:15
         auth:
           username: mydockerhub-user
           password: $DOCKERHUB_PASSWORD
