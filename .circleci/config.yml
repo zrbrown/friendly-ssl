@@ -20,12 +20,3 @@ jobs:
     steps:
       - checkout
       - run: ./mvnw test
-
-
-workflows:
-  Commit:
-    jobs:
-      - build
-      - test
-          requires:
-            - build
