@@ -1,16 +1,6 @@
 version: 2.1
 
 jobs:
-  build:
-    docker:
-      - image: openjdk:15
-        auth:
-          username: mydockerhub-user
-          password: $DOCKERHUB_PASSWORD
-    steps:
-      - checkout
-      - run: ./mvnw package
-
   test:
     docker:
       - image: openjdk:15
@@ -25,7 +15,4 @@ workflows:
   version: 2
   Run-Tests:
     jobs:
-      - build
-      - test:
-          requires:
-            - build
+      - test

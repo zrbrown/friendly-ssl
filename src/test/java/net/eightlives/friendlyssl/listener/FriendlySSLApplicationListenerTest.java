@@ -15,14 +15,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 
-import java.security.Security;
 import java.time.Instant;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,15 +40,6 @@ class FriendlySSLApplicationListenerTest {
     @BeforeEach
     void setUp() {
         listener = new FriendlySSLApplicationListener(config, autoRenewService, timerTaskFactory, timer);
-    }
-
-    @DisplayName("Testing that security provider is correctly set")
-    @Test
-    void onApplicationEventSetsProvider() {
-        ApplicationReadyEvent event = mock(ApplicationReadyEvent.class);
-        listener.onApplicationEvent(event);
-
-        assertNotNull(Security.getProvider("BC"));
     }
 
     @DisplayName("Testing that create or renew service is not called when auto renew is disabled")
