@@ -1,7 +1,26 @@
 version: 2.1
 
-orbs:
-  maven: circleci/maven@1.0.2
+jobs:
+  build:
+    docker:
+      - image: circleci/openjdk:stretch
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD
+    steps:
+      - checkout
+      - run: ./mvnw package
+
+  test:
+    docker:
+      - image: circleci/openjdk:stretch
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD
+    steps:
+      - checkout
+      - run: ./mvnw test
+
 
 workflows:
   maven_test:
