@@ -9,9 +9,7 @@ jobs:
       - run: mkdir jdk
       - run: curl https://download.java.net/java/GA/jdk15/779bf45e88a44cbd9ea6621d33e33db1/36/GPL/openjdk-15_linux-x64_bin.tar.gz | tar -xzf - -C jdk --strip-components=1
 #      - run: sudo update-alternatives --install /usr/bin/java java ${PWD}/jdk/bin/java 100
-      - run: export JAVA_HOME=${PWD}/jdk
-      - run: echo $JAVA_HOME
-      - run: ./mvnw test
+      - run: env JAVA_HOME=${PWD}/jdk bash -c './mvnw test'
 
 workflows:
   version: 2
