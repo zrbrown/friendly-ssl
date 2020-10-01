@@ -23,7 +23,9 @@ jobs:
 
 workflows:
   version: 2
-    - build
-    - test:
-        requires:
-          - build
+  Run-Tests:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
