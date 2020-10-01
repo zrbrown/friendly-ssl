@@ -2,7 +2,8 @@ version: 2.1
 
 jobs:
   test:
-    machine: ubuntu-2004:202008-01
+    machine:
+      image: ubuntu-2004:202008-01
     steps:
       - checkout
       - run: ./mvnw test
