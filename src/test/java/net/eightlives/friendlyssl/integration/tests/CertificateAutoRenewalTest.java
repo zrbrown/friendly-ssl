@@ -44,7 +44,7 @@ import static org.mockito.Mockito.when;
 class CertificateAutoRenewalTest implements IntegrationTest {
 
     static {
-        Testcontainers.exposeHostPorts(5002, 443);
+        Testcontainers.exposeHostPorts(5002, 4430);
     }
 
     static GenericContainer pebbleContainer = new GenericContainer("letsencrypt/pebble")

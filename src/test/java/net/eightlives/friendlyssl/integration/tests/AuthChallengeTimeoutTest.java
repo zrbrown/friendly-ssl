@@ -25,7 +25,7 @@ import java.util.List;
 class AuthChallengeTimeoutTest implements IntegrationTest {
 
     static {
-        Testcontainers.exposeHostPorts(5002, 443);
+        Testcontainers.exposeHostPorts(5002, 4430);
     }
 
     @Container

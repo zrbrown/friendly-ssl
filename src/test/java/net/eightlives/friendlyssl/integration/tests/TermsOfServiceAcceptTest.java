@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class TermsOfServiceAcceptTest implements IntegrationTest {
 
     static {
-        Testcontainers.exposeHostPorts(5002, 443);
+        Testcontainers.exposeHostPorts(5002, 4430);
     }
 
     static GenericContainer pebbleContainer = new GenericContainer("letsencrypt/pebble")
@@ -75,7 +75,7 @@ class TermsOfServiceAcceptTest implements IntegrationTest {
         );
 
         HttpRequest tosRequest = HttpRequest.newBuilder()
-                .uri(URI.create("https://localhost:443/friendly-ssl/tos/agree"))
+                .uri(URI.create("https://localhost:4430/friendly-ssl/tos/agree"))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(
                         "{ \"termsOfServiceLink\": \"" + TestConstants.PEBBLE_TOS_LINK + "\" }"
@@ -89,7 +89,7 @@ class TermsOfServiceAcceptTest implements IntegrationTest {
         assertEquals(200, tosResponse.statusCode());
 
         HttpRequest orderRequest = HttpRequest.newBuilder()
-                .uri(URI.create("https://localhost:443/friendly-ssl/certificate/order"))
+                .uri(URI.create("https://localhost:4430/friendly-ssl/certificate/order"))
                 .GET()
                 .build();
         HttpResponse<String> orderResponse = HttpClient.newBuilder()

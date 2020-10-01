@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 class CertificateManualRenewalTest implements IntegrationTest {
 
     static {
-        Testcontainers.exposeHostPorts(5002, 443);
+        Testcontainers.exposeHostPorts(5002, 4430);
     }
 
     static GenericContainer pebbleContainer = new GenericContainer("letsencrypt/pebble")
@@ -76,7 +76,7 @@ class CertificateManualRenewalTest implements IntegrationTest {
     @Test
     void manualRenew(CapturedOutput output) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://localhost:443/friendly-ssl/certificate/order"))
+                .uri(URI.create("https://localhost:4430/friendly-ssl/certificate/order"))
                 .GET()
                 .build();
         HttpResponse<String> response = HttpClient.newBuilder()

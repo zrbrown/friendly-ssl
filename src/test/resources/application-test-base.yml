@@ -9,7 +9,7 @@ friendly-ssl:
   endpoints-include: certificate, tos
 
 server:
-  port: 443
+  port: 4430
   ssl:
     enabled: true
     key-store: src/test/resources/temp/keystore.p12

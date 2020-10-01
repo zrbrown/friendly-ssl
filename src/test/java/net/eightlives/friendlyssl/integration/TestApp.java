@@ -36,7 +36,7 @@ public class TestApp {
         connector.setScheme("http");
         connector.setPort(5002);
         connector.setSecure(false);
-        connector.setRedirectPort(443);
+        connector.setRedirectPort(4430);
         return connector;
     }
 }
