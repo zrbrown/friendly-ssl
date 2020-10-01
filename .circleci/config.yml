@@ -23,6 +23,9 @@ jobs:
 
 
 workflows:
-  maven_test:
+  Commit:
     jobs:
-      - maven/test
+      - build
+      - test
+        requires:
+          - build
