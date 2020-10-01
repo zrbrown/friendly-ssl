@@ -8,8 +8,8 @@ jobs:
       - checkout
       - run: mkdir jdk
       - run: curl https://download.java.net/java/GA/jdk15/779bf45e88a44cbd9ea6621d33e33db1/36/GPL/openjdk-15_linux-x64_bin.tar.gz | tar -xzf - -C jdk --strip-components=1
-      - run: pwd
-      - run: sudo update-alternatives --install /usr/bin/java java /home/circleci/project/jdk/bin/java 100
+      - run: sudo update-alternatives --install /usr/bin/java java ${PWD}/jdk/bin/java 100
+      - run: export JAVA_HOME=${PWD}/jdk/bin/java
       - run: ./mvnw test
 
 workflows:
