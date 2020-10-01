@@ -3,11 +3,6 @@ machine: true
 
 jobs:
   test:
-    docker:
-      - image: openjdk:15
-        auth:
-          username: mydockerhub-user
-          password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
       - run: ./mvnw test
