@@ -16,7 +16,7 @@ jobs:
             - ~/.m2
           key: freindly-ssl-{{ checksum "pom.xml" }}
       - run: env JAVA_HOME=${PWD}/jdk bash -c './mvnw package'
-       - store_test_results:
+      - store_test_results:
           path: target/surefire-reports
       - store_artifacts:
           path: target/friendly-ssl-1.0-SNAPSHOT.jar
