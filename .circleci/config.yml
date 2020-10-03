@@ -64,9 +64,9 @@ jobs:
           download-deps: env JAVA_HOME=${PWD}/jdk bash -c './mvnw dependency:go-offline'
           maven-command: |
             TESTFILES=$(circleci tests glob "src/test/java/**/integration/tests/*.java" | circleci tests split)
-            TESTFILES_FORMAT=${TESTFILES// /,}
-            echo $TESTFILES_FORMAT
-            env JAVA_HOME=${PWD}/jdk bash -c './mvnw test -Dtest=$TESTFILES_FORMAT'
+            TESTFILES = $(echo $TESTFILES | sed 's/ /,/g')
+            echo $TESTFILES
+            env JAVA_HOME=${PWD}/jdk bash -c './mvnw test -Dtest=$TESTFILES'
     parallelism: 3
   build:
     docker:
