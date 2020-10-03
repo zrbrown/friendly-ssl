@@ -37,7 +37,7 @@ commands:
           key: freindly-ssl-{{ checksum "pom.xml" }}
       - run:
           name: Build
-          command: << parameters.maven-command >>
+          command: << parameters.maven-command >> << parameters.maven-args >>
       - store_test_results:
           path: target/surefire-reports
       - store_artifacts:
