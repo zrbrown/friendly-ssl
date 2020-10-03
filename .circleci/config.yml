@@ -12,7 +12,7 @@ commands:
       - save_cache:
           paths:
             - ~/jdk
-          key: jdk-15-v2
+          key: jdk-15
   run-maven-command:
     description: "Run maven command"
     parameters:
