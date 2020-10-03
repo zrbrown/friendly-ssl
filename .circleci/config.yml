@@ -1,14 +1,25 @@
 version: 2.1
 
-jobs:
-  build:
-    machine:
-      image: ubuntu-2004:202008-01
+commands:
+  download-jdk:
+    description: "Download and extract JDK"
     steps:
-      - checkout
+      - restore_cache:
+          key: jdk-15
       - run:
           name: Download JDK
           command: mkdir jdk && curl https://download.java.net/java/GA/jdk15/779bf45e88a44cbd9ea6621d33e33db1/36/GPL/openjdk-15_linux-x64_bin.tar.gz | tar -xzf - -C jdk --strip-components=1
+      - save_cache:
+          paths:
+            - ~/jdk
+          key: jdk-15
+  run-maven-command:
+    description: "Run maven command"
+    parameters:
+      maven-command:
+        type: string
+        default: ""
+    steps:
       - restore_cache:
           key: friendly-ssl-{{ checksum "pom.xml" }}
       - run:
@@ -20,15 +31,37 @@ jobs:
           key: freindly-ssl-{{ checksum "pom.xml" }}
       - run:
           name: Build
-          command: env JAVA_HOME=${PWD}/jdk bash -c './mvnw package'
+          command: env JAVA_HOME=${PWD}/jdk bash -c './mvnw << parameters.maven-command >>'
       - store_test_results:
           path: target/surefire-reports
       - store_artifacts:
           path: target/friendly-ssl-1.0-SNAPSHOT.jar
 
+jobs:
+  unit-test:
+    machine:
+      image: ubuntu-2004:202008-01
+    steps:
+      - checkout
+      - download-jdk
+  integration-test:
+    machine:
+      image: ubuntu-2004:202008-01
+    steps:
+      - checkout
+      - download-jdk
+  build:
+    machine:
+      image: ubuntu-2004:202008-01
+    steps:
+      - checkout
+      - download-jdk
+      - run-maven-command:
+          maven-command: package
+
 
 workflows:
   version: 2
-  Run-Tests:
+  Build:
     jobs:
       - build
