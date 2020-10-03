@@ -38,18 +38,22 @@ commands:
           path: target/friendly-ssl-1.0-SNAPSHOT.jar
 
 jobs:
-  unit-test:
+  unit-tests:
     machine:
       image: ubuntu-2004:202008-01
     steps:
       - checkout
       - download-jdk
-  integration-test:
+      - run-maven-command:
+          maven-command: test -DexcludedGroups=integration
+  integration-tests:
     machine:
       image: ubuntu-2004:202008-01
     steps:
       - checkout
       - download-jdk
+      - run-maven-command:
+          maven-command: test -Dgroups=integration
   build:
     machine:
       image: ubuntu-2004:202008-01
@@ -57,11 +61,16 @@ jobs:
       - checkout
       - download-jdk
       - run-maven-command:
-          maven-command: package
+          maven-command: package -DskipTests
 
 
 workflows:
   version: 2
   Build:
     jobs:
-      - build
+      - unit-tests
+      - integration-tests
+      - build:
+          requires:
+            - unit-tests
+            - integration-tests
