@@ -5,14 +5,14 @@ commands:
     description: "Download and extract JDK"
     steps:
       - restore_cache:
-          key: jdk-15
+          key: jdk-15-v2
       - run:
           name: Download JDK
           command: '[ ! -d "~/jdk" ] && mkdir jdk && curl https://download.java.net/java/GA/jdk15/779bf45e88a44cbd9ea6621d33e33db1/36/GPL/openjdk-15_linux-x64_bin.tar.gz | tar -xzf - -C jdk --strip-components=1'
       - save_cache:
           paths:
             - ~/jdk
-          key: jdk-15
+          key: jdk-15-v2
   run-maven-command:
     description: "Run maven command"
     parameters:
