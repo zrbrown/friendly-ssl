@@ -5,7 +5,7 @@ commands:
     description: "Download and extract JDK"
     steps:
       - restore_cache:
-          key: jdk-15-v2
+          key: jdk-15
       - run:
           name: Download JDK
           command: "[ ! -d 'jdk' ] && mkdir jdk && curl https://download.java.net/java/GA/jdk15/779bf45e88a44cbd9ea6621d33e33db1/36/GPL/openjdk-15_linux-x64_bin.tar.gz | tar -xzf - -C jdk --strip-components=1"
@@ -16,22 +16,28 @@ commands:
   run-maven-command:
     description: "Run maven command"
     parameters:
+      download-deps:
+        type: string
+        default: "./mvnw dependency:go-offline"
+      maven-args:
+        type: string
+        default: "package"
       maven-command:
         type: string
-        default: ""
+        default: "./mvnw << parameters.maven-args >>"
     steps:
       - restore_cache:
           key: friendly-ssl-{{ checksum "pom.xml" }}
       - run:
           name: Download Dependencies
-          command: env JAVA_HOME=${PWD}/jdk bash -c './mvnw dependency:go-offline'
+          command: << parameters.download-deps >>
       - save_cache:
           paths:
             - ~/.m2
           key: freindly-ssl-{{ checksum "pom.xml" }}
       - run:
           name: Build
-          command: env JAVA_HOME=${PWD}/jdk bash -c './mvnw << parameters.maven-command >>'
+          command: << parameters.maven-command >>
       - store_test_results:
           path: target/surefire-reports
       - store_artifacts:
@@ -47,7 +53,7 @@ jobs:
     steps:
       - checkout
       - run-maven-command:
-          maven-command: test -DexcludedGroups=integration -Djunit.jupiter.execution.parallel.enabled=true
+          maven-args: test -DexcludedGroups=integration -Djunit.jupiter.execution.parallel.enabled=true
   integration-tests:
     machine:
       image: ubuntu-2004:202008-01
@@ -55,7 +61,9 @@ jobs:
       - checkout
       - download-jdk
       - run-maven-command:
-          maven-command: test -Dgroups=integration
+          download-deps: env JAVA_HOME=${PWD}/jdk bash -c './mvnw dependency:go-offline'
+          maven-args: test -Dgroups=integration
+          maven-command: env JAVA_HOME=${PWD}/jdk bash -c './mvnw << parameters.maven-args >>'
   build:
     docker:
       - image: openjdk:15
@@ -65,7 +73,7 @@ jobs:
     steps:
       - checkout
       - run-maven-command:
-          maven-command: package -DskipTests
+          maven-args: package -DskipTests
 
 
 workflows:
