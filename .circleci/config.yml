@@ -66,7 +66,7 @@ jobs:
             TESTFILES=$(circleci tests glob "src/test/java/**/integration/tests/*.java" | circleci tests split)
             echo $TESTFILES
             env JAVA_HOME=${PWD}/jdk bash -c './mvnw test -Dgroups=integration -Dtest=$TESTFILES'
-    parellelism: 4
+    parallelism: 4
   build:
     docker:
       - image: openjdk:15
