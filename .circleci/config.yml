@@ -65,8 +65,8 @@ jobs:
           maven-command: |
             TESTFILES=$(circleci tests glob "src/test/java/**/integration/tests/*.java" | circleci tests split)
             TESTFILES=$(echo $TESTFILES | sed 's/ /,/g'),
-            TESTFILES=$(echo TESTFILES | sed -E 's/(\w+\/)+//g')
-            TESTFILES=$(echo TESTFILES | sed 's/.$//g')
+            TESTFILES=$(echo $TESTFILES | sed -E 's/(\w+\/)+//g')
+            TESTFILES=${TESTFILES::-1}
             echo $TESTFILES
             env JAVA_HOME=${PWD}/jdk TESTFILES=$TESTFILES bash -c './mvnw test -Dtest=$TESTFILES'
     parallelism: 3
