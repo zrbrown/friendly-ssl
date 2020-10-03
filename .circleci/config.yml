@@ -21,7 +21,7 @@ commands:
         default: "./mvnw dependency:go-offline"
       maven-args:
         type: string
-        default: "package"
+        default: ""
       maven-command:
         type: string
         default: "./mvnw << parameters.maven-args >>"
@@ -62,8 +62,11 @@ jobs:
       - download-jdk
       - run-maven-command:
           download-deps: env JAVA_HOME=${PWD}/jdk bash -c './mvnw dependency:go-offline'
-          maven-command: env JAVA_HOME=${PWD}/jdk bash -c './mvnw
-          maven-args: test -Dgroups=integration'
+          maven-command: |
+            TESTFILES=$(circleci tests glob "src/test/java/**/integration/tests/*.java" | circleci tests split)
+            echo $TESTFILES
+            env JAVA_HOME=${PWD}/jdk bash -c './mvnw test -Dgroups=integration -Dtest=$TESTFILES'
+    parellelism: 4
   build:
     docker:
       - image: openjdk:15
