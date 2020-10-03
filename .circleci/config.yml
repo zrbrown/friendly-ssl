@@ -1,18 +1,29 @@
 version: 2.1
 
 jobs:
-  test:
+  build:
     machine:
       image: ubuntu-2004:202008-01
     steps:
       - checkout
       - run: mkdir jdk
       - run: curl https://download.java.net/java/GA/jdk15/779bf45e88a44cbd9ea6621d33e33db1/36/GPL/openjdk-15_linux-x64_bin.tar.gz | tar -xzf - -C jdk --strip-components=1
-#      - run: sudo update-alternatives --install /usr/bin/java java ${PWD}/jdk/bin/java 100
-      - run: env JAVA_HOME=${PWD}/jdk bash -c './mvnw test'
+      - restore_cache:
+          key: friendly-ssl-{{ checksum "pom.xml" }}
+      - run: env JAVA_HOME=${PWD}/jdk bash -c './mvnw dependency:go-offline'
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: freindly-ssl-{{ checksum "pom.xml" }}
+      - run: env JAVA_HOME=${PWD}/jdk bash -c './mvnw package'
+       - store_test_results:
+          path: target/surefire-reports
+      - store_artifacts:
+          path: target/friendly-ssl-1.0-SNAPSHOT.jar
+
 
 workflows:
   version: 2
   Run-Tests:
     jobs:
-      - test
+      - build
