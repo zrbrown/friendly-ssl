@@ -8,7 +8,7 @@ commands:
           key: jdk-15
       - run:
           name: Download JDK
-          command: mkdir jdk && curl https://download.java.net/java/GA/jdk15/779bf45e88a44cbd9ea6621d33e33db1/36/GPL/openjdk-15_linux-x64_bin.tar.gz | tar -xzf - -C jdk --strip-components=1
+          command: [ ! -d "jdk" ] && mkdir jdk && curl https://download.java.net/java/GA/jdk15/779bf45e88a44cbd9ea6621d33e33db1/36/GPL/openjdk-15_linux-x64_bin.tar.gz | tar -xzf - -C jdk --strip-components=1
       - save_cache:
           paths:
             - ~/jdk
@@ -39,13 +39,16 @@ commands:
 
 jobs:
   unit-tests:
-    machine:
-      image: ubuntu-2004:202008-01
+    docker:
+      - image: openjdk:15
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
       - download-jdk
       - run-maven-command:
-          maven-command: test -DexcludedGroups=integration
+          maven-command: test -DexcludedGroups=integration -Djunit.jupiter.execution.parallel.enabled=true
   integration-tests:
     machine:
       image: ubuntu-2004:202008-01
@@ -55,8 +58,11 @@ jobs:
       - run-maven-command:
           maven-command: test -Dgroups=integration
   build:
-    machine:
-      image: ubuntu-2004:202008-01
+    docker:
+      - image: openjdk:15
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
       - download-jdk
