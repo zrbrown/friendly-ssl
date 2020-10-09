@@ -39,9 +39,9 @@ commands:
           name: Build
           command: << parameters.maven-command >> << parameters.maven-args >>
       - store_test_results:
-          path: target/surefire-reports
+          path: target/surefire-reports/
       - store_artifacts:
-          path: target/friendly-ssl-1.0-SNAPSHOT.jar
+          path: target/
 
 jobs:
   unit-tests:
