@@ -42,7 +42,7 @@ commands:
           path: target/surefire-reports/
       - run:
           name: Copy artifacts
-          command: mkdir circleci-artifacts && cp target/*.jar circleci-artifacts
+          command: "ls target/*.jar 1> /dev/null 2>&1 && mkdir circleci-artifacts && cp target/*.jar circleci-artifacts"
       - store_artifacts:
           path: circleci-artifacts/
 
