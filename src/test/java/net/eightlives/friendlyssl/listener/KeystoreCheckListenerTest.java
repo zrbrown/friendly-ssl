@@ -108,16 +108,12 @@ public class KeystoreCheckListenerTest {
     void certificatePassword(CapturedOutput output) throws IOException {
         when(environment.getProperty("friendly-ssl.keystore-file")).thenReturn("src/test/resources/password_keystore.p12");
 
-        Path keystorePath = Path.of("src/test/resources/existing_keystore.p12");
+        Path keystorePath = Path.of("src/test/resources/password_keystore.p12");
         byte[] keystore = Files.readAllBytes(keystorePath);
 
         listener.environmentPrepared(environment);
 
         assertArrayEquals(keystore, Files.readAllBytes(keystorePath));
-
-        assertTrue(output.getOut().lines().anyMatch(
-                line -> line.contains("Cannot load keystore file src/test/resources/password_keystore.p12 - likely due to keystore having a password, which is unsupported.")
-        ));
     }
 
     @DisplayName("When an existing certificate is present")
