@@ -24,7 +24,7 @@ import java.util.List;
 class OrderTimeoutTest implements IntegrationTest {
 
     static {
-        Testcontainers.exposeHostPorts(5002, 443);
+        Testcontainers.exposeHostPorts(5002, 4430);
     }
 
     static GenericContainer pebbleContainer = new GenericContainer("letsencrypt/pebble")

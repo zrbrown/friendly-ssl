@@ -1,0 +1,97 @@
+version: 2.1
+
+commands:
+  download-jdk:
+    description: "Download and extract JDK"
+    steps:
+      - restore_cache:
+          key: jdk-15
+      - run:
+          name: Download JDK
+          command: "[ ! -d 'jdk' ] && mkdir jdk && curl https://download.java.net/java/GA/jdk15/779bf45e88a44cbd9ea6621d33e33db1/36/GPL/openjdk-15_linux-x64_bin.tar.gz | tar -xzf - -C jdk --strip-components=1"
+      - save_cache:
+          paths:
+            - ~/jdk
+          key: jdk-15
+  run-maven-command:
+    description: "Run maven command"
+    parameters:
+      download-deps:
+        type: string
+        default: "./mvnw dependency:go-offline"
+      maven-args:
+        type: string
+        default: ""
+      maven-command:
+        type: string
+        default: "./mvnw << parameters.maven-args >>"
+    steps:
+      - restore_cache:
+          key: friendly-ssl-{{ checksum "pom.xml" }}-{{ arch }}
+      - run:
+          name: Download Dependencies
+          command: << parameters.download-deps >>
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: friendly-ssl-{{ checksum "pom.xml" }}-{{ arch }}
+      - run:
+          name: Build
+          command: << parameters.maven-command >> << parameters.maven-args >>
+      - store_test_results:
+          path: target/surefire-reports/
+      - run:
+          name: Copy artifacts
+          command: "mkdir circleci-artifacts && cp target/*.jar circleci-artifacts 2>/dev/null || :"
+      - store_artifacts:
+          path: circleci-artifacts/
+
+jobs:
+  unit-tests:
+    docker:
+      - image: openjdk:15
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD
+    steps:
+      - checkout
+      - run-maven-command:
+          maven-args: test -DexcludedGroups=integration -Djunit.jupiter.execution.parallel.enabled=true
+  integration-tests:
+    machine:
+      image: ubuntu-2004:202008-01
+    steps:
+      - checkout
+      - download-jdk
+      - run-maven-command:
+          download-deps: env JAVA_HOME=${PWD}/jdk bash -c './mvnw dependency:go-offline'
+          maven-command: |
+            TESTFILES=$(circleci tests glob "src/test/java/**/integration/tests/*.java" | circleci tests split)
+            TESTFILES=$(echo $TESTFILES | sed 's/ /,/g'),
+            TESTFILES=$(echo $TESTFILES | sed -E 's/(\w+\/)+//g')
+            TESTFILES=${TESTFILES::-1}
+            echo $TESTFILES
+            env JAVA_HOME=${PWD}/jdk TESTFILES=$TESTFILES bash -c './mvnw test -Dtest=$TESTFILES'
+    parallelism: 3
+  build:
+    docker:
+      - image: openjdk:15
+        auth:
+          username: mydockerhub-user
+          password: $DOCKERHUB_PASSWORD
+    steps:
+      - checkout
+      - run-maven-command:
+          maven-args: package -DskipTests
+
+
+workflows:
+  version: 2
+  Build:
+    jobs:
+      - unit-tests
+      - integration-tests
+      - build:
+          requires:
+            - unit-tests
+            - integration-tests
