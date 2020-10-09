@@ -41,8 +41,8 @@ commands:
       - store_test_results:
           path: target/surefire-reports/
       - run:
-          - name: Copy artifacts
-          - command: "mkdir circleci-artifacts && cp target/*.jar circleci-artifacts"
+          name: Copy artifacts
+          command: mkdir circleci-artifacts && cp target/*.jar circleci-artifacts
       - store_artifacts:
           path: circleci-artifacts/
 
