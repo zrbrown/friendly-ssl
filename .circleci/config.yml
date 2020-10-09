@@ -40,8 +40,11 @@ commands:
           command: << parameters.maven-command >> << parameters.maven-args >>
       - store_test_results:
           path: target/surefire-reports/
+      - run:
+          - name: Copy artifacts
+          - command: mkdir circleci-artifacts && cp target/*.jar circleci-artifacts
       - store_artifacts:
-          path: target/*.jar
+          path: circleci-artifacts/
 
 jobs:
   unit-tests:
