@@ -27,14 +27,14 @@ commands:
         default: "./mvnw << parameters.maven-args >>"
     steps:
       - restore_cache:
-          key: friendly-ssl-{{ checksum "pom.xml" }}
+          key: friendly-ssl-{{ checksum "pom.xml" }}-{{ arch }}
       - run:
           name: Download Dependencies
           command: << parameters.download-deps >>
       - save_cache:
           paths:
             - ~/.m2
-          key: friendly-ssl-{{ checksum "pom.xml" }}
+          key: friendly-ssl-{{ checksum "pom.xml" }}-{{ arch }}
       - run:
           name: Build
           command: << parameters.maven-command >> << parameters.maven-args >>
