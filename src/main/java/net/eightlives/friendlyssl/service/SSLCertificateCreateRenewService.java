@@ -61,7 +61,8 @@ public class SSLCertificateCreateRenewService {
             log.info("Certificate renewal successful. New certificate expiration time is " +
                     DateTimeFormatter.RFC_1123_DATE_TIME.format(certificateExpiration.atZone(ZoneOffset.UTC)));
 
-            return new CertificateRenewal(CertificateRenewalStatus.SUCCESS, certificateExpiration);
+            return new CertificateRenewal(CertificateRenewalStatus.SUCCESS,
+                    certificateExpiration.minus(config.getAutoRenewalHoursBefore(), ChronoUnit.HOURS));
         } catch (IllegalArgumentException e) {
             log.error("acmeSessionUrl " + config.getAcmeSessionUrl() + " is invalid", e);
             throw e;
