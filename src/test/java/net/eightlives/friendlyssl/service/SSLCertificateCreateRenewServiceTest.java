@@ -37,6 +37,8 @@ class SSLCertificateCreateRenewServiceTest {
 
     private static final Instant FIXED_CLOCK = Instant.from(OffsetDateTime.of(2020, 2, 3, 4, 5, 6, 0, ZoneOffset.UTC));
     public static final Instant CERT_EXPIRATION = Instant.from(OffsetDateTime.of(2012, 12, 22, 7, 41, 51, 0, ZoneOffset.UTC));
+    public static final Instant CERT_RENEWAL = Instant.from(OffsetDateTime.of(2012, 12, 22, 7, 41, 51, 0, ZoneOffset.UTC))
+            .minus(72, ChronoUnit.HOURS);
 
     private SSLCertificateCreateRenewService service;
 
@@ -99,6 +101,7 @@ class SSLCertificateCreateRenewServiceTest {
             @BeforeEach
             void setUp() {
                 when(accountService.getOrCreateAccountLogin(any(Session.class))).thenReturn(login);
+                when(config.getAutoRenewalHoursBefore()).thenReturn(72);
             }
 
             @DisplayName("When existing certificate is null")
@@ -115,7 +118,7 @@ class SSLCertificateCreateRenewServiceTest {
                 CertificateRenewal renewal = service.createOrRenew(null);
 
                 assertEquals(CertificateRenewalStatus.SUCCESS, renewal.getStatus());
-                assertEquals(CERT_EXPIRATION, renewal.getTime());
+                assertEquals(CERT_RENEWAL, renewal.getTime());
             }
 
             @DisplayName("When existing certificate is non-null")
@@ -154,7 +157,7 @@ class SSLCertificateCreateRenewServiceTest {
                     CertificateRenewal renewal = service.createOrRenew(certificate);
 
                     assertEquals(CertificateRenewalStatus.SUCCESS, renewal.getStatus());
-                    assertEquals(CERT_EXPIRATION, renewal.getTime());
+                    assertEquals(CERT_RENEWAL, renewal.getTime());
                 }
 
                 @DisplayName("When keystore service finds the certificate by name")
@@ -179,7 +182,7 @@ class SSLCertificateCreateRenewServiceTest {
                     CertificateRenewal renewal = service.createOrRenew(certificate);
 
                     assertEquals(CertificateRenewalStatus.SUCCESS, renewal.getStatus());
-                    assertEquals(CERT_EXPIRATION, renewal.getTime());
+                    assertEquals(CERT_RENEWAL, renewal.getTime());
                 }
             }
         }
