@@ -79,7 +79,7 @@ class UpdateCheckerServiceTest {
         @DisplayName("When UpdateFailedException occurs")
         @Test
         void updateFailedException() throws AcmeException {
-            doThrow(new UpdateFailedException()).when(resource).update();
+            doThrow(new AcmeException()).when(resource).update();
 
             assertThrows(UpdateFailedException.class, () -> service.start(resource));
         }

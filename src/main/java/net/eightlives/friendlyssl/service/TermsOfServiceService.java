@@ -34,6 +34,13 @@ public class TermsOfServiceService {
         this.objectMapper = objectMapper;
     }
 
+    /**
+     * Returns the terms of service link from the given session.
+     *
+     * @param session the session from which to retrieve the terms of service link
+     * @return the terms of service {@link URI link}
+     * @throws SSLCertificateException if the terms of service link could not be retrieved from the given session
+     */
     public URI getTermsOfServiceLink(Session session) {
         URI termsOfServiceLink;
         try {
@@ -51,6 +58,13 @@ public class TermsOfServiceService {
         return termsOfServiceLink;
     }
 
+    /**
+     * Returns whether or not the given terms of service link has been accepted.
+     *
+     * @param termsOfServiceLink the terms of service link to check for acceptance
+     * @return {@code true} if {@code termsOfServiceLink} has been accepted, {@code false} otherwise
+     * @throws SSLCertificateException if exception occurs while accessing terms of service file
+     */
     public boolean termsAccepted(URI termsOfServiceLink) {
         try {
             TermsOfService[] termsOfService = objectMapper.readValue(
@@ -67,6 +81,13 @@ public class TermsOfServiceService {
         }
     }
 
+    /**
+     * Writes an acceptance state for the given terms of service link.
+     *
+     * @param termsOfServiceLink the terms of service link for which to write the given acceptance state
+     * @param accept             {@code true} to accept {@code termsOfServiceLink}, {@code false} to not accept
+     * @throws SSLCertificateException if exception occurs while accessing or writing to terms of service file
+     */
     public void writeTermsLink(URI termsOfServiceLink, boolean accept) {
         Path termsOfServiceFile = Path.of(config.getTermsOfServiceFile());
 

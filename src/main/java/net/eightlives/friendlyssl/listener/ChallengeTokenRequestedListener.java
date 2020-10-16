@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.event.ChallengeTokenRequested;
 import net.eightlives.friendlyssl.exception.SSLCertificateException;
+import net.eightlives.friendlyssl.exception.UpdateFailedException;
 import net.eightlives.friendlyssl.service.ChallengeTokenStore;
 import net.eightlives.friendlyssl.service.UpdateCheckerService;
 import org.shredzone.acme4j.Authorization;
@@ -16,6 +17,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.*;
 
+/**
+ * This listener listens for a {@link ChallengeTokenRequested} event an synchronously checks the challenge token
+ * store for the event's token. If the token exists in the store, the future that the token is mapped to in this
+ * instance is completed and removed from the map.
+ */
 @Slf4j
 @Component
 public class ChallengeTokenRequestedListener implements ApplicationListener<ChallengeTokenRequested> {
@@ -23,6 +29,7 @@ public class ChallengeTokenRequestedListener implements ApplicationListener<Chal
     private final FriendlySSLConfig config;
     private final UpdateCheckerService updateCheckerService;
     private final ChallengeTokenStore challengeTokenStore;
+
     private final Map<String, CompletableFuture<Void>> tokensToListenerFutures = new HashMap<>();
 
     public ChallengeTokenRequestedListener(FriendlySSLConfig config,
@@ -42,6 +49,17 @@ public class ChallengeTokenRequestedListener implements ApplicationListener<Chal
         }
     }
 
+    /**
+     * Trigger the given challenge and return a {@link CompletableFuture} that completes normally if the ACME challenge
+     * endpoint is accessed within the configured timeout and then the given authorization update completes
+     * successfully within the configured timeout.
+     *
+     * @param challenge     the ACME challenge to trigger
+     * @param authorization the authorization to check for updates (this should contain the challenge)
+     * @return a {@link CompletableFuture} that completes normally if the challenge is verified successfully by the
+     * ACME server, and exceptionally if a timeout or exception occurs during this process
+     * @throws SSLCertificateException if triggering the challenge causes an exception
+     */
     public CompletableFuture<Void> getChallengeTokenVerification(Http01Challenge challenge, Authorization authorization) {
         challengeTokenStore.setToken(challenge.getToken(), challenge.getAuthorization());
 
@@ -63,7 +81,7 @@ public class ChallengeTokenRequestedListener implements ApplicationListener<Chal
                     } catch (TimeoutException e) {
                         log.error("Timeout while checking for challenge status");
                         throw new SSLCertificateException(e);
-                    } catch (InterruptedException | ExecutionException | CancellationException e) {
+                    } catch (InterruptedException | ExecutionException | CancellationException | UpdateFailedException e) {
                         throw new SSLCertificateException(e);
                     }
                 })

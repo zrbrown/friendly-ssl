@@ -8,6 +8,11 @@ import java.util.stream.Collectors;
 @Component
 public class LocalIdGeneratorService {
 
+    /**
+     * Generate random octets for the local key when generating a PKCS12 keystore.
+     *
+     * @return randomly generated octets
+     */
     public byte[] generate() {
         String localKeyId = new Random().ints(5)
                 .mapToObj(Integer::toHexString)

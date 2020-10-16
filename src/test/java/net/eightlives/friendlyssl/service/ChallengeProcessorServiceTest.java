@@ -63,7 +63,7 @@ class ChallengeProcessorServiceTest {
             when(auth.findChallenge(Http01Challenge.TYPE)).thenReturn(challenge);
         }
 
-        @DisplayName("and no HTTP challenge found for just one authorization, an exception should be thrown")
+        @DisplayName("and no HTTP challenge found for any authorization, an exception should be thrown")
         @Test
         void noHttpChallengeException() {
             Authorization noHttpAuth = mock(Authorization.class);
