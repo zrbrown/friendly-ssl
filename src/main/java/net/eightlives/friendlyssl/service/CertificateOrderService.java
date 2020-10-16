@@ -34,6 +34,16 @@ public class CertificateOrderService {
         this.updateCheckerService = updateCheckerService;
     }
 
+    /**
+     * Order a certificate.
+     *
+     * @param domain        the domain for which to order the certificate
+     * @param login         the account login with which to order the certificate
+     * @param domainKeyPair the key pair with which to sign the certificate signing request (CSR)
+     * @return the successfully ordered certificate, or {@link Optional#empty()} if the order was unsuccessful
+     * @throws SSLCertificateException if an exception occurs while ordering the certificate or if the order is not
+     *                                 reported as valid within the configured order timeout
+     */
     public Optional<Certificate> orderCertificate(String domain, Login login, KeyPair domainKeyPair) {
         try {
             Order order = login.getAccount()

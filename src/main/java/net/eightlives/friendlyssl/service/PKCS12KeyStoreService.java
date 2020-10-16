@@ -46,6 +46,15 @@ public class PKCS12KeyStoreService {
         this.localIdGeneratorService = localIdGeneratorService;
     }
 
+    /**
+     * Generate a PKCS12 keystore for the given certificate chain.
+     *
+     * @param certificates the certificate chain to put in the keystore
+     * @param privateKey   the private key used to sign the local certificate. This is the same key that was used for the
+     *                     certificate signing request (CSR)
+     * @return the byte representation of the generated PKCS12 keystore
+     * @throws KeyStoreGeneratorException if an exception occurs while generating the keystore
+     */
     public byte[] generateKeyStore(List<X509Certificate> certificates, PrivateKey privateKey) {
         try {
             byte[] localKeyBytes = localIdGeneratorService.generate();
@@ -88,6 +97,16 @@ public class PKCS12KeyStoreService {
         }
     }
 
+    /**
+     * Return a key pair comprised of a private key from the configured keystore with the given alias and a public
+     * key from the given certificate.
+     *
+     * @param certificate            the certificate that contains the public key
+     * @param privateKeyFriendlyName the alias from which to retrieve the key pair
+     * @return a key pair comprised of a private key from the configured keystore with the given alias and a public
+     * key from the given certificate, or {@code null} if an exception occurs while accessing the keystore
+     * while accessing the keystore
+     */
     public KeyPair getKeyPair(Certificate certificate, String privateKeyFriendlyName) {
         try {
             KeyStore store = KeyStore.getInstance(KEYSTORE_TYPE);
@@ -107,11 +126,18 @@ public class PKCS12KeyStoreService {
             return new KeyPair(certificate.getPublicKey(), privateKey);
         } catch (InvalidKeySpecException | NoSuchAlgorithmException | CertificateException | KeyStoreException
                 | UnrecoverableKeyException | IOException e) {
-            log.error("Exception while loading keystore", e);
+            log.error("Exception while accessing keystore", e);
             return null;
         }
     }
 
+    /**
+     * Return a certificate from the configured keystore with the given alias.
+     *
+     * @param friendlyName the alias of the certificate to retrieve
+     * @return the certificate in the keystore with the given alias, or {@link Optional#empty()} if an exception occurs
+     * while accessing the keystore
+     */
     public Optional<X509Certificate> getCertificate(String friendlyName) {
         try {
             KeyStore store = KeyStore.getInstance(KEYSTORE_TYPE);
@@ -128,7 +154,7 @@ public class PKCS12KeyStoreService {
             }
             return Optional.empty();
         } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e) {
-            log.error("Exception while loading keystore", e);
+            log.error("Exception while accessing keystore", e);
             return Optional.empty();
         }
     }

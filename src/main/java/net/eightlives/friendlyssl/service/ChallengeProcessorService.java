@@ -22,13 +22,21 @@ public class ChallengeProcessorService {
         this.challengeTokenRequestedListener = challengeTokenRequestedListener;
     }
 
+    /**
+     * Process challenges for the given list of authorizations. Currently only supports HTTP challenges.
+     *
+     * @param authorizations authorizations that contain challenges to trigger
+     * @return {@link CompletableFuture} that will complete once each authorization's challenge being processed.
+     * It will complete exceptionally if any of the challenges failed.
+     * @throws SSLCertificateException if any of the authorizations does not contain an HTTP challenge
+     */
     public CompletableFuture<Void> process(List<Authorization> authorizations) {
         CompletableFuture<?>[] challenges = authorizations.stream()
                 .filter(auth -> auth.getStatus() != Status.VALID)
                 .map(auth -> {
                     Http01Challenge challenge = auth.findChallenge(Http01Challenge.TYPE);
                     if (challenge == null) {
-                        throw new SSLCertificateException("HTTP Challenge does not exist");//TODO how is this handled?
+                        throw new SSLCertificateException("HTTP Challenge does not exist");
                     }
                     return new AuthorizationAndChallenge(auth, challenge);
                 })

@@ -32,6 +32,14 @@ public class CertificateController {
         this.keyStoreService = keyStoreService;
     }
 
+    /**
+     * Order a certificate manually. This might be done if the user wants to order early or if there was a previous
+     * failure to order (such as when terms of service haven't been agreed to) and the user does not want to wait for
+     * the retry.
+     *
+     * @return <p>200 OK if certificate was ordered successfully</p>
+     * <p>500 Internal Server Error if an exception occurs</p>
+     */
     @GetMapping(path = "/order", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CertificateRenewal> order() {
         X509Certificate existingCertificate = keyStoreService.getCertificate(config.getCertificateFriendlyName())

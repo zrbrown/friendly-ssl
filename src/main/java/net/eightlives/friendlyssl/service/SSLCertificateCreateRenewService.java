@@ -40,6 +40,14 @@ public class SSLCertificateCreateRenewService {
         this.clock = clock;
     }
 
+    /**
+     * Create or renew a certificate.
+     *
+     * @param existingCertificate an existing certificate to renew, or {@code null} to create a new certificate
+     * @return {@link CertificateRenewal} describing the result of the renewal and time at which the next renewal should
+     * occur
+     * @throws IllegalArgumentException if ACME session URL is invalid
+     */
     public CertificateRenewal createOrRenew(X509Certificate existingCertificate) {
         try {
             log.info("Starting certificate create/renew");

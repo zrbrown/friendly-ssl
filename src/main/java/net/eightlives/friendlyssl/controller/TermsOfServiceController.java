@@ -28,6 +28,14 @@ public class TermsOfServiceController {
         this.termsOfServiceService = termsOfServiceService;
     }
 
+    /**
+     * Agree to the terms of service located at the given link.
+     *
+     * @param termsOfServiceLink the link to the terms of service being agreed to
+     * @return <p>200 OK if terms were successfully agreed to</p>
+     * <p>400 Bad Request if URI is malformed</p>
+     * <p>500 Internal Server Error if an exception occurs</p>
+     */
     @PostMapping(path = "/agree", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> agreeToTermsOfService(@Valid @RequestBody TermsOfServiceAgreeRequest termsOfServiceLink) {
         String termsLink = termsOfServiceLink.getTermsOfServiceLink();

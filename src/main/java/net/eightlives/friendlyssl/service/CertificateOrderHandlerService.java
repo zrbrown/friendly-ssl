@@ -30,6 +30,14 @@ public class CertificateOrderHandlerService {
         this.keyStoreService = keyStoreService;
     }
 
+    /**
+     * Order a certificate and write the resulting certificate chain to the configured keystore.
+     *
+     * @param login         the login with which to order the certificate
+     * @param domainKeyPair the domain key pair with which to order the certificate
+     * @return successfully ordered {@link Certificate}
+     * @throws SSLCertificateException if nothing is returned from the certificate order, indicating a failure
+     */
     public Certificate handleCertificateOrder(Login login, KeyPair domainKeyPair) {
         return certificateOrderService.orderCertificate(config.getDomain(), login, domainKeyPair)
                 .map(certificate -> {

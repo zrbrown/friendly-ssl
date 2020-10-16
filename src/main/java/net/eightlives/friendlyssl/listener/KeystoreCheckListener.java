@@ -44,6 +44,13 @@ import java.sql.Date;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
+/**
+ * Application listener that adds security provider(s) and checks for an existing keystore. Because Spring will not
+ * start if it has SSL enabled and there is no keystore or a keystore without the given key alias, in these cases
+ * a self-signed certificate is generated and will overwrite any existing keystore with the configured name.
+ * A keystore with a password or a corrupted/inaccessible will be logged and ignored, likely causing Spring to not start.
+ * If the configured keystore and key alias are found, no action is performed and Spring should start.
+ */
 @Slf4j
 public class KeystoreCheckListener implements SpringApplicationRunListener {
 

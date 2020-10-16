@@ -37,6 +37,18 @@ public class AcmeAccountService {
         this.accountBuilderFactory = accountBuilderFactory;
     }
 
+    /**
+     * Creates and returns an {{@link Login account login} for the given session. The configured account private key pair
+     * will be used to first try to create a login for an existing account. If that fails, a new account will be created
+     * using the configured email address. The session's terms of service must be accepted to create a new account. If
+     * terms of service have not been accepted, either due to have never been accepted or having changed, the terms
+     * of service will be stored as unaccepted so that they may be manually accepted.
+     *
+     * @param session the session for which to create the account login
+     * @return an existing account's login if it exists, otherwise a new account login
+     * @throws SSLCertificateException if the session's terms of service have not been accepted or an exception occurs
+     *                                 while creating the account login
+     */
     public Login getOrCreateAccountLogin(Session session) {
         URI termsOfServiceLink = termsOfServiceService.getTermsOfServiceLink(session);
 

@@ -13,6 +13,9 @@ import java.time.Instant;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Application startup listener that starts the auto-renew service if it is enabled.
+ */
 @Slf4j
 @Component
 public class FriendlySSLApplicationListener implements ApplicationListener<ApplicationReadyEvent> {

@@ -28,6 +28,21 @@ public class UpdateCheckerService {
         this.clock = clock;
     }
 
+    /**
+     * Start updating the given resource and checking its status at the returned intervals until it receives a valid
+     * or invalid status, or an exception occurs.
+     *
+     * @param resource the resource to update
+     * @return a {@link ScheduledFuture} that:
+     * <p>
+     * - completes normally when a valid status is returned from the resource update
+     * </p>
+     * <p>
+     * - completes exceptionally when an invalid status is returned from the resource update or an unrecoverable
+     * exception occurs when updating the resource
+     * </p>
+     * @throws UpdateFailedException when the first resource update causes an unrecoverable exception
+     */
     public ScheduledFuture<Void> start(AcmeJsonResource resource) {
         long millisecondsUntilRetry = updateAcmeJsonResource(resource);
         return (ScheduledFuture<Void>) scheduler.schedule(() -> {

@@ -31,6 +31,12 @@ public class AutoRenewService {
         this.clock = clock;
     }
 
+    /**
+     * Start auto-renewal. An existing certificate with configured key alias will be checked for expiration before
+     * renewing.
+     *
+     * @return {@link CertificateRenewal} containing the renewal status and the next time that auto-renewal should be run
+     */
     public CertificateRenewal autoRenew() {
         log.info("Auto-renew starting...");
         return keyStoreService.getCertificate(config.getCertificateFriendlyName()).map(certificate -> {

@@ -26,6 +26,13 @@ public class CertificateChallengeController {
         this.applicationEventPublisher = applicationEventPublisher;
     }
 
+    /**
+     * Answer an ACME challenge with the string of content associated with the given token, which the server should
+     * have been informed of before this endpoint is accessed.
+     *
+     * @param token the token for which to return associated content
+     * @return the content associated with the given token, or empty string if not content was found
+     */
     @GetMapping(value = "/{token}", produces = MediaType.TEXT_PLAIN_VALUE)
     public String getToken(@PathVariable String token) {
         log.debug("Challenge endpoint hit for token: " + token);
