@@ -102,20 +102,20 @@ public class PKCS12KeyStoreService {
      * key from the given certificate.
      *
      * @param certificate            the certificate that contains the public key
-     * @param privateKeyKeyAlias the alias from which to retrieve the key pair
+     * @param privateKeyAlias the alias from which to retrieve the key pair
      * @return a key pair comprised of a private key from the configured keystore with the given alias and a public
      * key from the given certificate, or {@code null} if an exception occurs while accessing the keystore
      * while accessing the keystore
      */
-    public KeyPair getKeyPair(Certificate certificate, String privateKeyKeyAlias) {
+    public KeyPair getKeyPair(Certificate certificate, String privateKeyAlias) {
         try {
             KeyStore store = KeyStore.getInstance(KEYSTORE_TYPE);
             store.load(Files.newInputStream(Path.of(config.getKeystoreFile())), "".toCharArray());
 
             KeyFactory keyFactory = KeyFactory.getInstance(KEYFACTORY_TYPE);
-            Key key = store.getKey(privateKeyKeyAlias, "".toCharArray());
+            Key key = store.getKey(privateKeyAlias, "".toCharArray());
             if (key == null) {
-                log.error("Private key alias " + privateKeyKeyAlias +
+                log.error("Private key alias " + privateKeyAlias +
                         " not found in keystore " + config.getKeystoreFile() +
                         " when loading keystore");
                 return null;
