@@ -14,7 +14,7 @@ public class FriendlySSLConfig {
     private String acmeSessionUrl = "acme://letsencrypt.org/staging";
     private String domain;
     private String accountEmail;
-    private String certificateFriendlyName = "friendlyssl";
+    private String certificateKeyAlias = "friendlyssl";
     private String accountPrivateKeyFile = "account.pem";
     private String keystoreFile = "keystore.p12";
     private String termsOfServiceFile = "tos";
@@ -57,12 +57,12 @@ public class FriendlySSLConfig {
         this.accountEmail = accountEmail;
     }
 
-    public String getCertificateFriendlyName() {
-        return certificateFriendlyName;
+    public String getCertificateKeyAlias() {
+        return certificateKeyAlias;
     }
 
-    public void setCertificateFriendlyName(String certificateFriendlyName) {
-        this.certificateFriendlyName = certificateFriendlyName;
+    public void setCertificateKeyAlias(String certificateKeyAlias) {
+        this.certificateKeyAlias = certificateKeyAlias;
     }
 
     public String getAccountPrivateKeyFile() {

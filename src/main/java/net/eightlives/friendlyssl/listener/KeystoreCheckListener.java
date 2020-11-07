@@ -67,7 +67,7 @@ public class KeystoreCheckListener implements SpringApplicationRunListener {
     @Override
     public void environmentPrepared(ConfigurableEnvironment environment) {
         String keystoreLocation = environment.getProperty("friendly-ssl.keystore-file");
-        String certificateFriendlyName = environment.getProperty("friendly-ssl.certificate-friendly-name");
+        String certificateFriendlyName = environment.getProperty("friendly-ssl.certificate-key-alias");
         String domain = environment.getProperty("friendly-ssl.domain");
 
         if (keystoreLocation != null && certificateFriendlyName != null && domain != null) {

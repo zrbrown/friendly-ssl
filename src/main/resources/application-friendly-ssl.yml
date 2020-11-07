@@ -1,7 +1,7 @@
 friendly-ssl:
   auto-renew-enabled: false
   acme-session-url: acme://letsencrypt.org/staging
-  certificate-friendly-name: friendlyssl
+  certificate-key-alias: friendlyssl
   account-private-key-file: account.pem
   keystore-file: keystore.p12
   terms-of-service-file: tos

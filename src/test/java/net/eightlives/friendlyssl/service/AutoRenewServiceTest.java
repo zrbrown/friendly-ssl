@@ -47,7 +47,7 @@ public class AutoRenewServiceTest {
     void setUp() {
         service = new AutoRenewService(config, createRenewService, keyStoreService, clock);
 
-        when(config.getCertificateFriendlyName()).thenReturn("friendly-test");
+        when(config.getCertificateKeyAlias()).thenReturn("friendly-test");
     }
 
     @DisplayName("When no certificate exists")

@@ -133,7 +133,7 @@ class SSLCertificateCreateRenewServiceTest {
                     certificate = (X509Certificate) certificateFactory.generateCertificate(Files.newInputStream(
                             Path.of("src", "test", "resources", "certificate_chain.pem")));
 
-                    when(config.getCertificateFriendlyName()).thenReturn("friendlyssl");
+                    when(config.getCertificateKeyAlias()).thenReturn("friendlyssl");
                 }
 
                 @DisplayName("When keystore service cannot find the certificate by name")

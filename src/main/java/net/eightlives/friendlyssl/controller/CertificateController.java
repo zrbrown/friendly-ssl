@@ -42,7 +42,7 @@ public class CertificateController {
      */
     @GetMapping(path = "/order", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CertificateRenewal> order() {
-        X509Certificate existingCertificate = keyStoreService.getCertificate(config.getCertificateFriendlyName())
+        X509Certificate existingCertificate = keyStoreService.getCertificate(config.getCertificateKeyAlias())
                 .orElse(null);
 
         CertificateRenewal certificateRenewal = createRenewService.createOrRenew(existingCertificate);

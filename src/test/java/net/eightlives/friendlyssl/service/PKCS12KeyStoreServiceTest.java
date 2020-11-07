@@ -48,7 +48,7 @@ class PKCS12KeyStoreServiceTest {
         @BeforeEach
         void setUp() throws CertificateException, IOException {
             when(localIdGeneratorService.generate()).thenReturn("abcdef".getBytes());
-            when(config.getCertificateFriendlyName()).thenReturn(PK_FRIENDLY_NAME);
+            when(config.getCertificateKeyAlias()).thenReturn(PK_FRIENDLY_NAME);
 
             CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
             certificateChain = new ArrayList<>((Collection<? extends X509Certificate>)
@@ -134,9 +134,9 @@ class PKCS12KeyStoreServiceTest {
                         Path.of("src", "test", "resources", "existing_old_keystore.p12").toString());
             }
 
-            @DisplayName("when private key friendly name is not in the key store")
+            @DisplayName("when private key alias is not in the key store")
             @Test
-            void friendlyNameKeyNotFound() {
+            void keyAliasKeyNotFound() {
                 assertNull(service.getKeyPair(certificate, "NotFound"));
             }
 
@@ -182,9 +182,9 @@ class PKCS12KeyStoreServiceTest {
         @Nested
         class KeyStoreValid {
 
-            @DisplayName("when private key friendly name is not in the key store")
+            @DisplayName("when private key alias is not in the key store")
             @Test
-            void friendlyNameKeyNotFound() throws CertificateException, IOException {
+            void keyAliasKeyNotFound() throws CertificateException, IOException {
                 when(config.getKeystoreFile()).thenReturn(
                         Path.of("src", "test", "resources", "existing_old_keystore.p12").toString());
 
