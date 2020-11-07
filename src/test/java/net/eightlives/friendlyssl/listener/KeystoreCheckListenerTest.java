@@ -44,7 +44,7 @@ public class KeystoreCheckListenerTest {
 
         when(environment.getProperty("friendly-ssl.keystore-file")).thenReturn(notExists.toString());
         when(environment.getProperty("friendly-ssl.domain")).thenReturn("test.me");
-        when(environment.getProperty("friendly-ssl.certificate-friendly-name")).thenReturn("friendlyssl");
+        when(environment.getProperty("friendly-ssl.certificate-key-alias")).thenReturn("friendlyssl");
     }
 
     @AfterEach
@@ -54,7 +54,7 @@ public class KeystoreCheckListenerTest {
 
     @DisplayName("When a required property ")
     @ParameterizedTest(name = "{0} has not been set")
-    @ValueSource(strings = {"friendly-ssl.keystore-file", "friendly-ssl.certificate-friendly-name", "friendly-ssl.domain"})
+    @ValueSource(strings = {"friendly-ssl.keystore-file", "friendly-ssl.certificate-key-alias", "friendly-ssl.domain"})
     void requiredPropertyMissing(String property) {
         when(environment.getProperty(property)).thenReturn(null);
 
@@ -136,7 +136,7 @@ public class KeystoreCheckListenerTest {
             Files.newOutputStream(keystorePath).write(keystore);
         }
 
-        @DisplayName("When friendly name is correct")
+        @DisplayName("When key alias is correct")
         @Test
         void certificateExists() throws IOException {
             listener.environmentPrepared(environment);
@@ -144,10 +144,10 @@ public class KeystoreCheckListenerTest {
             assertArrayEquals(keystore, Files.readAllBytes(keystorePath));
         }
 
-        @DisplayName("When friendly name is incorrect")
+        @DisplayName("When key alias is incorrect")
         @Test
         void certificateNameIncorrect() throws IOException {
-            when(environment.getProperty("friendly-ssl.certificate-friendly-name")).thenReturn("certificateNameIncorrect");
+            when(environment.getProperty("friendly-ssl.certificate-key-alias")).thenReturn("certificateNameIncorrect");
 
             listener.environmentPrepared(environment);
 

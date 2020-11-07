@@ -63,7 +63,7 @@ public class PKCS12KeyStoreService {
             for (int i = certificates.size() - 1; i >= 0; i--) {
                 var certBagBuilder = new JcaPKCS12SafeBagBuilder(certificates.get(i));
                 if (i == 0) {
-                    certBagBuilder.addBagAttribute(PKCSObjectIdentifiers.pkcs_9_at_friendlyName, new DERBMPString(config.getCertificateFriendlyName()));
+                    certBagBuilder.addBagAttribute(PKCSObjectIdentifiers.pkcs_9_at_friendlyName, new DERBMPString(config.getCertificateKeyAlias()));
                     certBagBuilder.addBagAttribute(PKCSObjectIdentifiers.pkcs_9_at_localKeyId, new DEROctetString(localKeyBytes));
                 } else {
                     certBagBuilder.addBagAttribute(PKCSObjectIdentifiers.pkcs_9_at_friendlyName, new DERBMPString(ROOT_FRIENDLY_NAME));
@@ -76,7 +76,7 @@ public class PKCS12KeyStoreService {
                             PKCSObjectIdentifiers.pbeWithSHAAnd3_KeyTripleDES_CBC,
                             new CBCBlockCipher(new DESedeEngine())).setIterationCount(2048)
                             .build("".toCharArray()));
-            keyBagBuilder.addBagAttribute(PKCSObjectIdentifiers.pkcs_9_at_friendlyName, new DERBMPString(config.getCertificateFriendlyName()));
+            keyBagBuilder.addBagAttribute(PKCSObjectIdentifiers.pkcs_9_at_friendlyName, new DERBMPString(config.getCertificateKeyAlias()));
             keyBagBuilder.addBagAttribute(PKCSObjectIdentifiers.pkcs_9_at_localKeyId, new DEROctetString(localKeyBytes));
 
             PKCS12PfxPduBuilder pfxBuilder = new PKCS12PfxPduBuilder();
@@ -102,20 +102,20 @@ public class PKCS12KeyStoreService {
      * key from the given certificate.
      *
      * @param certificate            the certificate that contains the public key
-     * @param privateKeyFriendlyName the alias from which to retrieve the key pair
+     * @param privateKeyAlias the alias from which to retrieve the key pair
      * @return a key pair comprised of a private key from the configured keystore with the given alias and a public
      * key from the given certificate, or {@code null} if an exception occurs while accessing the keystore
      * while accessing the keystore
      */
-    public KeyPair getKeyPair(Certificate certificate, String privateKeyFriendlyName) {
+    public KeyPair getKeyPair(Certificate certificate, String privateKeyAlias) {
         try {
             KeyStore store = KeyStore.getInstance(KEYSTORE_TYPE);
             store.load(Files.newInputStream(Path.of(config.getKeystoreFile())), "".toCharArray());
 
             KeyFactory keyFactory = KeyFactory.getInstance(KEYFACTORY_TYPE);
-            Key key = store.getKey(privateKeyFriendlyName, "".toCharArray());
+            Key key = store.getKey(privateKeyAlias, "".toCharArray());
             if (key == null) {
-                log.error("Private key friendly name " + privateKeyFriendlyName +
+                log.error("Private key alias " + privateKeyAlias +
                         " not found in keystore " + config.getKeystoreFile() +
                         " when loading keystore");
                 return null;
@@ -134,11 +134,11 @@ public class PKCS12KeyStoreService {
     /**
      * Return a certificate from the configured keystore with the given alias.
      *
-     * @param friendlyName the alias of the certificate to retrieve
+     * @param keyAlias the alias of the certificate to retrieve
      * @return the certificate in the keystore with the given alias, or {@link Optional#empty()} if an exception occurs
      * while accessing the keystore
      */
-    public Optional<X509Certificate> getCertificate(String friendlyName) {
+    public Optional<X509Certificate> getCertificate(String keyAlias) {
         try {
             KeyStore store = KeyStore.getInstance(KEYSTORE_TYPE);
 
@@ -148,7 +148,7 @@ public class PKCS12KeyStoreService {
                 return Optional.empty();
             }
 
-            Certificate certificate = store.getCertificate(friendlyName);
+            Certificate certificate = store.getCertificate(keyAlias);
             if (certificate instanceof X509Certificate) {
                 return Optional.of((X509Certificate) certificate);
             }

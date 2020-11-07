@@ -5,7 +5,7 @@ friendly-ssl:
   account-private-key-file: src/test/resources/temp/account.pem
   keystore-file: src/test/resources/temp/keystore.p12
   terms-of-service-file: src/test/resources/temp/tos
-  certificate-friendly-name: friendlyssl
+  certificate-key-alias: friendlyssl
   endpoints-include: certificate, tos
 
 server:

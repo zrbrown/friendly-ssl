@@ -62,7 +62,7 @@ class CertificateControllerTest {
 
     @BeforeEach
     void setUp() {
-        when(config.getCertificateFriendlyName()).thenReturn("friendly-test");
+        when(config.getCertificateKeyAlias()).thenReturn("friendly-test");
     }
 
     @DisplayName("Test order returns 200")

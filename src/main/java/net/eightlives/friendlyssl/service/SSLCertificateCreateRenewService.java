@@ -57,7 +57,7 @@ public class SSLCertificateCreateRenewService {
 
             KeyPair domainKeyPair = null;
             if (existingCertificate != null) {
-                domainKeyPair = keyStoreService.getKeyPair(existingCertificate, config.getCertificateFriendlyName());
+                domainKeyPair = keyStoreService.getKeyPair(existingCertificate, config.getCertificateKeyAlias());
             }
             if (domainKeyPair == null) {
                 domainKeyPair = KeyPairUtils.createKeyPair(2048);
