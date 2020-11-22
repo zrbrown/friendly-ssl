@@ -110,7 +110,9 @@ class TermsOfServiceAcceptTest implements IntegrationTest {
                         "n.e.f.service.AcmeAccountService         : Account does not exist. Creating account.",
                         "n.e.f.s.SSLCertificateCreateRenewService : Certificate account login accessed",
                         "n.e.f.s.SSLCertificateCreateRenewService : Beginning certificate order.",
-                        "n.e.f.s.SSLCertificateCreateRenewService : Certificate renewal successful. New certificate expiration time is"
+                        "n.e.f.s.SSLCertificateCreateRenewService : Certificate renewal successful. New certificate expiration time is",
+                        "Reloading SSL context...",
+                        "Finished reloading SSL context"
                 ),
                 output
         );

@@ -3,6 +3,7 @@ package net.eightlives.friendlyssl.integration.tests;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.integration.IntegrationTest;
 import net.eightlives.friendlyssl.integration.TestApp;
+import net.eightlives.friendlyssl.util.TestUtils;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,11 +24,13 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Date;
+import java.time.Instant;
 import java.util.List;
 
+import static net.eightlives.friendlyssl.util.TestUtils.getExpirationContext;
 import static net.eightlives.friendlyssl.util.TestUtils.trustAllCertsContext;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ContextConfiguration(initializers = CertificateManualRenewalTest.class, classes = TestApp.class)
@@ -106,9 +109,24 @@ class CertificateManualRenewalTest implements IntegrationTest {
                         "n.e.f.s.SSLCertificateCreateRenewService : Certificate account login accessed",
                         "n.e.f.s.SSLCertificateCreateRenewService : Beginning certificate order.",
                         "n.e.f.service.UpdateCheckerService       : Resource is valid",
-                        "n.e.f.s.SSLCertificateCreateRenewService : Certificate renewal successful. New certificate expiration time is"
+                        "n.e.f.s.SSLCertificateCreateRenewService : Certificate renewal successful. New certificate expiration time is",
+                        "Reloading SSL context...",
+                        "Finished reloading SSL context"
                 ),
                 output
         );
+
+        HttpRequest expirationRequest = HttpRequest.newBuilder()
+                .uri(URI.create("https://localhost:4430/"))
+                .GET()
+                .build();
+
+        TestUtils.SSLContextWithExpiration context = getExpirationContext();
+        HttpClient.newBuilder()
+                .sslContext(context.getSslContext())
+                .build()
+                .send(expirationRequest, HttpResponse.BodyHandlers.ofString());
+
+        assertTrue(context.getExpiration().after(Date.from(Instant.now())));
     }
 }

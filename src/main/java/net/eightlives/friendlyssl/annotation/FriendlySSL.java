@@ -1,9 +1,6 @@
 package net.eightlives.friendlyssl.annotation;
 
-import net.eightlives.friendlyssl.config.ClockConfig;
-import net.eightlives.friendlyssl.config.FriendlySSLConfig;
-import net.eightlives.friendlyssl.config.SchedulerConfig;
-import net.eightlives.friendlyssl.config.TimerConfig;
+import net.eightlives.friendlyssl.config.*;
 import net.eightlives.friendlyssl.controller.CertificateChallengeController;
 import net.eightlives.friendlyssl.controller.CertificateController;
 import net.eightlives.friendlyssl.controller.TermsOfServiceController;
@@ -25,6 +22,7 @@ import java.lang.annotation.*;
         ClockConfig.class,
         TimerConfig.class,
         SchedulerConfig.class,
+        MBeanServerConfig.class,
         RecursiveTimerTaskFactory.class,
         FriendlySSLApplicationListener.class,
         CertificateChallengeController.class,
@@ -43,7 +41,8 @@ import java.lang.annotation.*;
         SSLCertificateCreateRenewService.class,
         TermsOfServiceService.class,
         UpdateCheckerService.class,
-        AccountBuilderFactory.class
+        AccountBuilderFactory.class,
+        SSLContextService.class
 })
 @EnableScheduling
 public @interface FriendlySSL {
