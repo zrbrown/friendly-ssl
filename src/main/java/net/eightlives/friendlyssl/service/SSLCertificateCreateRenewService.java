@@ -26,17 +26,20 @@ public class SSLCertificateCreateRenewService {
     private final AcmeAccountService accountService;
     private final PKCS12KeyStoreService keyStoreService;
     private final CertificateOrderHandlerService certificateOrderHandlerService;
+    private final SSLContextService sslContextService;
     private final Clock clock;
 
     public SSLCertificateCreateRenewService(FriendlySSLConfig config,
                                             AcmeAccountService accountService,
                                             PKCS12KeyStoreService keyStoreService,
                                             CertificateOrderHandlerService certificateOrderHandlerService,
+                                            SSLContextService sslContextService,
                                             Clock clock) {
         this.config = config;
         this.accountService = accountService;
         this.keyStoreService = keyStoreService;
         this.certificateOrderHandlerService = certificateOrderHandlerService;
+        this.sslContextService = sslContextService;
         this.clock = clock;
     }
 
@@ -68,6 +71,8 @@ public class SSLCertificateCreateRenewService {
             Instant certificateExpiration = Instant.ofEpochMilli(certificate.getCertificate().getNotAfter().getTime());
             log.info("Certificate renewal successful. New certificate expiration time is " +
                     DateTimeFormatter.RFC_1123_DATE_TIME.format(certificateExpiration.atZone(ZoneOffset.UTC)));
+
+            sslContextService.reloadSSLConfig();
 
             return new CertificateRenewal(CertificateRenewalStatus.SUCCESS,
                     certificateExpiration.minus(config.getAutoRenewalHoursBefore(), ChronoUnit.HOURS));

@@ -5,6 +5,7 @@ import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.integration.IntegrationTest;
 import net.eightlives.friendlyssl.integration.TestApp;
 import net.eightlives.friendlyssl.util.TestConstants;
+import net.eightlives.friendlyssl.util.TestUtils;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,14 +23,21 @@ import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Date;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static net.eightlives.friendlyssl.integration.tests.CertificateAutoRenewalTest.CertificateRenewalApp;
+import static net.eightlives.friendlyssl.util.TestUtils.getExpirationContext;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -40,7 +48,7 @@ import static org.mockito.Mockito.when;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ContextConfiguration(initializers = CertificateAutoRenewalTest.class, classes = CertificateRenewalApp.class)
-@ActiveProfiles({"test-base", "test-tos-accepted", "test-existing-keystore", "test-override-beans"})
+@ActiveProfiles({"test-base", "test-tos-accepted", "test-existing-keystore", "test-override-beans", "test-enable-tomcat-mbeans"})
 class CertificateAutoRenewalTest implements IntegrationTest {
 
     static {
@@ -105,7 +113,7 @@ class CertificateAutoRenewalTest implements IntegrationTest {
     @ExtendWith(OutputCaptureExtension.class)
     @DirtiesContext
     @Test
-    void autoRenew(CapturedOutput output) throws IOException {
+    void autoRenew(CapturedOutput output) throws IOException, InterruptedException {
         testLogOutputExact(
                 List.of(
                         "n.e.f.service.AutoRenewService           : Auto-renew starting...",
@@ -133,5 +141,18 @@ class CertificateAutoRenewalTest implements IntegrationTest {
                 }
             }
         }
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://localhost:4430/"))
+                .GET()
+                .build();
+
+        TestUtils.SSLContextWithExpiration context = getExpirationContext();
+        HttpClient.newBuilder()
+                .sslContext(context.getSslContext())
+                .build()
+                .send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertTrue(context.getExpiration().after(Date.from(Instant.now())));
     }
 }
