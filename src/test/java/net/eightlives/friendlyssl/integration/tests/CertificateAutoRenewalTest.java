@@ -48,7 +48,7 @@ import static org.mockito.Mockito.when;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ContextConfiguration(initializers = CertificateAutoRenewalTest.class, classes = CertificateRenewalApp.class)
-@ActiveProfiles({"test-base", "test-tos-accepted", "test-existing-keystore", "test-override-beans", "test-enable-tomcat-mbeans"})
+@ActiveProfiles({"test-base", "test-tos-accepted", "test-existing-keystore", "test-override-beans"})
 class CertificateAutoRenewalTest implements IntegrationTest {
 
     static {

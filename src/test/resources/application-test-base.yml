@@ -16,3 +16,4 @@ server:
     key-store-password:
     keyStoreType: PKCS12
     keyAlias: friendlyssl
+  tomcat.mbeanregistry.enabled: true

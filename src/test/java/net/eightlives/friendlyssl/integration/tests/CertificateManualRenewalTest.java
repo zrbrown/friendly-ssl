@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ContextConfiguration(initializers = CertificateManualRenewalTest.class, classes = TestApp.class)
-@ActiveProfiles({"test-base", "test-tos-accepted", "test-existing-keystore", "test-override-beans", "test-no-auto-renew", "test-enable-tomcat-mbeans"})
+@ActiveProfiles({"test-base", "test-tos-accepted", "test-existing-keystore", "test-override-beans", "test-no-auto-renew"})
 class CertificateManualRenewalTest implements IntegrationTest {
 
     static {
