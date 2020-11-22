@@ -36,7 +36,8 @@ public class CertificateOrderHandlerService {
      * @param login         the login with which to order the certificate
      * @param domainKeyPair the domain key pair with which to order the certificate
      * @return successfully ordered {@link Certificate}
-     * @throws SSLCertificateException if nothing is returned from the certificate order, indicating a failure
+     * @throws SSLCertificateException if an exception occurs while generating or writing the key store or
+     *                                 nothing is returned from the certificate order, indicating a failure
      */
     public Certificate handleCertificateOrder(Login login, KeyPair domainKeyPair) {
         return certificateOrderService.orderCertificate(config.getDomain(), login, domainKeyPair)
@@ -47,8 +48,7 @@ public class CertificateOrderHandlerService {
                                 domainKeyPair.getPrivate());
                         file.write(keyStore);
                     } catch (IOException | KeyStoreGeneratorException e) {
-                        //TODO throw exception here?
-                        log.error("Exception while creating keystore", e);
+                        throw new SSLCertificateException(e);
                     }
 
                     return certificate;
