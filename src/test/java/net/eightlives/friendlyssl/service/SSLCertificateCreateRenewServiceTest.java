@@ -132,11 +132,7 @@ class SSLCertificateCreateRenewServiceTest {
             class KeystoreExistingCertificate {
 
                 @BeforeEach
-                void setUp() throws CertificateException, IOException {
-                    CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-                    certificate = (X509Certificate) certificateFactory.generateCertificate(Files.newInputStream(
-                            Path.of("src", "test", "resources", "certificate_chain.pem")));
-
+                void setUp() {
                     when(config.getCertificateKeyAlias()).thenReturn("friendlyssl");
                 }
 
