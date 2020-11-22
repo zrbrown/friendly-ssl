@@ -96,8 +96,7 @@ class CertificateOrderHandlerServiceTest {
             when(keyStoreService.generateKeyStore(certChain, domainKeyPair.getPrivate()))
                     .thenThrow(new KeyStoreGeneratorException(new RuntimeException()));
 
-            Certificate cert = service.handleCertificateOrder(login, domainKeyPair);
-            assertSame(certificate, cert);
+            assertThrows(SSLCertificateException.class, () -> service.handleCertificateOrder(login, domainKeyPair));
         }
 
         @DisplayName("then key store file is generated and written")
