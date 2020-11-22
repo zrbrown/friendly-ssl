@@ -39,6 +39,7 @@ public class SSLContextService {
 
             log.info("Reloading SSL context for " + beans.size() + " MBeans");
             beans.forEach(bean -> reloadSSLConfigOnThreadPoolJMX(mBeanServer, bean.getObjectName()));
+            log.info("Finished reloading SSL context");
         } catch (MalformedObjectNameException e) {
             throw new SSLCertificateException(e);
         }

@@ -68,7 +68,9 @@ class AccountReuseTest implements IntegrationTest {
                         "n.e.f.s.SSLCertificateCreateRenewService : Certificate account login accessed",
                         "n.e.f.s.SSLCertificateCreateRenewService : Beginning certificate order.",
                         "n.e.f.service.UpdateCheckerService       : Resource is valid",
-                        "n.e.f.s.SSLCertificateCreateRenewService : Certificate renewal successful. New certificate expiration time is"
+                        "n.e.f.s.SSLCertificateCreateRenewService : Certificate renewal successful. New certificate expiration time is",
+                        "Reloading SSL context...",
+                        "Finished reloading SSL context"
                 ),
                 output
         );
@@ -94,7 +96,9 @@ class AccountReuseTest implements IntegrationTest {
                         "n.e.f.s.SSLCertificateCreateRenewService : Certificate account login accessed",
                         "n.e.f.s.SSLCertificateCreateRenewService : Beginning certificate order.",
                         "n.e.f.service.UpdateCheckerService       : Resource is valid",
-                        "n.e.f.s.SSLCertificateCreateRenewService : Certificate renewal successful. New certificate expiration time is"
+                        "n.e.f.s.SSLCertificateCreateRenewService : Certificate renewal successful. New certificate expiration time is",
+                        "Reloading SSL context...",
+                        "Finished reloading SSL context"
                 ),
                 output
         );

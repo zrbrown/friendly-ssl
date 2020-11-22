@@ -72,6 +72,7 @@ public class SSLCertificateCreateRenewService {
             log.info("Certificate renewal successful. New certificate expiration time is " +
                     DateTimeFormatter.RFC_1123_DATE_TIME.format(certificateExpiration.atZone(ZoneOffset.UTC)));
 
+            log.info("Reloading SSL context...");
             sslContextService.reloadSSLConfig();
 
             return new CertificateRenewal(CertificateRenewalStatus.SUCCESS,
