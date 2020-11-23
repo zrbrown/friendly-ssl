@@ -53,7 +53,7 @@ class NonceRejectTest implements IntegrationTest {
                 List.of(
                         "n.e.f.service.AutoRenewService           : Auto-renew starting...",
                         "n.e.f.service.AutoRenewService           : Existing certificate expiration time is",
-                        "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate create/renew",
+                        "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate renew",
                         "o.s.acme4j.connector.DefaultConnection   : Bad Replay Nonce, trying again (attempt 1/10)",
                         "o.s.acme4j.connector.DefaultConnection   : Bad Replay Nonce, trying again (attempt 2/10)",
                         "o.s.acme4j.connector.DefaultConnection   : Bad Replay Nonce, trying again (attempt 3/10)",
