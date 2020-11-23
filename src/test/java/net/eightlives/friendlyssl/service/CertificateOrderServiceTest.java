@@ -1,7 +1,7 @@
 package net.eightlives.friendlyssl.service;
 
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
-import net.eightlives.friendlyssl.exception.SSLCertificateException;
+import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import net.eightlives.friendlyssl.exception.UpdateFailedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -71,7 +71,7 @@ class CertificateOrderServiceTest {
     void accountCreationFails() throws AcmeException {
         when(orderBuilder.create()).thenThrow(new AcmeException());
 
-        assertThrows(SSLCertificateException.class, () -> service.orderCertificate(DOMAIN, login, domainKeyPair));
+        assertThrows(FriendlySSLException.class, () -> service.orderCertificate(DOMAIN, login, domainKeyPair));
     }
 
     @DisplayName("When account creation succeeds")
@@ -92,9 +92,9 @@ class CertificateOrderServiceTest {
         @DisplayName("and challenge processor throws an exception")
         @Test
         void challengeProcessorFails() {
-            when(challengeProcessorService.process(authorizations)).thenThrow(new SSLCertificateException(""));
+            when(challengeProcessorService.process(authorizations)).thenThrow(new FriendlySSLException(""));
 
-            assertThrows(SSLCertificateException.class, () -> service.orderCertificate(DOMAIN, login, domainKeyPair));
+            assertThrows(FriendlySSLException.class, () -> service.orderCertificate(DOMAIN, login, domainKeyPair));
         }
 
         @DisplayName("and challenge is processed successfully")
@@ -116,7 +116,7 @@ class CertificateOrderServiceTest {
             void challengeProcessorFutureFails(Class<Throwable> exceptionClass) throws ExecutionException, InterruptedException {
                 when(challengeProcessorFuture.get()).thenThrow(exceptionClass);
 
-                assertThrows(SSLCertificateException.class, () -> service.orderCertificate(DOMAIN, login, domainKeyPair));
+                assertThrows(FriendlySSLException.class, () -> service.orderCertificate(DOMAIN, login, domainKeyPair));
             }
 
             @DisplayName("and future retrieval succeeds")
@@ -132,9 +132,9 @@ class CertificateOrderServiceTest {
                 @Test
                 void csrServiceFails() {
                     when(csrService.generateCSR(DOMAIN, domainKeyPair))
-                            .thenThrow(new SSLCertificateException(""));
+                            .thenThrow(new FriendlySSLException(""));
 
-                    assertThrows(SSLCertificateException.class, () -> service.orderCertificate(DOMAIN, login, domainKeyPair));
+                    assertThrows(FriendlySSLException.class, () -> service.orderCertificate(DOMAIN, login, domainKeyPair));
                 }
 
                 @DisplayName("and CSR service succeeds")
@@ -152,7 +152,7 @@ class CertificateOrderServiceTest {
                     void orderExecutionFails() throws AcmeException {
                         doThrow(new AcmeException()).when(order).execute(CSR);
 
-                        assertThrows(SSLCertificateException.class, () -> service.orderCertificate(DOMAIN, login, domainKeyPair));
+                        assertThrows(FriendlySSLException.class, () -> service.orderCertificate(DOMAIN, login, domainKeyPair));
                     }
 
                     @DisplayName("and order execution succeeds")
@@ -164,7 +164,7 @@ class CertificateOrderServiceTest {
                         void updateCheckerServiceFails() {
                             when(updateCheckerService.start(order)).thenThrow(new UpdateFailedException());
 
-                            assertThrows(SSLCertificateException.class, () -> service.orderCertificate(DOMAIN, login, domainKeyPair));
+                            assertThrows(FriendlySSLException.class, () -> service.orderCertificate(DOMAIN, login, domainKeyPair));
                         }
 
                         @DisplayName("and update checker service returns")
@@ -187,7 +187,7 @@ class CertificateOrderServiceTest {
                                 when(updateCheckerFuture.get(ORDER_TIMEOUT_SECONDS, TimeUnit.SECONDS))
                                         .thenThrow(exceptionClass);
 
-                                assertThrows(SSLCertificateException.class, () -> service.orderCertificate(DOMAIN, login, domainKeyPair));
+                                assertThrows(FriendlySSLException.class, () -> service.orderCertificate(DOMAIN, login, domainKeyPair));
                             }
 
                             @DisplayName("and future retrieval succeeds")

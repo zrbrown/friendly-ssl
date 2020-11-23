@@ -2,7 +2,7 @@ package net.eightlives.friendlyssl.listener;
 
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.event.ChallengeTokenRequested;
-import net.eightlives.friendlyssl.exception.SSLCertificateException;
+import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import net.eightlives.friendlyssl.service.ChallengeTokenStore;
 import net.eightlives.friendlyssl.service.UpdateCheckerService;
 import org.junit.jupiter.api.*;
@@ -73,7 +73,7 @@ class ChallengeTokenRequestedListenerTest {
         void challengeTriggerException() throws AcmeException {
             doThrow(new AcmeException()).when(challenge).trigger();
 
-            assertThrows(SSLCertificateException.class,
+            assertThrows(FriendlySSLException.class,
                     () -> listener.getChallengeTokenVerification(challenge, auth));
         }
 
@@ -118,7 +118,7 @@ class ChallengeTokenRequestedListenerTest {
                     listener.onApplicationEvent(new ChallengeTokenRequested(this, CHALLENGE_TOKEN));
 
                     ExecutionException exception = assertThrows(ExecutionException.class, future::get);
-                    assertTrue(exception.getCause() instanceof SSLCertificateException);
+                    assertTrue(exception.getCause() instanceof FriendlySSLException);
                 }
 
                 @DisplayName("and update checker completes")

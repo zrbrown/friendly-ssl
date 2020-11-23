@@ -1,6 +1,6 @@
 package net.eightlives.friendlyssl.service;
 
-import net.eightlives.friendlyssl.exception.SSLCertificateException;
+import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import org.shredzone.acme4j.util.CSRBuilder;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +15,7 @@ public class CSRService {
      * @param domain        the domain being certified
      * @param domainKeyPair the key pair with which to sign the CSR
      * @return the encoded certification request
-     * @throws SSLCertificateException if an exception occurs while signing the CSR
+     * @throws FriendlySSLException if an exception occurs while signing the CSR
      */
     public byte[] generateCSR(String domain, KeyPair domainKeyPair) {
         CSRBuilder csrBuilder = new CSRBuilder();
@@ -25,7 +25,7 @@ public class CSRService {
             csrBuilder.sign(domainKeyPair);
             return csrBuilder.getEncoded();
         } catch (Exception e) {
-            throw new SSLCertificateException(e);
+            throw new FriendlySSLException(e);
         }
     }
 }

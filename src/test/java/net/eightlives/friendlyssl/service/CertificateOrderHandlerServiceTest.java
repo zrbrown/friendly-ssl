@@ -2,7 +2,7 @@ package net.eightlives.friendlyssl.service;
 
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.exception.KeyStoreGeneratorException;
-import net.eightlives.friendlyssl.exception.SSLCertificateException;
+import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -57,9 +57,9 @@ class CertificateOrderHandlerServiceTest {
     @Test
     void certificateOrderServiceThrowsException() {
         when(certificateOrderService.orderCertificate("domain.com", login, domainKeyPair))
-                .thenThrow(new SSLCertificateException(""));
+                .thenThrow(new FriendlySSLException(""));
 
-        assertThrows(SSLCertificateException.class, () -> service.handleCertificateOrder(login, domainKeyPair));
+        assertThrows(FriendlySSLException.class, () -> service.handleCertificateOrder(login, domainKeyPair));
     }
 
     @DisplayName("CertificateOrderService does not return a certificate")
@@ -68,7 +68,7 @@ class CertificateOrderHandlerServiceTest {
         when(certificateOrderService.orderCertificate("domain.com", login, domainKeyPair))
                 .thenReturn(Optional.empty());
 
-        assertThrows(SSLCertificateException.class, () -> service.handleCertificateOrder(login, domainKeyPair));
+        assertThrows(FriendlySSLException.class, () -> service.handleCertificateOrder(login, domainKeyPair));
     }
 
     @DisplayName("When CertificateOrderService returns a certificate")
@@ -96,7 +96,7 @@ class CertificateOrderHandlerServiceTest {
             when(keyStoreService.generateKeyStore(certChain, domainKeyPair.getPrivate()))
                     .thenThrow(new KeyStoreGeneratorException(new RuntimeException()));
 
-            assertThrows(SSLCertificateException.class, () -> service.handleCertificateOrder(login, domainKeyPair));
+            assertThrows(FriendlySSLException.class, () -> service.handleCertificateOrder(login, domainKeyPair));
         }
 
         @DisplayName("then key store file is generated and written")

@@ -1,6 +1,6 @@
 package net.eightlives.friendlyssl.service;
 
-import net.eightlives.friendlyssl.exception.SSLCertificateException;
+import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -37,7 +37,7 @@ class SSLContextServiceTest {
     void noJMXThreadPools() {
         when(mBeanServer.queryMBeans(any(ObjectName.class), isNull())).thenReturn(Set.of());
 
-        assertThrows(SSLCertificateException.class, () -> service.reloadSSLConfig());
+        assertThrows(FriendlySSLException.class, () -> service.reloadSSLConfig());
     }
 
     @DisplayName("When mBean server returns JMX thread pool")
@@ -61,7 +61,7 @@ class SSLContextServiceTest {
             when(mBeanServer.invoke(beanName, "reloadSslHostConfigs", new Object[]{}, new String[]{}))
                     .thenThrow(exceptionClass);
 
-            assertThrows(SSLCertificateException.class, () -> service.reloadSSLConfig());
+            assertThrows(FriendlySSLException.class, () -> service.reloadSSLConfig());
         }
 
         @DisplayName("When SSL reload succeeds")

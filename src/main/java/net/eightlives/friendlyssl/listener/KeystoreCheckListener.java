@@ -1,7 +1,7 @@
 package net.eightlives.friendlyssl.listener;
 
 import lombok.extern.slf4j.Slf4j;
-import net.eightlives.friendlyssl.exception.SSLCertificateException;
+import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import org.bouncycastle.asn1.ASN1Encoding;
 import org.bouncycastle.asn1.DERBMPString;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
@@ -150,7 +150,7 @@ public class KeystoreCheckListener implements SpringApplicationRunListener {
             return pfx.getEncoded(ASN1Encoding.DL);
         } catch (IOException | PKCSException | OperatorCreationException e) {
             log.error("Error while generating self-signed certificate", e);
-            throw new SSLCertificateException(e);
+            throw new FriendlySSLException(e);
         }
     }
 

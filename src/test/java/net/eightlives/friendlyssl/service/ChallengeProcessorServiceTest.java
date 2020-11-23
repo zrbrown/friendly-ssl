@@ -1,6 +1,6 @@
 package net.eightlives.friendlyssl.service;
 
-import net.eightlives.friendlyssl.exception.SSLCertificateException;
+import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import net.eightlives.friendlyssl.listener.ChallengeTokenRequestedListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -70,7 +70,7 @@ class ChallengeProcessorServiceTest {
             when(noHttpAuth.getStatus()).thenReturn(Status.PENDING);
             when(noHttpAuth.findChallenge(Http01Challenge.TYPE)).thenReturn(null);
 
-            assertThrows(SSLCertificateException.class, () -> service.process(List.of(auth, noHttpAuth)));
+            assertThrows(FriendlySSLException.class, () -> service.process(List.of(auth, noHttpAuth)));
         }
 
         @DisplayName("and all authorizations have HTTP challenges")
@@ -81,9 +81,9 @@ class ChallengeProcessorServiceTest {
             @Test
             void listenerException() {
                 when(challengeTokenRequestedListener.getChallengeTokenVerification(challenge, auth))
-                        .thenThrow(new SSLCertificateException(""));
+                        .thenThrow(new FriendlySSLException(""));
 
-                assertThrows(SSLCertificateException.class, () -> service.process(List.of(auth)));
+                assertThrows(FriendlySSLException.class, () -> service.process(List.of(auth)));
             }
 
             @DisplayName("when all processed authorizations complete successfully")
@@ -110,10 +110,10 @@ class ChallengeProcessorServiceTest {
                 @DisplayName("and challenge future fails")
                 @Test
                 void challengeFutureFails() {
-                    challengeFuture.completeExceptionally(new SSLCertificateException(""));
+                    challengeFuture.completeExceptionally(new FriendlySSLException(""));
 
                     Exception e = assertThrows(ExecutionException.class, () -> service.process(List.of(auth)).get(1, TimeUnit.SECONDS));
-                    assertTrue(e.getCause() instanceof SSLCertificateException);
+                    assertTrue(e.getCause() instanceof FriendlySSLException);
                 }
 
                 @DisplayName("and challenge future times out")

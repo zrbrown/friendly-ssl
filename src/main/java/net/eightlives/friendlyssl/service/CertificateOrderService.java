@@ -1,7 +1,7 @@
 package net.eightlives.friendlyssl.service;
 
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
-import net.eightlives.friendlyssl.exception.SSLCertificateException;
+import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import net.eightlives.friendlyssl.exception.UpdateFailedException;
 import org.shredzone.acme4j.Certificate;
 import org.shredzone.acme4j.Login;
@@ -41,7 +41,7 @@ public class CertificateOrderService {
      * @param login         the account login with which to order the certificate
      * @param domainKeyPair the key pair with which to sign the certificate signing request (CSR)
      * @return the successfully ordered certificate, or {@link Optional#empty()} if the order was unsuccessful
-     * @throws SSLCertificateException if an exception occurs while ordering the certificate or if the order is not
+     * @throws FriendlySSLException if an exception occurs while ordering the certificate or if the order is not
      *                                 reported as valid within the configured order timeout
      */
     public Optional<Certificate> orderCertificate(String domain, Login login, KeyPair domainKeyPair) {
@@ -60,7 +60,7 @@ public class CertificateOrderService {
             return Optional.ofNullable(order.getCertificate());
         } catch (AcmeException | InterruptedException | ExecutionException | TimeoutException
                 | CancellationException | UpdateFailedException e) {
-            throw new SSLCertificateException(e);
+            throw new FriendlySSLException(e);
         }
     }
 }
