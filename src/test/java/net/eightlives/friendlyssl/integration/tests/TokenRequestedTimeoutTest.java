@@ -55,7 +55,7 @@ class TokenRequestedTimeoutTest implements IntegrationTest {
                         "n.e.f.s.CertificateCreateRenewService    : Certificate account login accessed",
                         "n.e.f.s.CertificateCreateRenewService    : Beginning certificate order.",
                         "n.e.f.s.CertificateCreateRenewService    : Exception while ordering certificate, retry in 1 hours",
-                        "net.eightlives.friendlyssl.exception.SSLCertificateException: Exception while handling SSL certificate management",
+                        "net.eightlives.friendlyssl.exception.FriendlySSLException: Exception while handling SSL certificate management",
                         "Caused by: java.util.concurrent.ExecutionException: java.util.concurrent.TimeoutException"
                 ),
                 output

@@ -66,7 +66,7 @@ class NonceRejectTest implements IntegrationTest {
                         "o.s.acme4j.connector.DefaultConnection   : Bad Replay Nonce, trying again (attempt 10/10)",
                         "n.e.f.service.AcmeAccountService         : Error while retrieving or creating ACME Login",
                         "n.e.f.s.CertificateCreateRenewService    : Exception while ordering certificate, retry in 1 hours",
-                        "net.eightlives.friendlyssl.exception.SSLCertificateException: Exception while handling SSL certificate management",
+                        "net.eightlives.friendlyssl.exception.FriendlySSLException: Exception while handling SSL certificate management",
                         "Caused by: org.shredzone.acme4j.exception.AcmeException: Too many reattempts",
                         "Caused by: org.shredzone.acme4j.exception.AcmeServerException: JWS has an invalid anti-replay nonce:"
                 ),

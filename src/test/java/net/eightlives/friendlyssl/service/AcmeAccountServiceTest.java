@@ -55,7 +55,7 @@ class AcmeAccountServiceTest {
                 new URL("http://localhost")));
     }
 
-    @DisplayName("getting TOS link throws SSLCertificateException")
+    @DisplayName("getting TOS link throws FriendlySSLException")
     @Test
     void getTermsOfServiceLinkException() {
         when(termsOfServiceService.getTermsOfServiceLink(session)).thenThrow(
