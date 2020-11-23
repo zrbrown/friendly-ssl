@@ -112,7 +112,7 @@ class PKCS12KeyStoreServiceTest {
             when(config.getKeystoreFile()).thenReturn(
                     Path.of("src", "test", "resources", "notreal.p12").toString());
 
-            assertNull(service.getKeyPair(certificate, PK_FRIENDLY_NAME));
+            assertNull(service.getKeyPair(PK_FRIENDLY_NAME));
         }
 
         @DisplayName("when key store file is invalid")
@@ -121,7 +121,7 @@ class PKCS12KeyStoreServiceTest {
             when(config.getKeystoreFile()).thenReturn(
                     Path.of("src", "test", "resources", "invalid.p12").toString());
 
-            assertNull(service.getKeyPair(certificate, PK_FRIENDLY_NAME));
+            assertNull(service.getKeyPair(PK_FRIENDLY_NAME));
         }
 
         @DisplayName("when key store is valid")
@@ -134,16 +134,16 @@ class PKCS12KeyStoreServiceTest {
                         Path.of("src", "test", "resources", "existing_old_keystore.p12").toString());
             }
 
-            @DisplayName("when private key alias is not in the key store")
+            @DisplayName("when key alias is not in the key store")
             @Test
-            void keyAliasKeyNotFound() {
-                assertNull(service.getKeyPair(certificate, "NotFound"));
+            void keyAliasNotFound() {
+                assertNull(service.getKeyPair("NotFound"));
             }
 
-            @DisplayName("when key pair is successfully generated")
+            @DisplayName("when key pair is in the key store")
             @Test
             void generationSuccessful() {
-                KeyPair keyPair = service.getKeyPair(certificate, PK_FRIENDLY_NAME);
+                KeyPair keyPair = service.getKeyPair(PK_FRIENDLY_NAME);
 
                 assertEquals(certificate.getPublicKey(), keyPair.getPublic());
             }

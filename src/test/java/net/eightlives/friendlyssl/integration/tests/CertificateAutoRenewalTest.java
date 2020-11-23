@@ -120,13 +120,13 @@ class CertificateAutoRenewalTest implements IntegrationTest {
                         "n.e.f.service.AutoRenewService           : Existing certificate expiration time is Wed, 23 Sep 2020 03:04:15 GMT",
                         "n.e.f.service.AutoRenewService           : Auto-renew starting...",
                         "n.e.f.service.AutoRenewService           : Existing certificate expiration time is Wed, 23 Sep 2020 03:04:15 GMT",
-                        "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate create/renew",
+                        "n.e.f.s.CertificateCreateRenewService    : Starting certificate renew",
                         "n.e.f.service.AcmeAccountService         : Account does not exist. Creating account.",
-                        "n.e.f.s.SSLCertificateCreateRenewService : Certificate account login accessed",
-                        "n.e.f.s.SSLCertificateCreateRenewService : Beginning certificate order.",
-                        "n.e.f.s.SSLCertificateCreateRenewService : Certificate renewal successful. New certificate expiration time is",
-                        "Reloading SSL context...",
-                        "Finished reloading SSL context"
+                        "n.e.f.s.CertificateCreateRenewService    : Certificate account login accessed",
+                        "n.e.f.s.CertificateCreateRenewService    : Beginning certificate order.",
+                        "n.e.f.s.CertificateCreateRenewService    : Certificate renewal successful. New certificate expiration time is",
+                        "n.e.f.s.CertificateCreateRenewService    : Reloading SSL context...",
+                        "n.e.f.service.SSLContextService          : Finished reloading SSL context"
                 ),
                 output
         );

@@ -101,27 +101,34 @@ public class PKCS12KeyStoreService {
      * Return a key pair comprised of a private key from the configured keystore with the given alias and a public
      * key from the given certificate.
      *
-     * @param certificate            the certificate that contains the public key
-     * @param privateKeyAlias the alias from which to retrieve the key pair
+     * @param keyAlias the alias with which to retrieve the key pair from the configured key store
      * @return a key pair comprised of a private key from the configured keystore with the given alias and a public
      * key from the given certificate, or {@code null} if an exception occurs while accessing the keystore
      * while accessing the keystore
      */
-    public KeyPair getKeyPair(Certificate certificate, String privateKeyAlias) {
+    public KeyPair getKeyPair(String keyAlias) {
         try {
             KeyStore store = KeyStore.getInstance(KEYSTORE_TYPE);
             store.load(Files.newInputStream(Path.of(config.getKeystoreFile())), "".toCharArray());
 
             KeyFactory keyFactory = KeyFactory.getInstance(KEYFACTORY_TYPE);
-            Key key = store.getKey(privateKeyAlias, "".toCharArray());
+            Key key = store.getKey(keyAlias, "".toCharArray());
             if (key == null) {
-                log.error("Private key alias " + privateKeyAlias +
+                log.error("Private key alias " + keyAlias +
                         " not found in keystore " + config.getKeystoreFile() +
                         " when loading keystore");
                 return null;
             }
 
             PrivateKey privateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(key.getEncoded()));
+
+            Certificate certificate = store.getCertificate(keyAlias);
+            if (certificate == null) {
+                log.error("Certificate with alias " + keyAlias +
+                        " not found in keystore " + config.getKeystoreFile() +
+                        " when loading keystore");
+                return null;
+            }
 
             return new KeyPair(certificate.getPublicKey(), privateKey);
         } catch (InvalidKeySpecException | NoSuchAlgorithmException | CertificateException | KeyStoreException

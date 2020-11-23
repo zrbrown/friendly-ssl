@@ -3,8 +3,8 @@ package net.eightlives.friendlyssl.controller;
 import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.model.CertificateRenewal;
+import net.eightlives.friendlyssl.service.CertificateCreateRenewService;
 import net.eightlives.friendlyssl.service.PKCS12KeyStoreService;
-import net.eightlives.friendlyssl.service.SSLCertificateCreateRenewService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -13,8 +13,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.security.cert.X509Certificate;
-
 @Slf4j
 @ConditionalOnExpression("'${friendly-ssl.endpoints-include}'.contains('certificate')")
 @RestController
@@ -22,10 +20,10 @@ import java.security.cert.X509Certificate;
 public class CertificateController {
 
     private final FriendlySSLConfig config;
-    private final SSLCertificateCreateRenewService createRenewService;
+    private final CertificateCreateRenewService createRenewService;
     private final PKCS12KeyStoreService keyStoreService;
 
-    public CertificateController(FriendlySSLConfig config, SSLCertificateCreateRenewService createRenewService,
+    public CertificateController(FriendlySSLConfig config, CertificateCreateRenewService createRenewService,
                                  PKCS12KeyStoreService keyStoreService) {
         this.config = config;
         this.createRenewService = createRenewService;
@@ -42,10 +40,11 @@ public class CertificateController {
      */
     @GetMapping(path = "/order", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CertificateRenewal> order() {
-        X509Certificate existingCertificate = keyStoreService.getCertificate(config.getCertificateKeyAlias())
-                .orElse(null);
+        boolean certificateExists = keyStoreService.getCertificate(config.getCertificateKeyAlias()).isPresent();
 
-        CertificateRenewal certificateRenewal = createRenewService.createOrRenew(existingCertificate);
+        CertificateRenewal certificateRenewal = certificateExists ?
+                createRenewService.renewCertificate() :
+                createRenewService.createCertificate();
 
         switch (certificateRenewal.getStatus()) {
             case ALREADY_VALID:
