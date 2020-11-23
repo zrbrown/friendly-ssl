@@ -40,9 +40,9 @@ public class CertificateController {
      */
     @GetMapping(path = "/order", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CertificateRenewal> order() {
-        boolean existingCertificate = keyStoreService.getCertificate(config.getCertificateKeyAlias()).isPresent();
+        boolean certificateExists = keyStoreService.getCertificate(config.getCertificateKeyAlias()).isPresent();
 
-        CertificateRenewal certificateRenewal = existingCertificate ?
+        CertificateRenewal certificateRenewal = certificateExists ?
                 createRenewService.renewCertificate() :
                 createRenewService.createCertificate();
 
