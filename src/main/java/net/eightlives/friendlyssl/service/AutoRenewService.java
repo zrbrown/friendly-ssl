@@ -17,12 +17,12 @@ import java.time.temporal.ChronoUnit;
 public class AutoRenewService {
 
     private final FriendlySSLConfig config;
-    private final SSLCertificateCreateRenewService createRenewService;
+    private final CertificateCreateRenewService createRenewService;
     private final PKCS12KeyStoreService keyStoreService;
     private final Clock clock;
 
     public AutoRenewService(FriendlySSLConfig config,
-                            SSLCertificateCreateRenewService createRenewService,
+                            CertificateCreateRenewService createRenewService,
                             PKCS12KeyStoreService keyStoreService,
                             Clock clock) {
         this.config = config;
@@ -48,8 +48,8 @@ public class AutoRenewService {
                         CertificateRenewalStatus.ALREADY_VALID,
                         renewTime.minus(config.getAutoRenewalHoursBefore(), ChronoUnit.HOURS));
             } else {
-                return createRenewService.createOrRenew(certificate);
+                return createRenewService.renewCertificate();
             }
-        }).orElseGet(() -> createRenewService.createOrRenew(null));
+        }).orElseGet(createRenewService::createCertificate);
     }
 }

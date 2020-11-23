@@ -37,7 +37,7 @@ public class AutoRenewServiceTest {
     @Mock
     private FriendlySSLConfig config;
     @Mock
-    private SSLCertificateCreateRenewService createRenewService;
+    private CertificateCreateRenewService createRenewService;
     @Mock
     private PKCS12KeyStoreService keyStoreService;
     @Mock
@@ -55,7 +55,7 @@ public class AutoRenewServiceTest {
     void noCertificate() {
         when(keyStoreService.getCertificate("friendly-test")).thenReturn(Optional.empty());
         CertificateRenewal renewal = new CertificateRenewal(CertificateRenewalStatus.SUCCESS, Instant.now());
-        when(createRenewService.createOrRenew(null)).thenReturn(renewal);
+        when(createRenewService.createCertificate()).thenReturn(renewal);
 
         CertificateRenewal result = service.autoRenew();
 
@@ -66,12 +66,10 @@ public class AutoRenewServiceTest {
     @Nested
     class CertificateExists {
 
-        private X509Certificate certificate;
-
         @BeforeEach
         void setUp() throws CertificateException, IOException {
             CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-            certificate = (X509Certificate) certificateFactory.generateCertificate(Files.newInputStream(
+            X509Certificate certificate = (X509Certificate) certificateFactory.generateCertificate(Files.newInputStream(
                     Path.of("src", "test", "resources", "certificate_chain.pem")));
             when(keyStoreService.getCertificate("friendly-test")).thenReturn(Optional.of(certificate));
             when(config.getAutoRenewalHoursBefore()).thenReturn(3);
@@ -96,7 +94,7 @@ public class AutoRenewServiceTest {
             when(clock.instant()).thenReturn(CERT_EXPIRATION
                     .minus(3, ChronoUnit.HOURS));
             CertificateRenewal renewal = new CertificateRenewal(CertificateRenewalStatus.SUCCESS, Instant.now());
-            when(createRenewService.createOrRenew(certificate)).thenReturn(renewal);
+            when(createRenewService.renewCertificate()).thenReturn(renewal);
 
             CertificateRenewal result = service.autoRenew();
 

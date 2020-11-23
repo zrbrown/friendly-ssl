@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.model.CertificateRenewal;
 import net.eightlives.friendlyssl.model.CertificateRenewalStatus;
+import net.eightlives.friendlyssl.service.CertificateCreateRenewService;
 import net.eightlives.friendlyssl.service.PKCS12KeyStoreService;
-import net.eightlives.friendlyssl.service.SSLCertificateCreateRenewService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -56,7 +56,7 @@ class CertificateControllerTest {
     @MockBean
     private FriendlySSLConfig config;
     @MockBean
-    private SSLCertificateCreateRenewService createRenewService;
+    private CertificateCreateRenewService createRenewService;
     @MockBean
     private PKCS12KeyStoreService keyStoreService;
 
@@ -72,7 +72,8 @@ class CertificateControllerTest {
     void ok(CertificateRenewalStatus status, X509Certificate certificate) throws Exception {
         when(keyStoreService.getCertificate("friendly-test")).thenReturn(Optional.ofNullable(certificate));
         CertificateRenewal renewal = new CertificateRenewal(status, Instant.ofEpochSecond(100000));
-        when(createRenewService.createOrRenew(certificate)).thenReturn(renewal);
+        when(createRenewService.createCertificate()).thenReturn(renewal);
+        when(createRenewService.renewCertificate()).thenReturn(renewal);
 
         mvc.perform(get("/friendly-ssl/certificate/order"))
                 .andExpect(status().isOk())
@@ -104,7 +105,8 @@ class CertificateControllerTest {
     void error(CertificateRenewalStatus status, X509Certificate certificate) throws Exception {
         when(keyStoreService.getCertificate("friendly-test")).thenReturn(Optional.ofNullable(certificate));
         CertificateRenewal renewal = new CertificateRenewal(status, Instant.ofEpochSecond(100000));
-        when(createRenewService.createOrRenew(certificate)).thenReturn(renewal);
+        when(createRenewService.createCertificate()).thenReturn(renewal);
+        when(createRenewService.renewCertificate()).thenReturn(renewal);
 
         mvc.perform(get("/friendly-ssl/certificate/order"))
                 .andExpect(status().isInternalServerError())

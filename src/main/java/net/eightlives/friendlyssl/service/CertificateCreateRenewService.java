@@ -11,7 +11,6 @@ import org.shredzone.acme4j.util.KeyPairUtils;
 import org.springframework.stereotype.Component;
 
 import java.security.KeyPair;
-import java.security.cert.X509Certificate;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -20,7 +19,7 @@ import java.time.temporal.ChronoUnit;
 
 @Slf4j
 @Component
-public class SSLCertificateCreateRenewService {
+public class CertificateCreateRenewService {
 
     private final FriendlySSLConfig config;
     private final AcmeAccountService accountService;
@@ -29,12 +28,12 @@ public class SSLCertificateCreateRenewService {
     private final SSLContextService sslContextService;
     private final Clock clock;
 
-    public SSLCertificateCreateRenewService(FriendlySSLConfig config,
-                                            AcmeAccountService accountService,
-                                            PKCS12KeyStoreService keyStoreService,
-                                            CertificateOrderHandlerService certificateOrderHandlerService,
-                                            SSLContextService sslContextService,
-                                            Clock clock) {
+    public CertificateCreateRenewService(FriendlySSLConfig config,
+                                         AcmeAccountService accountService,
+                                         PKCS12KeyStoreService keyStoreService,
+                                         CertificateOrderHandlerService certificateOrderHandlerService,
+                                         SSLContextService sslContextService,
+                                         Clock clock) {
         this.config = config;
         this.accountService = accountService;
         this.keyStoreService = keyStoreService;
@@ -44,27 +43,38 @@ public class SSLCertificateCreateRenewService {
     }
 
     /**
-     * Create or renew a certificate.
+     * Create and order a new certificate in the configured key store with the configured key alias.
      *
-     * @param existingCertificate an existing certificate to renew, or {@code null} to create a new certificate
      * @return {@link CertificateRenewal} describing the result of the renewal and time at which the next renewal should
      * occur
      * @throws IllegalArgumentException if ACME session URL is invalid
      */
-    public CertificateRenewal createOrRenew(X509Certificate existingCertificate) {
+    public CertificateRenewal createCertificate() {
+        log.info("Starting certificate create");
+
+        return orderCertificate(KeyPairUtils.createKeyPair(2048));
+    }
+
+    /**
+     * Renew the existing certificate in the configured key store with the configured key alias.
+     *
+     * @return {@link CertificateRenewal} describing the result of the renewal and time at which the next renewal should
+     * occur
+     * @throws IllegalArgumentException if ACME session URL is invalid
+     */
+    public CertificateRenewal renewCertificate() {
+        log.info("Starting certificate renew");
+
+        KeyPair domainKeyPair = keyStoreService.getKeyPair(config.getCertificateKeyAlias());
+
+        return domainKeyPair == null ? createCertificate() : orderCertificate(domainKeyPair);
+    }
+
+    private CertificateRenewal orderCertificate(KeyPair domainKeyPair) {
         try {
-            log.info("Starting certificate create/renew");
             Session session = new Session(config.getAcmeSessionUrl());
             Login login = accountService.getOrCreateAccountLogin(session);
             log.info("Certificate account login accessed");
-
-            KeyPair domainKeyPair = null;
-            if (existingCertificate != null) {
-                domainKeyPair = keyStoreService.getKeyPair(existingCertificate, config.getCertificateKeyAlias());
-            }
-            if (domainKeyPair == null) {
-                domainKeyPair = KeyPairUtils.createKeyPair(2048);
-            }
 
             log.info("Beginning certificate order.");
             Certificate certificate = certificateOrderHandlerService.handleCertificateOrder(login, domainKeyPair);

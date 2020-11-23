@@ -38,7 +38,7 @@ import java.lang.annotation.*;
         CSRService.class,
         LocalIdGeneratorService.class,
         PKCS12KeyStoreService.class,
-        SSLCertificateCreateRenewService.class,
+        CertificateCreateRenewService.class,
         TermsOfServiceService.class,
         UpdateCheckerService.class,
         AccountBuilderFactory.class,
