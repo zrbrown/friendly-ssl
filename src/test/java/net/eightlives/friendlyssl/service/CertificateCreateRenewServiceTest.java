@@ -1,7 +1,7 @@
 package net.eightlives.friendlyssl.service;
 
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
-import net.eightlives.friendlyssl.exception.SSLCertificateException;
+import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import net.eightlives.friendlyssl.model.CertificateRenewal;
 import net.eightlives.friendlyssl.model.CertificateRenewalStatus;
 import org.junit.jupiter.api.BeforeEach;
@@ -90,7 +90,7 @@ class CertificateCreateRenewServiceTest {
         @ArgumentsSource(ServiceCallProvider.class)
         void accountServiceException(Function<CertificateCreateRenewService, CertificateRenewal> serviceCall) {
             when(accountService.getOrCreateAccountLogin(any(Session.class))).thenThrow(
-                    new SSLCertificateException("")
+                    new FriendlySSLException("")
             );
             when(config.getErrorRetryWaitHours()).thenReturn(2);
 

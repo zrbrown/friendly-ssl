@@ -2,7 +2,7 @@ package net.eightlives.friendlyssl.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
-import net.eightlives.friendlyssl.exception.SSLCertificateException;
+import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -54,7 +54,7 @@ class TermsOfServiceServiceTest {
         void getMetadataThrowsException() throws AcmeException {
             when(session.getMetadata()).thenThrow(new AcmeException());
 
-            assertThrows(SSLCertificateException.class, () -> service.getTermsOfServiceLink(session));
+            assertThrows(FriendlySSLException.class, () -> service.getTermsOfServiceLink(session));
         }
 
         @DisplayName("When valid metadata")
@@ -74,7 +74,7 @@ class TermsOfServiceServiceTest {
             void tosLinkNull() {
                 when(metadata.getTermsOfService()).thenReturn(null);
 
-                assertThrows(SSLCertificateException.class, () -> service.getTermsOfServiceLink(session));
+                assertThrows(FriendlySSLException.class, () -> service.getTermsOfServiceLink(session));
             }
 
             @DisplayName("When terms of service link exists")
@@ -111,7 +111,7 @@ class TermsOfServiceServiceTest {
                     Path.of("src", "test", "resources", "tos_invalid.json").toString()
             );
 
-            assertThrows(SSLCertificateException.class, () -> service.termsAccepted(termsOfServiceLink));
+            assertThrows(FriendlySSLException.class, () -> service.termsAccepted(termsOfServiceLink));
         }
 
         @DisplayName("When link is not found")
@@ -169,7 +169,7 @@ class TermsOfServiceServiceTest {
                     Path.of("src", "test", "resources", "tos_invalid.json").toString()
             );
 
-            assertThrows(SSLCertificateException.class, () -> service.writeTermsLink(termsOfServiceLink, accept));
+            assertThrows(FriendlySSLException.class, () -> service.writeTermsLink(termsOfServiceLink, accept));
         }
 
         @DisplayName("When terms of service file doesn't exist")

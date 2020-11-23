@@ -1,7 +1,7 @@
 package net.eightlives.friendlyssl.service;
 
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
-import net.eightlives.friendlyssl.exception.SSLCertificateException;
+import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import net.eightlives.friendlyssl.factory.AccountBuilderFactory;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,13 +55,13 @@ class AcmeAccountServiceTest {
                 new URL("http://localhost")));
     }
 
-    @DisplayName("getting TOS link throws SSLCertificateException")
+    @DisplayName("getting TOS link throws FriendlySSLException")
     @Test
     void getTermsOfServiceLinkException() {
         when(termsOfServiceService.getTermsOfServiceLink(session)).thenThrow(
-                new SSLCertificateException(""));
+                new FriendlySSLException(""));
 
-        assertThrows(SSLCertificateException.class, () -> service.getOrCreateAccountLogin(session));
+        assertThrows(FriendlySSLException.class, () -> service.getOrCreateAccountLogin(session));
     }
 
     @DisplayName("When TOS link is valid")
@@ -159,7 +159,7 @@ class AcmeAccountServiceTest {
                     .thenReturn(Path.of("src", "test", "resources", accountFile).toString());
             when(accountBuilder.createLogin(session)).thenThrow(new AcmeException());
 
-            assertThrows(SSLCertificateException.class, () -> service.getOrCreateAccountLogin(session));
+            assertThrows(FriendlySSLException.class, () -> service.getOrCreateAccountLogin(session));
         }
 
         @DisplayName("when account doesn't exist, but TOS accepted")
@@ -195,7 +195,7 @@ class AcmeAccountServiceTest {
             when(termsOfServiceService.termsAccepted(TERMS_OF_SERVICE_LINK)).thenReturn(false);
             when(config.getTermsOfServiceFile()).thenReturn(TERMS_OF_SERVICE_LINK.toString());
 
-            assertThrows(SSLCertificateException.class, () -> service.getOrCreateAccountLogin(session));
+            assertThrows(FriendlySSLException.class, () -> service.getOrCreateAccountLogin(session));
 
             verify(termsOfServiceService, times(1)).writeTermsLink(TERMS_OF_SERVICE_LINK, false);
         }
@@ -215,7 +215,7 @@ class AcmeAccountServiceTest {
             when(config.getTermsOfServiceFile()).thenReturn(TERMS_OF_SERVICE_LINK.toString());
             when(config.getAccountEmail()).thenReturn("test@test.com");
 
-            assertThrows(SSLCertificateException.class, () -> service.getOrCreateAccountLogin(session));
+            assertThrows(FriendlySSLException.class, () -> service.getOrCreateAccountLogin(session));
 
             verify(termsOfServiceService, times(1)).writeTermsLink(TERMS_OF_SERVICE_LINK, false);
         }
@@ -234,7 +234,7 @@ class AcmeAccountServiceTest {
             when(termsOfServiceService.termsAccepted(TERMS_OF_SERVICE_LINK)).thenReturn(true);
             when(config.getAccountEmail()).thenReturn("test@test.com");
 
-            assertThrows(SSLCertificateException.class, () -> service.getOrCreateAccountLogin(session));
+            assertThrows(FriendlySSLException.class, () -> service.getOrCreateAccountLogin(session));
         }
 
         @AfterEach

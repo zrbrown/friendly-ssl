@@ -3,7 +3,7 @@ package net.eightlives.friendlyssl.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
-import net.eightlives.friendlyssl.exception.SSLCertificateException;
+import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import net.eightlives.friendlyssl.model.TermsOfService;
 import org.shredzone.acme4j.Session;
 import org.shredzone.acme4j.exception.AcmeException;
@@ -39,7 +39,7 @@ public class TermsOfServiceService {
      *
      * @param session the session from which to retrieve the terms of service link
      * @return the terms of service {@link URI link}
-     * @throws SSLCertificateException if the terms of service link could not be retrieved from the given session
+     * @throws FriendlySSLException if the terms of service link could not be retrieved from the given session
      */
     public URI getTermsOfServiceLink(Session session) {
         URI termsOfServiceLink;
@@ -47,12 +47,12 @@ public class TermsOfServiceService {
             termsOfServiceLink = session.getMetadata().getTermsOfService();
         } catch (AcmeException e) {
             log.error("Could not retrieve terms of service link", e);
-            throw new SSLCertificateException(e);
+            throw new FriendlySSLException(e);
         }
 
         if (termsOfServiceLink == null) {
             log.error("Could not retrieve terms of service link");
-            throw new SSLCertificateException("Terms of service should not be null. There may be a problem with the provider.");
+            throw new FriendlySSLException("Terms of service should not be null. There may be a problem with the provider.");
         }
 
         return termsOfServiceLink;
@@ -63,7 +63,7 @@ public class TermsOfServiceService {
      *
      * @param termsOfServiceLink the terms of service link to check for acceptance
      * @return {@code true} if {@code termsOfServiceLink} has been accepted, {@code false} otherwise
-     * @throws SSLCertificateException if exception occurs while accessing terms of service file
+     * @throws FriendlySSLException if exception occurs while accessing terms of service file
      */
     public boolean termsAccepted(URI termsOfServiceLink) {
         try {
@@ -77,7 +77,7 @@ public class TermsOfServiceService {
             return false;
         } catch (IOException e) {
             log.error("Exception while trying to read from terms of service file " + config.getTermsOfServiceFile(), e);
-            throw new SSLCertificateException(e);
+            throw new FriendlySSLException(e);
         }
     }
 
@@ -86,7 +86,7 @@ public class TermsOfServiceService {
      *
      * @param termsOfServiceLink the terms of service link for which to write the given acceptance state
      * @param accept             {@code true} to accept {@code termsOfServiceLink}, {@code false} to not accept
-     * @throws SSLCertificateException if exception occurs while accessing or writing to terms of service file
+     * @throws FriendlySSLException if exception occurs while accessing or writing to terms of service file
      */
     public void writeTermsLink(URI termsOfServiceLink, boolean accept) {
         Path termsOfServiceFile = Path.of(config.getTermsOfServiceFile());
@@ -99,7 +99,7 @@ public class TermsOfServiceService {
         } catch (FileAlreadyExistsException ignored) {
         } catch (IOException e) {
             log.error("Exception while creating terms of service file " + config.getTermsOfServiceFile(), e);
-            throw new SSLCertificateException(e);
+            throw new FriendlySSLException(e);
         }
 
         try {
@@ -112,7 +112,7 @@ public class TermsOfServiceService {
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(Files.newBufferedWriter(termsOfServiceFile), allTerms);
         } catch (IOException e) {
             log.error("Exception while trying to read or write to terms of service file " + config.getTermsOfServiceFile(), e);
-            throw new SSLCertificateException(e);
+            throw new FriendlySSLException(e);
         }
     }
 }

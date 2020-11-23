@@ -52,7 +52,7 @@ public class TosNotAcceptedTest implements IntegrationTest {
                         "n.e.f.service.AutoRenewService           : Existing certificate expiration time is",
                         "n.e.f.s.CertificateCreateRenewService    : Starting certificate renew",
                         "n.e.f.s.CertificateCreateRenewService    : Exception while ordering certificate, retry in 1 hours",
-                        "net.eightlives.friendlyssl.exception.SSLCertificateException: Exception while handling SSL certificate management: Account does not exist. Terms of service must be accepted in file src/test/resources/integration/tos_unaccepted before account can be created"
+                        "net.eightlives.friendlyssl.exception.FriendlySSLException: Exception while handling SSL certificate management: Account does not exist. Terms of service must be accepted in file src/test/resources/integration/tos_unaccepted before account can be created"
                 ),
                 output
         );

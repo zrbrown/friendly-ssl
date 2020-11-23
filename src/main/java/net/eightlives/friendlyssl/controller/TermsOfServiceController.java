@@ -1,7 +1,7 @@
 package net.eightlives.friendlyssl.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import net.eightlives.friendlyssl.exception.SSLCertificateException;
+import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import net.eightlives.friendlyssl.model.TermsOfServiceAgreeRequest;
 import net.eightlives.friendlyssl.service.TermsOfServiceService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -45,7 +45,7 @@ public class TermsOfServiceController {
             return ResponseEntity.ok().build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("URI could not be created from terms link '" + termsLink + "'");
-        } catch (SSLCertificateException e) {
+        } catch (FriendlySSLException e) {
             log.error("Exception occurred while writing to terms of service file for terms link '" + termsLink + "'", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Exception occurred while writing to terms of service file for terms link '" + termsLink + "'");

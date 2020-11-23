@@ -1,7 +1,7 @@
 package net.eightlives.friendlyssl.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.eightlives.friendlyssl.exception.SSLCertificateException;
+import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import net.eightlives.friendlyssl.model.TermsOfServiceAgreeRequest;
 import net.eightlives.friendlyssl.service.TermsOfServiceService;
 import org.junit.jupiter.api.DisplayName;
@@ -68,7 +68,7 @@ class TermsOfServiceControllerTest {
     @Test
     @Execution(ExecutionMode.SAME_THREAD)
     void exception() throws Exception {
-        doThrow(new SSLCertificateException(""))
+        doThrow(new FriendlySSLException(""))
                 .when(termsOfServiceService).writeTermsLink(TERMS_URI, true);
 
         mvc.perform(

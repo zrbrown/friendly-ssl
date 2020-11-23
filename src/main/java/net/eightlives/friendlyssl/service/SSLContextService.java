@@ -1,7 +1,7 @@
 package net.eightlives.friendlyssl.service;
 
 import lombok.extern.slf4j.Slf4j;
-import net.eightlives.friendlyssl.exception.SSLCertificateException;
+import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import org.springframework.stereotype.Component;
 
 import javax.management.MBeanServer;
@@ -33,7 +33,7 @@ public class SSLContextService {
             Set<ObjectInstance> beans = mBeanServer.queryMBeans(jmxThreadPoolName, null);
 
             if (beans.isEmpty()) {
-                throw new SSLCertificateException("Cannot locate any JMX thread pool. SSL context will not be reloaded" +
+                throw new FriendlySSLException("Cannot locate any JMX thread pool. SSL context will not be reloaded" +
                         " and certificate will not be used unless server is restarted.");
             }
 
@@ -41,7 +41,7 @@ public class SSLContextService {
             beans.forEach(bean -> reloadSSLConfigOnThreadPoolJMX(mBeanServer, bean.getObjectName()));
             log.info("Finished reloading SSL context");
         } catch (MalformedObjectNameException e) {
-            throw new SSLCertificateException(e);
+            throw new FriendlySSLException(e);
         }
     }
 
@@ -50,7 +50,7 @@ public class SSLContextService {
             log.info("Invoking operation reloadSslHostConfigs on " + beanName);
             server.invoke(beanName, JMX_OPERATION_RELOAD_SSL_HOST_CONFIGS_NAME, new Object[]{}, new String[]{});
         } catch (Exception e) {
-            throw new SSLCertificateException(e);
+            throw new FriendlySSLException(e);
         }
     }
 }

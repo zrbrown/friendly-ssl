@@ -3,7 +3,7 @@ package net.eightlives.friendlyssl.listener;
 import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.event.ChallengeTokenRequested;
-import net.eightlives.friendlyssl.exception.SSLCertificateException;
+import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import net.eightlives.friendlyssl.exception.UpdateFailedException;
 import net.eightlives.friendlyssl.service.ChallengeTokenStore;
 import net.eightlives.friendlyssl.service.UpdateCheckerService;
@@ -58,7 +58,7 @@ public class ChallengeTokenRequestedListener implements ApplicationListener<Chal
      * @param authorization the authorization to check for updates (this should contain the challenge)
      * @return a {@link CompletableFuture} that completes normally if the challenge is verified successfully by the
      * ACME server, and exceptionally if a timeout or exception occurs during this process
-     * @throws SSLCertificateException if triggering the challenge causes an exception
+     * @throws FriendlySSLException if triggering the challenge causes an exception
      */
     public CompletableFuture<Void> getChallengeTokenVerification(Http01Challenge challenge, Authorization authorization) {
         challengeTokenStore.setToken(challenge.getToken(), challenge.getAuthorization());
@@ -70,7 +70,7 @@ public class ChallengeTokenRequestedListener implements ApplicationListener<Chal
             challenge.trigger();
         } catch (AcmeException e) {
             challengeTokenStore.getTokens().remove(challenge.getToken());
-            throw new SSLCertificateException(e);
+            throw new FriendlySSLException(e);
         }
 
         return listenerFuture.orTimeout(config.getTokenRequestedTimeoutSeconds(), TimeUnit.SECONDS)
@@ -80,9 +80,9 @@ public class ChallengeTokenRequestedListener implements ApplicationListener<Chal
                                 .get(config.getAuthChallengeTimeoutSeconds(), TimeUnit.SECONDS);
                     } catch (TimeoutException e) {
                         log.error("Timeout while checking for challenge status");
-                        throw new SSLCertificateException(e);
+                        throw new FriendlySSLException(e);
                     } catch (InterruptedException | ExecutionException | CancellationException | UpdateFailedException e) {
-                        throw new SSLCertificateException(e);
+                        throw new FriendlySSLException(e);
                     }
                 })
                 .whenComplete((aVoid, throwable) -> challengeTokenStore.getTokens().remove(challenge.getToken()));

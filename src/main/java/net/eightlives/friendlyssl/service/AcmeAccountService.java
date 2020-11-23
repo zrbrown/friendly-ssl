@@ -2,7 +2,7 @@ package net.eightlives.friendlyssl.service;
 
 import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
-import net.eightlives.friendlyssl.exception.SSLCertificateException;
+import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import net.eightlives.friendlyssl.factory.AccountBuilderFactory;
 import org.shredzone.acme4j.Login;
 import org.shredzone.acme4j.Session;
@@ -46,8 +46,8 @@ public class AcmeAccountService {
      *
      * @param session the session for which to create the account login
      * @return an existing account's login if it exists, otherwise a new account login
-     * @throws SSLCertificateException if the session's terms of service have not been accepted or an exception occurs
-     *                                 while creating the account login
+     * @throws FriendlySSLException if the session's terms of service have not been accepted or an exception occurs
+     *                              while creating the account login
      */
     public Login getOrCreateAccountLogin(Session session) {
         URI termsOfServiceLink = termsOfServiceService.getTermsOfServiceLink(session);
@@ -66,7 +66,7 @@ public class AcmeAccountService {
                 if (exceptionType.equals(ACCOUNT_NOT_EXISTS)) {
                     if (!termsOfServiceService.termsAccepted(termsOfServiceLink)) {
                         termsOfServiceService.writeTermsLink(termsOfServiceLink, false);
-                        throw new SSLCertificateException(
+                        throw new FriendlySSLException(
                                 "Account does not exist. Terms of service must be accepted in file " + config.getTermsOfServiceFile() + " before account can be created");
                     }
 
@@ -84,10 +84,10 @@ public class AcmeAccountService {
             log.error("Account retrieval failed due to user action required (terms of service probably changed). See " + e.getInstance() +
                     " and if the terms of service did change, accept the terms in file " + config.getTermsOfServiceFile(), e);
             termsOfServiceService.writeTermsLink(termsOfServiceLink, false);
-            throw new SSLCertificateException(e);
+            throw new FriendlySSLException(e);
         } catch (IOException | AcmeException e) {
             log.error("Error while retrieving or creating ACME Login");
-            throw new SSLCertificateException(e);
+            throw new FriendlySSLException(e);
         }
     }
 

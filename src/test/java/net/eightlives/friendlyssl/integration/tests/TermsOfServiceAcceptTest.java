@@ -69,7 +69,7 @@ class TermsOfServiceAcceptTest implements IntegrationTest {
                         "n.e.f.service.AutoRenewService           : Existing certificate expiration time is",
                         "n.e.f.s.CertificateCreateRenewService    : Starting certificate renew",
                         "n.e.f.s.CertificateCreateRenewService    : Exception while ordering certificate, retry in 1 hours",
-                        "net.eightlives.friendlyssl.exception.SSLCertificateException: Exception while handling SSL certificate management: Account does not exist. Terms of service must be accepted in file src/test/resources/temp/tos before account can be created"
+                        "net.eightlives.friendlyssl.exception.FriendlySSLException: Exception while handling SSL certificate management: Account does not exist. Terms of service must be accepted in file src/test/resources/temp/tos before account can be created"
                 ),
                 output
         );
@@ -105,7 +105,7 @@ class TermsOfServiceAcceptTest implements IntegrationTest {
                         "n.e.f.service.AutoRenewService           : Existing certificate expiration time is",
                         "n.e.f.s.CertificateCreateRenewService    : Starting certificate renew",
                         "n.e.f.s.CertificateCreateRenewService    : Exception while ordering certificate, retry in 1 hours",
-                        "net.eightlives.friendlyssl.exception.SSLCertificateException: Exception while handling SSL certificate management: Account does not exist. Terms of service must be accepted in file src/test/resources/temp/tos before account can be created",
+                        "net.eightlives.friendlyssl.exception.FriendlySSLException: Exception while handling SSL certificate management: Account does not exist. Terms of service must be accepted in file src/test/resources/temp/tos before account can be created",
                         "n.e.f.s.CertificateCreateRenewService    : Starting certificate renew",
                         "n.e.f.service.AcmeAccountService         : Account does not exist. Creating account.",
                         "n.e.f.s.CertificateCreateRenewService    : Certificate account login accessed",

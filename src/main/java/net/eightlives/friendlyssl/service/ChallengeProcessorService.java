@@ -1,7 +1,7 @@
 package net.eightlives.friendlyssl.service;
 
 import lombok.extern.slf4j.Slf4j;
-import net.eightlives.friendlyssl.exception.SSLCertificateException;
+import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import net.eightlives.friendlyssl.listener.ChallengeTokenRequestedListener;
 import org.shredzone.acme4j.Authorization;
 import org.shredzone.acme4j.Status;
@@ -28,7 +28,7 @@ public class ChallengeProcessorService {
      * @param authorizations authorizations that contain challenges to trigger
      * @return {@link CompletableFuture} that will complete once each authorization's challenge being processed.
      * It will complete exceptionally if any of the challenges failed.
-     * @throws SSLCertificateException if any of the authorizations does not contain an HTTP challenge
+     * @throws FriendlySSLException if any of the authorizations does not contain an HTTP challenge
      */
     public CompletableFuture<Void> process(List<Authorization> authorizations) {
         CompletableFuture<?>[] challenges = authorizations.stream()
@@ -36,7 +36,7 @@ public class ChallengeProcessorService {
                 .map(auth -> {
                     Http01Challenge challenge = auth.findChallenge(Http01Challenge.TYPE);
                     if (challenge == null) {
-                        throw new SSLCertificateException("HTTP Challenge does not exist");
+                        throw new FriendlySSLException("HTTP Challenge does not exist");
                     }
                     return new AuthorizationAndChallenge(auth, challenge);
                 })
