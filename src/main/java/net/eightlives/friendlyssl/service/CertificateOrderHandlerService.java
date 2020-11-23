@@ -2,8 +2,8 @@ package net.eightlives.friendlyssl.service;
 
 import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
-import net.eightlives.friendlyssl.exception.KeyStoreGeneratorException;
 import net.eightlives.friendlyssl.exception.FriendlySSLException;
+import net.eightlives.friendlyssl.exception.KeyStoreGeneratorException;
 import org.shredzone.acme4j.Certificate;
 import org.shredzone.acme4j.Login;
 import org.springframework.stereotype.Component;
@@ -37,7 +37,7 @@ public class CertificateOrderHandlerService {
      * @param domainKeyPair the domain key pair with which to order the certificate
      * @return successfully ordered {@link Certificate}
      * @throws FriendlySSLException if an exception occurs while generating or writing the key store or
-     *                                 nothing is returned from the certificate order, indicating a failure
+     *                              nothing is returned from the certificate order, indicating a failure
      */
     public Certificate handleCertificateOrder(Login login, KeyPair domainKeyPair) {
         return certificateOrderService.orderCertificate(config.getDomain(), login, domainKeyPair)

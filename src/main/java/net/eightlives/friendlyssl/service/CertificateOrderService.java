@@ -42,7 +42,7 @@ public class CertificateOrderService {
      * @param domainKeyPair the key pair with which to sign the certificate signing request (CSR)
      * @return the successfully ordered certificate, or {@link Optional#empty()} if the order was unsuccessful
      * @throws FriendlySSLException if an exception occurs while ordering the certificate or if the order is not
-     *                                 reported as valid within the configured order timeout
+     *                              reported as valid within the configured order timeout
      */
     public Optional<Certificate> orderCertificate(String domain, Login login, KeyPair domainKeyPair) {
         try {

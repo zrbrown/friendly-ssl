@@ -47,7 +47,7 @@ public class AcmeAccountService {
      * @param session the session for which to create the account login
      * @return an existing account's login if it exists, otherwise a new account login
      * @throws FriendlySSLException if the session's terms of service have not been accepted or an exception occurs
-     *                                 while creating the account login
+     *                              while creating the account login
      */
     public Login getOrCreateAccountLogin(Session session) {
         URI termsOfServiceLink = termsOfServiceService.getTermsOfServiceLink(session);

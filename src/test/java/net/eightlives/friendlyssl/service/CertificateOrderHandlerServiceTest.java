@@ -1,8 +1,8 @@
 package net.eightlives.friendlyssl.service;
 
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
-import net.eightlives.friendlyssl.exception.KeyStoreGeneratorException;
 import net.eightlives.friendlyssl.exception.FriendlySSLException;
+import net.eightlives.friendlyssl.exception.KeyStoreGeneratorException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
