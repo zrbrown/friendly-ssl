@@ -53,7 +53,7 @@ class NonceRejectTest implements IntegrationTest {
                 List.of(
                         "n.e.f.service.AutoRenewService           : Auto-renew starting...",
                         "n.e.f.service.AutoRenewService           : Existing certificate expiration time is",
-                        "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate renew",
+                        "n.e.f.s.CertificateCreateRenewService    : Starting certificate renew",
                         "o.s.acme4j.connector.DefaultConnection   : Bad Replay Nonce, trying again (attempt 1/10)",
                         "o.s.acme4j.connector.DefaultConnection   : Bad Replay Nonce, trying again (attempt 2/10)",
                         "o.s.acme4j.connector.DefaultConnection   : Bad Replay Nonce, trying again (attempt 3/10)",
@@ -65,7 +65,7 @@ class NonceRejectTest implements IntegrationTest {
                         "o.s.acme4j.connector.DefaultConnection   : Bad Replay Nonce, trying again (attempt 9/10)",
                         "o.s.acme4j.connector.DefaultConnection   : Bad Replay Nonce, trying again (attempt 10/10)",
                         "n.e.f.service.AcmeAccountService         : Error while retrieving or creating ACME Login",
-                        "n.e.f.s.SSLCertificateCreateRenewService : Exception while ordering certificate, retry in 1 hours",
+                        "n.e.f.s.CertificateCreateRenewService    : Exception while ordering certificate, retry in 1 hours",
                         "net.eightlives.friendlyssl.exception.SSLCertificateException: Exception while handling SSL certificate management",
                         "Caused by: org.shredzone.acme4j.exception.AcmeException: Too many reattempts",
                         "Caused by: org.shredzone.acme4j.exception.AcmeServerException: JWS has an invalid anti-replay nonce:"

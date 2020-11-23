@@ -53,12 +53,12 @@ class SlowServerTest implements IntegrationTest {
                 List.of(
                         "n.e.f.service.AutoRenewService           : Auto-renew starting...",
                         "n.e.f.service.AutoRenewService           : Existing certificate expiration time is",
-                        "n.e.f.s.SSLCertificateCreateRenewService : Starting certificate renew",
+                        "n.e.f.s.CertificateCreateRenewService    : Starting certificate renew",
                         "n.e.f.service.AcmeAccountService         : Account does not exist. Creating account.",
-                        "n.e.f.s.SSLCertificateCreateRenewService : Certificate account login accessed",
-                        "n.e.f.s.SSLCertificateCreateRenewService : Beginning certificate order.",
+                        "n.e.f.s.CertificateCreateRenewService    : Certificate account login accessed",
+                        "n.e.f.s.CertificateCreateRenewService    : Beginning certificate order.",
                         "n.e.f.service.UpdateCheckerService       : Resource is valid",
-                        "n.e.f.s.SSLCertificateCreateRenewService : Certificate renewal successful. New certificate expiration time is",
+                        "n.e.f.s.CertificateCreateRenewService    : Certificate renewal successful. New certificate expiration time is",
                         "n.e.f.s.CertificateCreateRenewService    : Reloading SSL context...",
                         "n.e.f.service.SSLContextService          : Finished reloading SSL context"
                 ),
