@@ -1,6 +1,5 @@
 package net.eightlives.friendlyssl.listener;
 
-import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.event.ChallengeTokenRequested;
 import net.eightlives.friendlyssl.exception.FriendlySSLException;
@@ -10,6 +9,8 @@ import net.eightlives.friendlyssl.service.UpdateCheckerService;
 import org.shredzone.acme4j.Authorization;
 import org.shredzone.acme4j.challenge.Http01Challenge;
 import org.shredzone.acme4j.exception.AcmeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
@@ -22,9 +23,10 @@ import java.util.concurrent.*;
  * store for the event's token. If the token exists in the store, the future that the token is mapped to in this
  * instance is completed and removed from the map.
  */
-@Slf4j
 @Component
 public class ChallengeTokenRequestedListener implements ApplicationListener<ChallengeTokenRequested> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ChallengeTokenRequestedListener.class);
 
     private final FriendlySSLConfig config;
     private final UpdateCheckerService updateCheckerService;
@@ -79,7 +81,7 @@ public class ChallengeTokenRequestedListener implements ApplicationListener<Chal
                         updateCheckerService.start(authorization)
                                 .get(config.getAuthChallengeTimeoutSeconds(), TimeUnit.SECONDS);
                     } catch (TimeoutException e) {
-                        log.error("Timeout while checking for challenge status");
+                        LOG.error("Timeout while checking for challenge status");
                         throw new FriendlySSLException(e);
                     } catch (InterruptedException | ExecutionException | CancellationException | UpdateFailedException e) {
                         throw new FriendlySSLException(e);

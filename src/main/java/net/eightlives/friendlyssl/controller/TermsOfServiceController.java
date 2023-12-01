@@ -1,9 +1,10 @@
 package net.eightlives.friendlyssl.controller;
 
-import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import net.eightlives.friendlyssl.model.TermsOfServiceAgreeRequest;
 import net.eightlives.friendlyssl.service.TermsOfServiceService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -16,11 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import java.net.URI;
 
-@Slf4j
 @ConditionalOnExpression("'${friendly-ssl.endpoints-include}'.contains('tos')")
 @RestController
 @RequestMapping("/friendly-ssl/tos")
 public class TermsOfServiceController {
+
+    private static final Logger LOG = LoggerFactory.getLogger(TermsOfServiceController.class);
 
     private final TermsOfServiceService termsOfServiceService;
 
@@ -46,7 +48,7 @@ public class TermsOfServiceController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("URI could not be created from terms link '" + termsLink + "'");
         } catch (FriendlySSLException e) {
-            log.error("Exception occurred while writing to terms of service file for terms link '" + termsLink + "'", e);
+            LOG.error("Exception occurred while writing to terms of service file for terms link '" + termsLink + "'", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Exception occurred while writing to terms of service file for terms link '" + termsLink + "'");
         }

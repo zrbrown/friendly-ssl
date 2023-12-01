@@ -1,6 +1,5 @@
 package net.eightlives.friendlyssl.service;
 
-import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import net.eightlives.friendlyssl.factory.AccountBuilderFactory;
@@ -10,6 +9,8 @@ import org.shredzone.acme4j.exception.AcmeException;
 import org.shredzone.acme4j.exception.AcmeServerException;
 import org.shredzone.acme4j.exception.AcmeUserActionRequiredException;
 import org.shredzone.acme4j.util.KeyPairUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
@@ -19,9 +20,10 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.security.KeyPair;
 
-@Slf4j
 @Component
 public class AcmeAccountService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AcmeAccountService.class);
 
     private static final URI ACCOUNT_NOT_EXISTS = URI.create("urn:ietf:params:acme:error:accountDoesNotExist");
 
@@ -59,7 +61,7 @@ public class AcmeAccountService {
                         .useKeyPair(accountKeyPair)
                         .onlyExisting()
                         .createLogin(session);
-                log.info("Using existing account login");
+                LOG.info("Using existing account login");
                 return login;
             } catch (AcmeServerException e) {
                 URI exceptionType = e.getProblem().getType();
@@ -70,7 +72,7 @@ public class AcmeAccountService {
                                 "Account does not exist. Terms of service must be accepted in file " + config.getTermsOfServiceFile() + " before account can be created");
                     }
 
-                    log.info("Account does not exist. Creating account.");
+                    LOG.info("Account does not exist. Creating account.");
                     return accountBuilderFactory.accountBuilder()
                             .useKeyPair(accountKeyPair)
                             .addEmail(config.getAccountEmail())
@@ -81,12 +83,12 @@ public class AcmeAccountService {
                 throw e;
             }
         } catch (AcmeUserActionRequiredException e) {
-            log.error("Account retrieval failed due to user action required (terms of service probably changed). See " + e.getInstance() +
+            LOG.error("Account retrieval failed due to user action required (terms of service probably changed). See " + e.getInstance() +
                     " and if the terms of service did change, accept the terms in file " + config.getTermsOfServiceFile(), e);
             termsOfServiceService.writeTermsLink(termsOfServiceLink, false);
             throw new FriendlySSLException(e);
         } catch (IOException | AcmeException e) {
-            log.error("Error while retrieving or creating ACME Login");
+            LOG.error("Error while retrieving or creating ACME Login");
             throw new FriendlySSLException(e);
         }
     }

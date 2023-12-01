@@ -1,7 +1,8 @@
 package net.eightlives.friendlyssl.service;
 
-import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.exception.FriendlySSLException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.management.MBeanServer;
@@ -10,9 +11,10 @@ import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 import java.util.Set;
 
-@Slf4j
 @Component
 public class SSLContextService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(SSLContextService.class);
 
     // Should cover desired 'Tomcat:type=ThreadPool,name=https-jsse-nio-<<port>>'
     private static final String JMX_THREAD_POOL_NAME = "*:type=ThreadPool,name=*";
@@ -37,9 +39,9 @@ public class SSLContextService {
                         " and certificate will not be used unless server is restarted.");
             }
 
-            log.info("Reloading SSL context for " + beans.size() + " MBeans");
+            LOG.info("Reloading SSL context for " + beans.size() + " MBeans");
             beans.forEach(bean -> reloadSSLConfigOnThreadPoolJMX(mBeanServer, bean.getObjectName()));
-            log.info("Finished reloading SSL context");
+            LOG.info("Finished reloading SSL context");
         } catch (MalformedObjectNameException e) {
             throw new FriendlySSLException(e);
         }
@@ -47,7 +49,7 @@ public class SSLContextService {
 
     private void reloadSSLConfigOnThreadPoolJMX(MBeanServer server, ObjectName beanName) {
         try {
-            log.info("Invoking operation reloadSslHostConfigs on " + beanName);
+            LOG.info("Invoking operation reloadSslHostConfigs on " + beanName);
             server.invoke(beanName, JMX_OPERATION_RELOAD_SSL_HOST_CONFIGS_NAME, new Object[]{}, new String[]{});
         } catch (Exception e) {
             throw new FriendlySSLException(e);

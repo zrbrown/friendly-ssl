@@ -1,6 +1,5 @@
 package net.eightlives.friendlyssl.service;
 
-import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import net.eightlives.friendlyssl.exception.KeyStoreGeneratorException;
@@ -14,7 +13,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyPair;
 
-@Slf4j
 @Component
 public class CertificateOrderHandlerService {
 

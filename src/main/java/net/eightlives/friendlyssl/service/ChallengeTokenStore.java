@@ -1,14 +1,16 @@
 package net.eightlives.friendlyssl.service;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@Slf4j
 @Component
 public class ChallengeTokenStore {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ChallengeTokenStore.class);
 
     private final Map<String, String> tokensToContent = new HashMap<>();
 
@@ -28,7 +30,7 @@ public class ChallengeTokenStore {
      * @param content content to associate to {@code token}
      */
     public void setToken(String token, String content) {
-        log.debug("Token " + token + " with content " + content + " added to token store");
+        LOG.debug("Token " + token + " with content " + content + " added to token store");
         tokensToContent.put(token, content);
     }
 }
