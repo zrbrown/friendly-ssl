@@ -1,11 +1,12 @@
 package net.eightlives.friendlyssl.service;
 
-import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.exception.UpdateFailedException;
 import org.shredzone.acme4j.AcmeJsonResource;
 import org.shredzone.acme4j.Status;
 import org.shredzone.acme4j.exception.AcmeException;
 import org.shredzone.acme4j.exception.AcmeRetryAfterException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -15,9 +16,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-@Slf4j
 @Component
 public class UpdateCheckerService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(UpdateCheckerService.class);
 
     private final ScheduledExecutorService scheduler;
     private final Clock clock;
@@ -51,13 +53,13 @@ public class UpdateCheckerService {
                     Status status = resource.getJSON().get("status").asStatus();
                     switch (status) {
                         case VALID:
-                            log.info("Resource is valid");
+                            LOG.info("Resource is valid");
                             return;
                         case INVALID:
-                            log.error("Resource is invalid");
+                            LOG.error("Resource is invalid");
                             throw new UpdateFailedException();
                         default:
-                            log.info("Resource status is " + status + ". Updating...");
+                            LOG.info("Resource status is " + status + ". Updating...");
                             Thread.sleep(updateAcmeJsonResource(resource));
                             break;
                     }

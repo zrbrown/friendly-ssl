@@ -1,6 +1,5 @@
 package net.eightlives.friendlyssl.service;
 
-import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.exception.KeyStoreGeneratorException;
 import org.bouncycastle.asn1.ASN1Encoding;
@@ -14,6 +13,8 @@ import org.bouncycastle.pkcs.*;
 import org.bouncycastle.pkcs.bc.BcPKCS12MacCalculatorBuilder;
 import org.bouncycastle.pkcs.bc.BcPKCS12PBEOutputEncryptorBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS12SafeBagBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -29,9 +30,10 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.List;
 import java.util.Optional;
 
-@Slf4j
 @Component
 public class PKCS12KeyStoreService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(PKCS12KeyStoreService.class);
 
     private static final String ROOT_FRIENDLY_NAME = "root";
     private static final String KEYSTORE_TYPE = "PKCS12";
@@ -114,7 +116,7 @@ public class PKCS12KeyStoreService {
             KeyFactory keyFactory = KeyFactory.getInstance(KEYFACTORY_TYPE);
             Key key = store.getKey(keyAlias, "".toCharArray());
             if (key == null) {
-                log.error("Private key alias " + keyAlias +
+                LOG.error("Private key alias " + keyAlias +
                         " not found in keystore " + config.getKeystoreFile() +
                         " when loading keystore");
                 return null;
@@ -124,7 +126,7 @@ public class PKCS12KeyStoreService {
 
             Certificate certificate = store.getCertificate(keyAlias);
             if (certificate == null) {
-                log.error("Certificate with alias " + keyAlias +
+                LOG.error("Certificate with alias " + keyAlias +
                         " not found in keystore " + config.getKeystoreFile() +
                         " when loading keystore");
                 return null;
@@ -133,7 +135,7 @@ public class PKCS12KeyStoreService {
             return new KeyPair(certificate.getPublicKey(), privateKey);
         } catch (InvalidKeySpecException | NoSuchAlgorithmException | CertificateException | KeyStoreException
                 | UnrecoverableKeyException | IOException e) {
-            log.error("Exception while accessing keystore", e);
+            LOG.error("Exception while accessing keystore", e);
             return null;
         }
     }
@@ -161,7 +163,7 @@ public class PKCS12KeyStoreService {
             }
             return Optional.empty();
         } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e) {
-            log.error("Exception while accessing keystore", e);
+            LOG.error("Exception while accessing keystore", e);
             return Optional.empty();
         }
     }

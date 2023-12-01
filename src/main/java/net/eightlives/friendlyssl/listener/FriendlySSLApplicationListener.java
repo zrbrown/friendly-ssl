@@ -1,9 +1,10 @@
 package net.eightlives.friendlyssl.listener;
 
-import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.factory.RecursiveTimerTaskFactory;
 import net.eightlives.friendlyssl.service.AutoRenewService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
@@ -16,9 +17,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * Application startup listener that starts the auto-renew service if it is enabled.
  */
-@Slf4j
 @Component
 public class FriendlySSLApplicationListener implements ApplicationListener<ApplicationReadyEvent> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(FriendlySSLApplicationListener.class);
 
     private final FriendlySSLConfig config;
     private final AutoRenewService autoRenewService;
@@ -38,7 +40,7 @@ public class FriendlySSLApplicationListener implements ApplicationListener<Appli
     @Override
     public void onApplicationEvent(ApplicationReadyEvent applicationReadyEvent) {
         if (config.isAutoRenewEnabled()) {
-            log.info("Auto-renew SSL enabled, starting timer");
+            LOG.info("Auto-renew SSL enabled, starting timer");
             timer.schedule(timerTaskFactory.create(timer, this::autoRenewTime), 1, TimeUnit.SECONDS);
         }
     }

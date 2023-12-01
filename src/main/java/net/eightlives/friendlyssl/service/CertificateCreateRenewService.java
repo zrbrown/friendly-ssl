@@ -1,6 +1,5 @@
 package net.eightlives.friendlyssl.service;
 
-import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.model.CertificateRenewal;
 import net.eightlives.friendlyssl.model.CertificateRenewalStatus;
@@ -8,6 +7,8 @@ import org.shredzone.acme4j.Certificate;
 import org.shredzone.acme4j.Login;
 import org.shredzone.acme4j.Session;
 import org.shredzone.acme4j.util.KeyPairUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.security.KeyPair;
@@ -17,9 +18,10 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
-@Slf4j
 @Component
 public class CertificateCreateRenewService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CertificateCreateRenewService.class);
 
     private final FriendlySSLConfig config;
     private final AcmeAccountService accountService;
@@ -50,7 +52,7 @@ public class CertificateCreateRenewService {
      * @throws IllegalArgumentException if ACME session URL is invalid
      */
     public CertificateRenewal createCertificate() {
-        log.info("Starting certificate create");
+        LOG.info("Starting certificate create");
 
         return orderCertificate(KeyPairUtils.createKeyPair(2048));
     }
@@ -63,7 +65,7 @@ public class CertificateCreateRenewService {
      * @throws IllegalArgumentException if ACME session URL is invalid
      */
     public CertificateRenewal renewCertificate() {
-        log.info("Starting certificate renew");
+        LOG.info("Starting certificate renew");
 
         KeyPair domainKeyPair = keyStoreService.getKeyPair(config.getCertificateKeyAlias());
 
@@ -74,24 +76,24 @@ public class CertificateCreateRenewService {
         try {
             Session session = new Session(config.getAcmeSessionUrl());
             Login login = accountService.getOrCreateAccountLogin(session);
-            log.info("Certificate account login accessed");
+            LOG.info("Certificate account login accessed");
 
-            log.info("Beginning certificate order.");
+            LOG.info("Beginning certificate order.");
             Certificate certificate = certificateOrderHandlerService.handleCertificateOrder(login, domainKeyPair);
             Instant certificateExpiration = Instant.ofEpochMilli(certificate.getCertificate().getNotAfter().getTime());
-            log.info("Certificate renewal successful. New certificate expiration time is " +
+            LOG.info("Certificate renewal successful. New certificate expiration time is " +
                     DateTimeFormatter.RFC_1123_DATE_TIME.format(certificateExpiration.atZone(ZoneOffset.UTC)));
 
-            log.info("Reloading SSL context...");
+            LOG.info("Reloading SSL context...");
             sslContextService.reloadSSLConfig();
 
             return new CertificateRenewal(CertificateRenewalStatus.SUCCESS,
                     certificateExpiration.minus(config.getAutoRenewalHoursBefore(), ChronoUnit.HOURS));
         } catch (IllegalArgumentException e) {
-            log.error("acmeSessionUrl " + config.getAcmeSessionUrl() + " is invalid", e);
+            LOG.error("acmeSessionUrl " + config.getAcmeSessionUrl() + " is invalid", e);
             throw e;
         } catch (Exception e) {
-            log.error("Exception while ordering certificate, retry in " + config.getErrorRetryWaitHours() + " hours", e);
+            LOG.error("Exception while ordering certificate, retry in " + config.getErrorRetryWaitHours() + " hours", e);
             return new CertificateRenewal(
                     CertificateRenewalStatus.ERROR,
                     clock.instant().plus(config.getErrorRetryWaitHours(), ChronoUnit.HOURS));

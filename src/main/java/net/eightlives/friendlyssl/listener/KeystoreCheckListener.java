@@ -1,6 +1,5 @@
 package net.eightlives.friendlyssl.listener;
 
-import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import org.bouncycastle.asn1.ASN1Encoding;
 import org.bouncycastle.asn1.DERBMPString;
@@ -24,6 +23,8 @@ import org.bouncycastle.pkcs.bc.BcPKCS12MacCalculatorBuilder;
 import org.bouncycastle.pkcs.bc.BcPKCS12PBEOutputEncryptorBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS12SafeBagBuilder;
 import org.shredzone.acme4j.util.KeyPairUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringApplicationRunListener;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -51,8 +52,9 @@ import java.time.temporal.ChronoUnit;
  * A keystore with a password or a corrupted/inaccessible will be logged and ignored, likely causing Spring to not start.
  * If the configured keystore and key alias are found, no action is performed and Spring should start.
  */
-@Slf4j
 public class KeystoreCheckListener implements SpringApplicationRunListener {
+
+    private static final Logger LOG = LoggerFactory.getLogger(KeystoreCheckListener.class);
 
     private static final String KEYSTORE_TYPE = "PKCS12";
 
@@ -87,25 +89,25 @@ public class KeystoreCheckListener implements SpringApplicationRunListener {
                     Files.createDirectories(keystorePath.getParent());
                 }
                 Files.createFile(keystorePath);
-                log.info("Keystore file " + keystoreLocation + " created.");
+                LOG.info("Keystore file " + keystoreLocation + " created.");
             } catch (FileAlreadyExistsException e) {
                 store.load(new FileInputStream(keystorePath.toFile()), "".toCharArray());
-                log.info("Existing keystore file " + keystoreLocation + " loaded.");
+                LOG.info("Existing keystore file " + keystoreLocation + " loaded.");
                 certificate = store.getCertificate(certificateFriendlyName);
-                log.info("Existing keystore file " + keystoreLocation + " contains certificate named " + certificateFriendlyName + ": " + (certificate != null));
+                LOG.info("Existing keystore file " + keystoreLocation + " contains certificate named " + certificateFriendlyName + ": " + (certificate != null));
             }
 
             if (certificate == null) {
                 try (OutputStream file = new FileOutputStream(keystorePath.toFile())) {
                     file.write(generateSelfSignedCertificateKeystore(certificateFriendlyName, domain));
-                    log.info("Self-signed certificate named " + certificateFriendlyName);
+                    LOG.info("Self-signed certificate named " + certificateFriendlyName);
                 }
             }
         } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e) {
             if (e.getCause() instanceof UnrecoverableKeyException) {
-                log.error("Cannot load keystore file " + keystoreLocation + " - likely due to keystore having a password, which is unsupported.");
+                LOG.error("Cannot load keystore file " + keystoreLocation + " - likely due to keystore having a password, which is unsupported.");
             } else {
-                log.error("Error while validating certificate on startup", e);
+                LOG.error("Error while validating certificate on startup", e);
             }
         }
     }
@@ -149,7 +151,7 @@ public class KeystoreCheckListener implements SpringApplicationRunListener {
             PKCS12PfxPdu pfx = pfxBuilder.build(macBuilder, "".toCharArray());
             return pfx.getEncoded(ASN1Encoding.DL);
         } catch (IOException | PKCSException | OperatorCreationException e) {
-            log.error("Error while generating self-signed certificate", e);
+            LOG.error("Error while generating self-signed certificate", e);
             throw new FriendlySSLException(e);
         }
     }

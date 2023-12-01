@@ -1,6 +1,5 @@
 package net.eightlives.friendlyssl.service;
 
-import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import net.eightlives.friendlyssl.listener.ChallengeTokenRequestedListener;
 import org.shredzone.acme4j.Authorization;
@@ -12,7 +11,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Component
 public class ChallengeProcessorService {
 

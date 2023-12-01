@@ -1,12 +1,13 @@
 package net.eightlives.friendlyssl.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
 import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import net.eightlives.friendlyssl.model.TermsOfService;
 import org.shredzone.acme4j.Session;
 import org.shredzone.acme4j.exception.AcmeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -19,9 +20,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Slf4j
 @Component
 public class TermsOfServiceService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(TermsOfServiceService.class);
 
     private static final String AGREE_TO_TERMS_YES = "YES";
     private static final String AGREE_TO_TERMS_NO = "NO";
@@ -46,12 +48,12 @@ public class TermsOfServiceService {
         try {
             termsOfServiceLink = session.getMetadata().getTermsOfService();
         } catch (AcmeException e) {
-            log.error("Could not retrieve terms of service link", e);
+            LOG.error("Could not retrieve terms of service link", e);
             throw new FriendlySSLException(e);
         }
 
         if (termsOfServiceLink == null) {
-            log.error("Could not retrieve terms of service link");
+            LOG.error("Could not retrieve terms of service link");
             throw new FriendlySSLException("Terms of service should not be null. There may be a problem with the provider.");
         }
 
@@ -76,7 +78,7 @@ public class TermsOfServiceService {
         } catch (NoSuchFileException e) {
             return false;
         } catch (IOException e) {
-            log.error("Exception while trying to read from terms of service file " + config.getTermsOfServiceFile(), e);
+            LOG.error("Exception while trying to read from terms of service file " + config.getTermsOfServiceFile(), e);
             throw new FriendlySSLException(e);
         }
     }
@@ -98,7 +100,7 @@ public class TermsOfServiceService {
             );
         } catch (FileAlreadyExistsException ignored) {
         } catch (IOException e) {
-            log.error("Exception while creating terms of service file " + config.getTermsOfServiceFile(), e);
+            LOG.error("Exception while creating terms of service file " + config.getTermsOfServiceFile(), e);
             throw new FriendlySSLException(e);
         }
 
@@ -111,7 +113,7 @@ public class TermsOfServiceService {
 
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(Files.newBufferedWriter(termsOfServiceFile), allTerms);
         } catch (IOException e) {
-            log.error("Exception while trying to read or write to terms of service file " + config.getTermsOfServiceFile(), e);
+            LOG.error("Exception while trying to read or write to terms of service file " + config.getTermsOfServiceFile(), e);
             throw new FriendlySSLException(e);
         }
     }
