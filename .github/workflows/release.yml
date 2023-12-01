@@ -13,14 +13,14 @@ on:
         required: true
         default: "X.Y.Z-SNAPSHOT"
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
           distribution: 'oracle'
-          java-version: '12'
+          java-version: '17'
           server-username: OSSRH_USERNAME
           server-password: OSSRH_PASSWORD
           gpg-private-key: MAVEN_GPG_PRIVATE_KEY

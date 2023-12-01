@@ -4,13 +4,13 @@ on:
     tags:
       - '*'
 jobs:
-  publish:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
           distribution: 'oracle'
-          java-version: '12'
+          java-version: '17'
       - name: Run Tests
         run: mvn clean verify
