@@ -25,7 +25,10 @@ jobs:
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
       - name: Maven Prepare Release
-        run: mvn --batch-mode -Dtag=v${{ github.event.inputs.releaseVersion }} release:clean release:prepare -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }}
+        run: |
+          git config --global user.name 'zrbrown'
+          git config --global user.email 'zackrbrown@gmail.com'
+          mvn --batch-mode -Dtag=v${{ github.event.inputs.releaseVersion }} release:clean release:prepare -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }}
         env:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
       - name: Maven Release
