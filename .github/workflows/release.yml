@@ -18,6 +18,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.REPO_SSH_PRIVATE_KEY }}
       - uses: actions/setup-java@v4
         with:
           distribution: 'oracle'
