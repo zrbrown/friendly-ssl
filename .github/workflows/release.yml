@@ -1,4 +1,6 @@
 name: Release artifact to Maven Central Repository
+permissions:
+  contents: write
 on:
   workflow_dispatch:
     inputs:
