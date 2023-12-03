@@ -30,7 +30,7 @@
 
     <scm>
         <connection>scm:git:git://github.com/zrbrown/friendly-ssl.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/zrbrown/friendly-ssl.git</developerConnection>
+        <developerConnection>[fetch=]scm:git:git://github.com/zrbrown/friendly-ssl.git[push=]scm:git:ssh://git@github.com/zrbrown/friendly-ssl.git</developerConnection>
         <url>https://github.com/zrbrown/friendly-ssl/tree/master</url>
     </scm>
 
