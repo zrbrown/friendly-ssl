@@ -36,7 +36,7 @@ jobs:
         env:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
       - name: Maven Release
-        run: mvn release:perform
+        run: mvn release:perform -DconnectionUrl=scm:git:git://github.com/zrbrown/friendly-ssl.git
         env:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
