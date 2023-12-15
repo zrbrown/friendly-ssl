@@ -32,6 +32,8 @@ jobs:
         run: |
           git config --global user.name 'zrbrown'
           git config --global user.email 'zackrbrown@gmail.com'
+          git config core.sshCommand
+          git config --global core.sshCommand
       - name: Maven Prepare Release
         run: mvn --batch-mode release:clean release:prepare -Dtag=v${{ github.event.inputs.releaseVersion }} -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }}
         env:
