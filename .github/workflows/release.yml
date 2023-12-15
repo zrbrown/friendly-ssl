@@ -24,11 +24,6 @@ jobs:
         with:
           distribution: 'oracle'
           java-version: '17'
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'oracle'
-          java-version: '17'
-          overwrite-settings: false
           server-id: ossrh
           server-username: OSSRH_USERNAME
           server-password: OSSRH_PASSWORD
@@ -39,7 +34,9 @@ jobs:
           git config --global user.name 'zrbrown'
           git config --global user.email 'zackrbrown@gmail.com'
       - name: Maven Prepare Release
-        run: mvn --batch-mode release:clean release:prepare -Dtag=v${{ github.event.inputs.releaseVersion }} -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }}
+        run: |
+          cat ~/.m2/settings.xml
+          mvn --batch-mode release:clean release:prepare -Dtag=v${{ github.event.inputs.releaseVersion }} -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }}
         env:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
       - name: Maven Release
