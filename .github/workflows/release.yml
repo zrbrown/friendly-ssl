@@ -35,6 +35,7 @@ jobs:
               {
                 "id": "gpg.passphrase",
                 "passphrase": "${env.MAVEN_GPG_PASSPHRASE}"
+              }
             ]
       - name: Configure git
         run: |
