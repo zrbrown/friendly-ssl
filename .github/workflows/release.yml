@@ -29,6 +29,12 @@ jobs:
           server-password: OSSRH_PASSWORD
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'oracle'
+          java-version: '17'
+          server-id: github
+          server-privateKey: ${{ secrets.REPO_SSH_PRIVATE_KEY }}
       - name: Configure git
         run: |
           git config --global user.name 'zrbrown'
