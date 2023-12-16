@@ -24,14 +24,14 @@ jobs:
         with:
           distribution: 'oracle'
           java-version: '17'
+          cache: 'maven'
       - uses: s4u/maven-settings-action@v2.8.0
         with:
           githubServer: false
           servers: |
             [{
                 "id": "github",
-                "username": "$GITHUB_ACTOR",
-                "password": "$GITHUB_TOKEN",
+                "username": "git",
                 "privateKey": "$REPO_SSH_PRIVATE_KEY_LOCATION"
               },
               {
@@ -41,7 +41,7 @@ jobs:
               },
               {
                 "id": "gpg.passphrase",
-                "username": "none",
+                "username": "",
                 "passphrase": "$MAVEN_GPG_PASSPHRASE"
               }]
         env:
