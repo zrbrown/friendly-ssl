@@ -26,12 +26,13 @@ jobs:
           java-version: '17'
       - uses: s4u/maven-settings-action@v2.8.0
         with:
+          githubServer: false
           servers: |
             [{
                 "id": "github",
                 "username": "${env.GITHUB_ACTOR}",
                 "password": "${env.GITHUB_TOKEN}",
-                "privateKey": "${env.REPO_SSH_PRIVATE_KEY}"
+                "privateKey": "${env.REPO_SSH_PRIVATE_KEY_LOCATION}"
               },
               {
                 "id": "ossrh",
@@ -44,7 +45,7 @@ jobs:
                 "passphrase": "${env.MAVEN_GPG_PASSPHRASE}"
               }]
         env:
-          REPO_SSH_PRIVATE_KEY: ${{ secrets.REPO_SSH_PRIVATE_KEY }}
+          REPO_SSH_PRIVATE_KEY_LOCATION: ~/.ssh/id_rsa
       - name: Configure git
         run: |
           git config --global user.name 'zrbrown'
