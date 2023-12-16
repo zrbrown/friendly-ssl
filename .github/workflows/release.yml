@@ -28,6 +28,10 @@ jobs:
         with:
           servers: |
             [{
+                "id": "github",
+                "privateKey": "${{ secrets.REPO_SSH_PRIVATE_KEY }}"
+              },
+              {
                 "id": "ossrh",
                 "username": "${env.OSSRH_USERNAME}",
                 "password": "${env.OSSRH_PASSWORD}"
