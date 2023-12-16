@@ -30,19 +30,19 @@ jobs:
           servers: |
             [{
                 "id": "github",
-                "username": "${env.GITHUB_ACTOR}",
-                "password": "${env.GITHUB_TOKEN}",
+                "username": "$GITHUB_ACTOR",
+                "password": "$GITHUB_TOKEN",
                 "privateKey": "$REPO_SSH_PRIVATE_KEY_LOCATION"
               },
               {
                 "id": "ossrh",
-                "username": "${env.OSSRH_USERNAME}",
-                "password": "${env.OSSRH_PASSWORD}"
+                "username": "$OSSRH_USERNAME",
+                "password": "$OSSRH_PASSWORD"
               },
               {
                 "id": "gpg.passphrase",
                 "username": "none",
-                "passphrase": "${env.MAVEN_GPG_PASSPHRASE}"
+                "passphrase": "$MAVEN_GPG_PASSPHRASE"
               }]
         env:
           REPO_SSH_PRIVATE_KEY_LOCATION: ~/.ssh/id_rsa
