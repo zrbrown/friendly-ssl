@@ -32,7 +32,7 @@ jobs:
                 "id": "github",
                 "username": "${env.GITHUB_ACTOR}",
                 "password": "${env.GITHUB_TOKEN}",
-                "privateKey": "${env.REPO_SSH_PRIVATE_KEY_LOCATION}"
+                "privateKey": "$REPO_SSH_PRIVATE_KEY_LOCATION"
               },
               {
                 "id": "ossrh",
