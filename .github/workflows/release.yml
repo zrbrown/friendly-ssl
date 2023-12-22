@@ -25,37 +25,17 @@ jobs:
           distribution: 'oracle'
           java-version: '17'
           cache: 'maven'
-      - uses: s4u/maven-settings-action@v2.8.0
-        with:
-          githubServer: false
-          servers: |
-            [{
-                "id": "github",
-                "username": "git",
-                "privateKey": "$REPO_SSH_PRIVATE_KEY_LOCATION"
-              },
-              {
-                "id": "ossrh",
-                "username": "$OSSRH_USERNAME",
-                "password": "$OSSRH_PASSWORD"
-              },
-              {
-                "id": "gpg.passphrase",
-                "username": "",
-                "passphrase": "$MAVEN_GPG_PASSPHRASE"
-              }]
-        env:
-          REPO_SSH_PRIVATE_KEY_LOCATION: ~/.ssh/id_rsa
       - name: Configure git
         run: |
           git config --global user.name 'zrbrown'
           git config --global user.email 'zackrbrown@gmail.com'
       - name: Maven Prepare Release
-        run: mvn --batch-mode release:clean release:prepare -Dtag=v${{ github.event.inputs.releaseVersion }} -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }}
+        run: mvn --settings ./github/github-actions-settings.xml --batch-mode release:clean release:prepare -Dtag=v${{ github.event.inputs.releaseVersion }} -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }}
         env:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+          REPO_SSH_PRIVATE_KEY_LOCATION: ~/.ssh/id_rsa
       - name: Maven Release
-        run: mvn --batch-mode release:perform
+        run: mvn --settings ./github/github-actions-settings.xml --batch-mode release:perform
         env:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
