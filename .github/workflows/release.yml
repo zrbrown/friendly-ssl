@@ -20,6 +20,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ssh-key: ${{ secrets.REPO_SSH_PRIVATE_KEY }}
+          ssh-strict: false
       - uses: actions/setup-java@v4
         with:
           distribution: 'oracle'
@@ -30,9 +31,7 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
       - name: Maven Prepare Release
-        run: |
-          ls ~/.ssh
-          mvn --settings .github/github-actions-settings.xml --batch-mode release:clean release:prepare -Dtag=v${{ github.event.inputs.releaseVersion }} -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }}
+        run: mvn --settings .github/github-actions-settings.xml --batch-mode release:clean release:prepare -Dtag=v${{ github.event.inputs.releaseVersion }} -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }}
         env:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
       - name: Maven Release

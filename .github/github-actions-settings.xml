@@ -2,11 +2,6 @@
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
     <servers>
         <server>
-            <id>github-actions</id>
-            <username>git</username>
-            <privateKey>~/.ssh/id_rsa</privateKey>
-        </server>
-        <server>
             <id>ossrh</id>
             <username>${env.OSSRH_USERNAME}</username>
             <password>${env.OSSRH_PASSWORD}</password>
