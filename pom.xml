@@ -36,7 +36,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.scm.id>github</project.scm.id>
+        <project.scm.id>github-actions</project.scm.id>
     </properties>
 
     <build>
