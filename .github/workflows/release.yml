@@ -30,7 +30,9 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
       - name: Maven Prepare Release
-        run: mvn --settings .github/github-actions-settings.xml --batch-mode release:clean release:prepare -Dtag=v${{ github.event.inputs.releaseVersion }} -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }}
+        run: |
+          ls ~/.ssh
+          mvn --settings .github/github-actions-settings.xml --batch-mode release:clean release:prepare -Dtag=v${{ github.event.inputs.releaseVersion }} -DreleaseVersion=${{ github.event.inputs.releaseVersion }} -DdevelopmentVersion=${{ github.event.inputs.developmentVersion }}
         env:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
       - name: Maven Release
