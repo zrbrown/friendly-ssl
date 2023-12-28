@@ -39,9 +39,10 @@ jobs:
         env:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
       - uses: webfactory/ssh-agent@v0.8.0
+        name: Set SSH key
         with:
           ssh-private-key: ${{ secrets.REPO_SSH_PRIVATE_KEY }}
-        name: Maven Release
+      - name: Maven Release
         run: mvn --batch-mode release:perform
         env:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
