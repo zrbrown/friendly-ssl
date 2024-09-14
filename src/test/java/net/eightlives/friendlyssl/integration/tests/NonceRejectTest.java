@@ -2,10 +2,13 @@ package net.eightlives.friendlyssl.integration.tests;
 
 import net.eightlives.friendlyssl.integration.IntegrationTest;
 import net.eightlives.friendlyssl.integration.TestApp;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
@@ -17,6 +20,7 @@ import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
 
 @SpringBootTest
 @ContextConfiguration(initializers = NonceRejectTest.class, classes = TestApp.class)
@@ -43,6 +47,15 @@ class NonceRejectTest implements IntegrationTest {
         return pebbleContainer;
     }
 
+    @Autowired
+    @Qualifier("ssl-certificate-monitor")
+    ScheduledExecutorService timer;
+
+    @Override
+    public ScheduledExecutorService getTimer() {
+        return timer;
+    }
+
     @DisplayName("Start server and every nonce is rejected")
     @Timeout(20)
     @ExtendWith(OutputCaptureExtension.class)
@@ -63,11 +76,9 @@ class NonceRejectTest implements IntegrationTest {
                         "o.s.acme4j.connector.DefaultConnection   : Bad Replay Nonce, trying again (attempt 7/10)",
                         "o.s.acme4j.connector.DefaultConnection   : Bad Replay Nonce, trying again (attempt 8/10)",
                         "o.s.acme4j.connector.DefaultConnection   : Bad Replay Nonce, trying again (attempt 9/10)",
-                        "o.s.acme4j.connector.DefaultConnection   : Bad Replay Nonce, trying again (attempt 10/10)",
                         "n.e.f.service.AcmeAccountService         : Error while retrieving or creating ACME Login",
                         "n.e.f.s.CertificateCreateRenewService    : Exception while ordering certificate, retry in 1 hours",
                         "net.eightlives.friendlyssl.exception.FriendlySSLException: Exception while handling SSL certificate management",
-                        "Caused by: org.shredzone.acme4j.exception.AcmeException: Too many reattempts",
                         "Caused by: org.shredzone.acme4j.exception.AcmeServerException: JWS has an invalid anti-replay nonce:"
                 ),
                 output

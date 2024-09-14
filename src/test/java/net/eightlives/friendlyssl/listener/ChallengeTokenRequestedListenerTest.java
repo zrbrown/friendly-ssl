@@ -118,7 +118,7 @@ class ChallengeTokenRequestedListenerTest {
                     listener.onApplicationEvent(new ChallengeTokenRequested(this, CHALLENGE_TOKEN));
 
                     ExecutionException exception = assertThrows(ExecutionException.class, future::get);
-                    assertTrue(exception.getCause() instanceof FriendlySSLException);
+                    assertInstanceOf(FriendlySSLException.class, exception.getCause());
                 }
 
                 @DisplayName("and update checker completes")

@@ -84,8 +84,8 @@ public class AutoRenewServiceTest {
 
             CertificateRenewal result = service.autoRenew();
 
-            assertEquals(CertificateRenewalStatus.ALREADY_VALID, result.getStatus());
-            assertEquals(CERT_EXPIRATION.minus(3, ChronoUnit.HOURS), result.getTime());
+            assertEquals(CertificateRenewalStatus.ALREADY_VALID, result.status());
+            assertEquals(CERT_EXPIRATION.minus(3, ChronoUnit.HOURS), result.time());
         }
 
         @DisplayName("When certificate is expired")

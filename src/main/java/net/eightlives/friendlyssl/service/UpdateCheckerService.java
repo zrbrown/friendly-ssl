@@ -59,7 +59,7 @@ public class UpdateCheckerService {
                             LOG.error("Resource is invalid");
                             throw new UpdateFailedException();
                         default:
-                            LOG.info("Resource status is " + status + ". Updating...");
+                            LOG.info("Resource status is {}. Updating...", status);
                             Thread.sleep(updateAcmeJsonResource(resource));
                             break;
                     }

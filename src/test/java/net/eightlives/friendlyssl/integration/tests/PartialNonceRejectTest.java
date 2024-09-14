@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
@@ -21,6 +22,7 @@ import org.testcontainers.containers.GenericContainer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -52,6 +54,15 @@ class PartialNonceRejectTest implements IntegrationTest {
     @Autowired
     FriendlySSLConfig config;
 
+    @Autowired
+    @Qualifier("ssl-certificate-monitor")
+    ScheduledExecutorService timer;
+
+    @Override
+    public ScheduledExecutorService getTimer() {
+        return timer;
+    }
+
     @DisplayName("Start server and certificate 50% of nonces are rejected")
     @Timeout(20)
     @ExtendWith(OutputCaptureExtension.class)
@@ -69,7 +80,7 @@ class PartialNonceRejectTest implements IntegrationTest {
                         "n.e.f.service.UpdateCheckerService       : Resource is valid",
                         "n.e.f.s.CertificateCreateRenewService    : Certificate renewal successful. New certificate expiration time is",
                         "n.e.f.s.CertificateCreateRenewService    : Reloading SSL context...",
-                        "n.e.f.service.SSLContextService          : Finished reloading SSL context"
+                        "n.e.f.s.CertificateCreateRenewService    : Finished reloading SSL context"
                 ),
                 output
         );

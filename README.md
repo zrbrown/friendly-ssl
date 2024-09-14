@@ -21,7 +21,19 @@ friendly-ssl:
   domain: your-website.com
   account-email: email@gmail.com
   acme-session-url: acme://letsencrypt.org
-server.tomcat.mbeanregistry.enabled: true
+
+server.ssl.bundle: youralias
+
+spring.ssl.bundle:
+  watch.file.quiet-period: 1m
+  jks:
+    youralias:
+      reload-on-update: true
+      key.alias: youralias
+      keystore:
+        location: keystore.p12
+        password:
+        type: PKCS12
 ```
 
 ## How it works
@@ -52,7 +64,7 @@ Properties are defined under the `friendly-ssl.*` namespace.
 
 ## Reloading SSL Certificates
 
-Friendly SSL reloads new SSL certificates at runtime when they are renewed. To allow this, you must set `server.tomcat.mbeanregistry.enabled: true` in your properties file. If you do not wish to set this, generated certificates will not be automatically reloaded into context and the server will have effectively not contain a new certificate. The server will need to be restarted upon renewal or you will need to implement your own context-reloading solution.
+Spring Boot handles reloading a renewed certificate by periodically checking for changes to the file. `spring.ssl.bundle.watch.file.quiet-period` defines how often the file is checked. 
 
 ## Certificate Renewal
 

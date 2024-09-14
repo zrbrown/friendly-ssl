@@ -76,7 +76,7 @@ public class PKCS12KeyStoreService {
             PKCS12SafeBagBuilder keyBagBuilder = new JcaPKCS12SafeBagBuilder(privateKey,
                     new BcPKCS12PBEOutputEncryptorBuilder(
                             PKCSObjectIdentifiers.pbeWithSHAAnd3_KeyTripleDES_CBC,
-                            new CBCBlockCipher(new DESedeEngine())).setIterationCount(2048)
+                            CBCBlockCipher.newInstance(new DESedeEngine())).setIterationCount(2048)
                             .build("".toCharArray()));
             keyBagBuilder.addBagAttribute(PKCSObjectIdentifiers.pkcs_9_at_friendlyName, new DERBMPString(config.getCertificateKeyAlias()));
             keyBagBuilder.addBagAttribute(PKCSObjectIdentifiers.pkcs_9_at_localKeyId, new DEROctetString(localKeyBytes));
@@ -85,7 +85,7 @@ public class PKCS12KeyStoreService {
             pfxBuilder.addEncryptedData(
                     new BcPKCS12PBEOutputEncryptorBuilder(
                             PKCSObjectIdentifiers.pbeWithSHAAnd40BitRC2_CBC,
-                            new CBCBlockCipher(new RC2Engine())).setIterationCount(2048)
+                            CBCBlockCipher.newInstance(new RC2Engine())).setIterationCount(2048)
                             .build("".toCharArray()), certBags);
             pfxBuilder.addData(keyBagBuilder.build());
 
@@ -116,9 +116,7 @@ public class PKCS12KeyStoreService {
             KeyFactory keyFactory = KeyFactory.getInstance(KEYFACTORY_TYPE);
             Key key = store.getKey(keyAlias, "".toCharArray());
             if (key == null) {
-                LOG.error("Private key alias " + keyAlias +
-                        " not found in keystore " + config.getKeystoreFile() +
-                        " when loading keystore");
+                LOG.error("Private key alias {} not found in keystore {} when loading keystore", keyAlias, config.getKeystoreFile());
                 return null;
             }
 
@@ -126,9 +124,7 @@ public class PKCS12KeyStoreService {
 
             Certificate certificate = store.getCertificate(keyAlias);
             if (certificate == null) {
-                LOG.error("Certificate with alias " + keyAlias +
-                        " not found in keystore " + config.getKeystoreFile() +
-                        " when loading keystore");
+                LOG.error("Certificate with alias {} not found in keystore {} when loading keystore", keyAlias, config.getKeystoreFile());
                 return null;
             }
 
@@ -157,11 +153,10 @@ public class PKCS12KeyStoreService {
                 return Optional.empty();
             }
 
-            Certificate certificate = store.getCertificate(keyAlias);
-            if (certificate instanceof X509Certificate) {
-                return Optional.of((X509Certificate) certificate);
-            }
-            return Optional.empty();
+            return switch (store.getCertificate(keyAlias)) {
+                case X509Certificate c -> Optional.of(c);
+                case null, default -> Optional.empty();
+            };
         } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e) {
             LOG.error("Exception while accessing keystore", e);
             return Optional.empty();

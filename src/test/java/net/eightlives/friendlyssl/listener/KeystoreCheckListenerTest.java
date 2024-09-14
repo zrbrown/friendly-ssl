@@ -58,7 +58,7 @@ public class KeystoreCheckListenerTest {
     void requiredPropertyMissing(String property) {
         when(environment.getProperty(property)).thenReturn(null);
 
-        listener.environmentPrepared(environment);
+        listener.environmentPrepared(null, environment);
 
         assertTrue(Files.notExists(notExists));
     }
@@ -69,7 +69,7 @@ public class KeystoreCheckListenerTest {
         Path notExists = temp.resolve("not_exists.p12");
         when(environment.getProperty("friendly-ssl.keystore-file")).thenReturn(notExists.toString());
 
-        listener.environmentPrepared(environment);
+        listener.environmentPrepared(null, environment);
 
         KeyStore store = KeyStore.getInstance("PKCS12");
         store.load(Files.newInputStream(notExists), "".toCharArray());
@@ -77,10 +77,10 @@ public class KeystoreCheckListenerTest {
 
         assertTrue(Instant.ofEpochMilli(certificate.getNotAfter().getTime())
                 .isBefore(Instant.now().plus(1, ChronoUnit.DAYS)));
-        assertEquals("DC=NET, DC=EIGHTLIVES, DC=FRIENDLYSSL, CN=test.me",
-                certificate.getIssuerDN().getName());
-        assertEquals("DC=NET, DC=EIGHTLIVES, DC=FRIENDLYSSL, CN=test.me",
-                certificate.getSubjectDN().getName());
+        assertEquals("DC=NET,DC=EIGHTLIVES,DC=FRIENDLYSSL,CN=test.me",
+                certificate.getIssuerX500Principal().getName());
+        assertEquals("DC=NET,DC=EIGHTLIVES,DC=FRIENDLYSSL,CN=test.me",
+                certificate.getSubjectX500Principal().getName());
     }
 
     @DisplayName("When an existing certificate is not present and keystore path has no parent directory")
@@ -88,7 +88,7 @@ public class KeystoreCheckListenerTest {
     void certificateNotExistsNoParent() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
         when(environment.getProperty("friendly-ssl.keystore-file")).thenReturn(notExists.toString());
 
-        listener.environmentPrepared(environment);
+        listener.environmentPrepared(null, environment);
 
         KeyStore store = KeyStore.getInstance("PKCS12");
         store.load(Files.newInputStream(notExists), "".toCharArray());
@@ -96,10 +96,10 @@ public class KeystoreCheckListenerTest {
 
         assertTrue(Instant.ofEpochMilli(certificate.getNotAfter().getTime())
                 .isBefore(Instant.now().plus(1, ChronoUnit.DAYS)));
-        assertEquals("DC=NET, DC=EIGHTLIVES, DC=FRIENDLYSSL, CN=test.me",
-                certificate.getIssuerDN().getName());
-        assertEquals("DC=NET, DC=EIGHTLIVES, DC=FRIENDLYSSL, CN=test.me",
-                certificate.getSubjectDN().getName());
+        assertEquals("DC=NET,DC=EIGHTLIVES,DC=FRIENDLYSSL,CN=test.me",
+                certificate.getIssuerX500Principal().getName());
+        assertEquals("DC=NET,DC=EIGHTLIVES,DC=FRIENDLYSSL,CN=test.me",
+                certificate.getSubjectX500Principal().getName());
     }
 
     @DisplayName("When existing certificate has a password")
@@ -111,7 +111,7 @@ public class KeystoreCheckListenerTest {
         Path keystorePath = Path.of("src/test/resources/password_keystore.p12");
         byte[] keystore = Files.readAllBytes(keystorePath);
 
-        listener.environmentPrepared(environment);
+        listener.environmentPrepared(null, environment);
 
         assertArrayEquals(keystore, Files.readAllBytes(keystorePath));
     }
@@ -139,7 +139,7 @@ public class KeystoreCheckListenerTest {
         @DisplayName("When key alias is correct")
         @Test
         void certificateExists() throws IOException {
-            listener.environmentPrepared(environment);
+            listener.environmentPrepared(null, environment);
 
             assertArrayEquals(keystore, Files.readAllBytes(keystorePath));
         }
@@ -149,7 +149,7 @@ public class KeystoreCheckListenerTest {
         void certificateNameIncorrect() throws IOException {
             when(environment.getProperty("friendly-ssl.certificate-key-alias")).thenReturn("certificateNameIncorrect");
 
-            listener.environmentPrepared(environment);
+            listener.environmentPrepared(null, environment);
 
             byte[] newKeystore = Files.readAllBytes(keystorePath);
 

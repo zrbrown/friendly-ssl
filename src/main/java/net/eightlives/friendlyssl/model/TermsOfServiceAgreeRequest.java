@@ -1,6 +1,6 @@
 package net.eightlives.friendlyssl.model;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 public class TermsOfServiceAgreeRequest {
 

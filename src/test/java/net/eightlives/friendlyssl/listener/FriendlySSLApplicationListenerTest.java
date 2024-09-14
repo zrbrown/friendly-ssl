@@ -74,6 +74,6 @@ class FriendlySSLApplicationListenerTest {
 
         assertEquals(timerTask, timerTaskArg.getValue());
         assertEquals(1, secondsArg.getValue());
-        assertEquals(renewal.getTime(), createOrRenewSupplier.getValue().get());
+        assertEquals(renewal.time(), createOrRenewSupplier.getValue().get());
     }
 }

@@ -44,24 +44,20 @@ public class TermsOfServiceService {
      * @throws FriendlySSLException if the terms of service link could not be retrieved from the given session
      */
     public URI getTermsOfServiceLink(Session session) {
-        URI termsOfServiceLink;
         try {
-            termsOfServiceLink = session.getMetadata().getTermsOfService();
+            return session.getMetadata().getTermsOfService()
+                    .orElseThrow(() -> new FriendlySSLException("Terms of service should not be null. There may be a problem with the provider."));
         } catch (AcmeException e) {
             LOG.error("Could not retrieve terms of service link", e);
             throw new FriendlySSLException(e);
-        }
-
-        if (termsOfServiceLink == null) {
+        } catch (FriendlySSLException e) {
             LOG.error("Could not retrieve terms of service link");
-            throw new FriendlySSLException("Terms of service should not be null. There may be a problem with the provider.");
+            throw e;
         }
-
-        return termsOfServiceLink;
     }
 
     /**
-     * Returns whether or not the given terms of service link has been accepted.
+     * Returns whether the given terms of service link has been accepted.
      *
      * @param termsOfServiceLink the terms of service link to check for acceptance
      * @return {@code true} if {@code termsOfServiceLink} has been accepted, {@code false} otherwise
@@ -73,12 +69,12 @@ public class TermsOfServiceService {
                     Files.newInputStream(Path.of(config.getTermsOfServiceFile())),
                     TermsOfService[].class);
             return Stream.of(termsOfService)
-                    .filter(tos -> termsOfServiceLink.toString().equals(tos.getTermsOfService()))
-                    .anyMatch(tos -> tos.getAgreeToTerms().equalsIgnoreCase(AGREE_TO_TERMS_YES));
+                    .filter(tos -> termsOfServiceLink.toString().equals(tos.termsOfService()))
+                    .anyMatch(tos -> tos.agreeToTerms().equalsIgnoreCase(AGREE_TO_TERMS_YES));
         } catch (NoSuchFileException e) {
             return false;
         } catch (IOException e) {
-            LOG.error("Exception while trying to read from terms of service file " + config.getTermsOfServiceFile(), e);
+            LOG.error("Exception while trying to read from terms of service file {}", config.getTermsOfServiceFile(), e);
             throw new FriendlySSLException(e);
         }
     }
@@ -100,20 +96,20 @@ public class TermsOfServiceService {
             );
         } catch (FileAlreadyExistsException ignored) {
         } catch (IOException e) {
-            LOG.error("Exception while creating terms of service file " + config.getTermsOfServiceFile(), e);
+            LOG.error("Exception while creating terms of service file {}", config.getTermsOfServiceFile(), e);
             throw new FriendlySSLException(e);
         }
 
         try {
             TermsOfService[] termsOfService = objectMapper.readValue(Files.newBufferedReader(termsOfServiceFile), TermsOfService[].class);
             List<TermsOfService> allTerms = Stream.of(termsOfService)
-                    .filter(tos -> !termsOfServiceLink.toString().equals(tos.getTermsOfService()))
+                    .filter(tos -> !termsOfServiceLink.toString().equals(tos.termsOfService()))
                     .collect(Collectors.toList());
             allTerms.add(new TermsOfService(termsOfServiceLink.toString(), accept ? AGREE_TO_TERMS_YES : AGREE_TO_TERMS_NO));
 
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(Files.newBufferedWriter(termsOfServiceFile), allTerms);
         } catch (IOException e) {
-            LOG.error("Exception while trying to read or write to terms of service file " + config.getTermsOfServiceFile(), e);
+            LOG.error("Exception while trying to read or write to terms of service file {}", config.getTermsOfServiceFile(), e);
             throw new FriendlySSLException(e);
         }
     }

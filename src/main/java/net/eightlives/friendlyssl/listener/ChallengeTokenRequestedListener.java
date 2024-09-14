@@ -87,6 +87,6 @@ public class ChallengeTokenRequestedListener implements ApplicationListener<Chal
                         throw new FriendlySSLException(e);
                     }
                 })
-                .whenComplete((aVoid, throwable) -> challengeTokenStore.getTokens().remove(challenge.getToken()));
+                .whenComplete((_, _) -> challengeTokenStore.getTokens().remove(challenge.getToken()));
     }
 }

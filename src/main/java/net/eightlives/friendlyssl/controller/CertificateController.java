@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.cert.X509Certificate;
+import java.util.Optional;
+
 @ConditionalOnExpression("'${friendly-ssl.endpoints-include}'.contains('certificate')")
 @RestController
 @RequestMapping("/friendly-ssl/certificate")
@@ -42,21 +45,14 @@ public class CertificateController {
      */
     @GetMapping(path = "/order", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CertificateRenewal> order() {
-        boolean certificateExists = keyStoreService.getCertificate(config.getCertificateKeyAlias()).isPresent();
+        CertificateRenewal certificateRenewal = switch (keyStoreService.getCertificate(config.getCertificateKeyAlias())) {
+            case Optional<X509Certificate> o when o.isPresent() -> createRenewService.renewCertificate();
+            case Optional<X509Certificate> _ -> createRenewService.createCertificate();
+        };
 
-        CertificateRenewal certificateRenewal = certificateExists ?
-                createRenewService.renewCertificate() :
-                createRenewService.createCertificate();
-
-        switch (certificateRenewal.getStatus()) {
-            case ALREADY_VALID:
-            case SUCCESS:
-                return ResponseEntity.ok(certificateRenewal);
-            case ERROR:
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-            default:
-                LOG.error("Unknown CertificateRenewal " + certificateRenewal.getStatus().name() + ". This is most likely a build problem.");
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        return switch (certificateRenewal.status()) {
+            case ALREADY_VALID, SUCCESS -> ResponseEntity.ok(certificateRenewal);
+            case ERROR -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        };
     }
 }

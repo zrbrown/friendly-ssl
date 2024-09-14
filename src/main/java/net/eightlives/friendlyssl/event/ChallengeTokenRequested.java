@@ -4,7 +4,7 @@ import org.springframework.context.ApplicationEvent;
 
 public class ChallengeTokenRequested extends ApplicationEvent {
 
-    private String token;
+    private final String token;
 
     public ChallengeTokenRequested(Object source, String token) {
         super(source);

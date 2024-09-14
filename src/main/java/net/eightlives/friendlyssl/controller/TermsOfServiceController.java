@@ -1,5 +1,6 @@
 package net.eightlives.friendlyssl.controller;
 
+import jakarta.validation.Valid;
 import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import net.eightlives.friendlyssl.model.TermsOfServiceAgreeRequest;
 import net.eightlives.friendlyssl.service.TermsOfServiceService;
@@ -14,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.Valid;
 import java.net.URI;
 
 @ConditionalOnExpression("'${friendly-ssl.endpoints-include}'.contains('tos')")
@@ -48,7 +48,7 @@ public class TermsOfServiceController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("URI could not be created from terms link '" + termsLink + "'");
         } catch (FriendlySSLException e) {
-            LOG.error("Exception occurred while writing to terms of service file for terms link '" + termsLink + "'", e);
+            LOG.error("Exception occurred while writing to terms of service file for terms link '{}'", termsLink, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Exception occurred while writing to terms of service file for terms link '" + termsLink + "'");
         }

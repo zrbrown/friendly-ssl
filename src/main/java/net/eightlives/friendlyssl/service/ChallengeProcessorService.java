@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 @Component
 public class ChallengeProcessorService {
@@ -32,27 +31,17 @@ public class ChallengeProcessorService {
         CompletableFuture<?>[] challenges = authorizations.stream()
                 .filter(auth -> auth.getStatus() != Status.VALID)
                 .map(auth -> {
-                    Http01Challenge challenge = auth.findChallenge(Http01Challenge.TYPE);
-                    if (challenge == null) {
-                        throw new FriendlySSLException("HTTP Challenge does not exist");
-                    }
+                    Http01Challenge challenge = auth.findChallenge(Http01Challenge.class)
+                            .orElseThrow(() -> new FriendlySSLException("HTTP Challenge does not exist"));
                     return new AuthorizationAndChallenge(auth, challenge);
                 })
-                .collect(Collectors.toList()).stream()
                 .map(this::processAuth)
                 .toArray(CompletableFuture[]::new);
 
         return CompletableFuture.allOf(challenges);
     }
 
-    private static final class AuthorizationAndChallenge {
-        public final Authorization authorization;
-        public final Http01Challenge challenge;
-
-        private AuthorizationAndChallenge(Authorization authorization, Http01Challenge challenge) {
-            this.authorization = authorization;
-            this.challenge = challenge;
-        }
+    private record AuthorizationAndChallenge(Authorization authorization, Http01Challenge challenge) {
     }
 
     private CompletableFuture<Void> processAuth(AuthorizationAndChallenge authAndChallenge) {

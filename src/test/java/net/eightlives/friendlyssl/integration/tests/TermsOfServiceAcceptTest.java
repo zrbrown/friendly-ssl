@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
@@ -25,6 +26,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
 
 import static net.eightlives.friendlyssl.util.TestUtils.trustAllCertsContext;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -56,6 +58,15 @@ class TermsOfServiceAcceptTest implements IntegrationTest {
 
     @Autowired
     FriendlySSLConfig config;
+
+    @Autowired
+    @Qualifier("ssl-certificate-monitor")
+    ScheduledExecutorService timer;
+
+    @Override
+    public ScheduledExecutorService getTimer() {
+        return timer;
+    }
 
     @DisplayName("After failing to login to account, accept TOS and renew certificate")
     @Timeout(20)
@@ -112,7 +123,7 @@ class TermsOfServiceAcceptTest implements IntegrationTest {
                         "n.e.f.s.CertificateCreateRenewService    : Beginning certificate order.",
                         "n.e.f.s.CertificateCreateRenewService    : Certificate renewal successful. New certificate expiration time is",
                         "n.e.f.s.CertificateCreateRenewService    : Reloading SSL context...",
-                        "n.e.f.service.SSLContextService          : Finished reloading SSL context"
+                        "n.e.f.s.CertificateCreateRenewService    : Finished reloading SSL context"
                 ),
                 output
         );

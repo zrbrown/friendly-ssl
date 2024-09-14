@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -72,7 +73,7 @@ class TermsOfServiceServiceTest {
             @DisplayName("When terms of service link is null")
             @Test
             void tosLinkNull() {
-                when(metadata.getTermsOfService()).thenReturn(null);
+                when(metadata.getTermsOfService()).thenReturn(Optional.empty());
 
                 assertThrows(FriendlySSLException.class, () -> service.getTermsOfServiceLink(session));
             }
@@ -81,7 +82,7 @@ class TermsOfServiceServiceTest {
             @Test
             void tosLinkExists() {
                 URI termsOfServiceLink = URI.create("http://localhost:8000");
-                when(metadata.getTermsOfService()).thenReturn(termsOfServiceLink);
+                when(metadata.getTermsOfService()).thenReturn(Optional.of(termsOfServiceLink));
 
                 assertEquals(termsOfServiceLink, service.getTermsOfServiceLink(session));
             }

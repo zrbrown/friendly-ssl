@@ -1,10 +1,7 @@
 package net.eightlives.friendlyssl.integration;
 
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.springframework.boot.test.system.CapturedOutput;
@@ -19,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -44,6 +42,8 @@ public interface IntegrationTest extends ApplicationContextInitializer<Configura
 
     GenericContainer getPebbleContainer();
 
+    ScheduledExecutorService getTimer();
+
     @BeforeAll
     default void setUpAll() throws IOException {
         Files.createDirectories(TEMP);
@@ -58,9 +58,17 @@ public interface IntegrationTest extends ApplicationContextInitializer<Configura
         Files.delete(TEMP);
     }
 
+    @AfterEach
+    default void tearDown() throws Exception {
+        getTimer().shutdownNow();
+    }
+
     default void testLogOutput(List<String> expectedLogs, CapturedOutput actualOutput) {
-        while (!actualOutput.getOut().contains(expectedLogs.get(expectedLogs.size() - 1))) {
+        while (!actualOutput.getOut().contains(expectedLogs.getLast())) {
             Thread.onSpinWait();
+            if (Thread.interrupted()) {
+                break;
+            }
         }
 
         assertArrayEquals(
@@ -79,8 +87,11 @@ public interface IntegrationTest extends ApplicationContextInitializer<Configura
     }
 
     default void testLogOutputExact(List<String> expectedLogs, CapturedOutput actualOutput) {
-        while (!actualOutput.getOut().contains(expectedLogs.get(expectedLogs.size() - 1))) {
+        while (!actualOutput.getOut().contains(expectedLogs.getLast())) {
             Thread.onSpinWait();
+            if (Thread.interrupted()) {
+                break;
+            }
         }
 
         assertArrayEquals(

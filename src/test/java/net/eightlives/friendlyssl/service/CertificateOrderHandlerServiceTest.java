@@ -75,7 +75,7 @@ class CertificateOrderHandlerServiceTest {
     @Nested
     class CertificateOrderServiceSucceeds {
 
-        private List<X509Certificate> certChain = Collections.emptyList();
+        private final List<X509Certificate> certChain = Collections.emptyList();
         private Path keystoreFile;
 
         @BeforeEach

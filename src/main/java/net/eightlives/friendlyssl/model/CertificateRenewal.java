@@ -4,28 +4,9 @@ import java.time.Instant;
 
 /**
  * A descriptor of a certificate renewal attempt.
+ *
+ * @param status the status of the renewal attempt
+ * @param time   the time at which renewal should be attempted again
  */
-public class CertificateRenewal {
-
-    private final CertificateRenewalStatus status;
-    private final Instant time;
-
-    public CertificateRenewal(CertificateRenewalStatus status, Instant time) {
-        this.status = status;
-        this.time = time;
-    }
-
-    /**
-     * @return the status of the renewal attempt
-     */
-    public CertificateRenewalStatus getStatus() {
-        return status;
-    }
-
-    /**
-     * @return the time at which renewal should be attempted again
-     */
-    public Instant getTime() {
-        return time;
-    }
+public record CertificateRenewal(CertificateRenewalStatus status, Instant time) {
 }

@@ -25,6 +25,7 @@ import org.bouncycastle.pkcs.jcajce.JcaPKCS12SafeBagBuilder;
 import org.shredzone.acme4j.util.KeyPairUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringApplicationRunListener;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -42,6 +43,7 @@ import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.sql.Date;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
@@ -62,12 +64,14 @@ public class KeystoreCheckListener implements SpringApplicationRunListener {
     }
 
     @Override
-    public void starting() {
+    public void starting(ConfigurableBootstrapContext bootstrapContext) {
         Security.addProvider(new BouncyCastleProvider());
+
+        SpringApplicationRunListener.super.starting(bootstrapContext);
     }
 
     @Override
-    public void environmentPrepared(ConfigurableEnvironment environment) {
+    public void environmentPrepared(ConfigurableBootstrapContext bootstrapContext, ConfigurableEnvironment environment) {
         String keystoreLocation = environment.getProperty("friendly-ssl.keystore-file");
         String certificateFriendlyName = environment.getProperty("friendly-ssl.certificate-key-alias");
         String domain = environment.getProperty("friendly-ssl.domain");
@@ -75,6 +79,8 @@ public class KeystoreCheckListener implements SpringApplicationRunListener {
         if (keystoreLocation != null && certificateFriendlyName != null && domain != null) {
             createSelfSignedIfKeystoreInvalid(keystoreLocation, certificateFriendlyName, domain);
         }
+
+        SpringApplicationRunListener.super.environmentPrepared(bootstrapContext, environment);
     }
 
     private void createSelfSignedIfKeystoreInvalid(String keystoreLocation, String certificateFriendlyName,
@@ -89,23 +95,23 @@ public class KeystoreCheckListener implements SpringApplicationRunListener {
                     Files.createDirectories(keystorePath.getParent());
                 }
                 Files.createFile(keystorePath);
-                LOG.info("Keystore file " + keystoreLocation + " created.");
+                LOG.info("Keystore file {} created.", keystoreLocation);
             } catch (FileAlreadyExistsException e) {
                 store.load(new FileInputStream(keystorePath.toFile()), "".toCharArray());
-                LOG.info("Existing keystore file " + keystoreLocation + " loaded.");
+                LOG.info("Existing keystore file {} loaded.", keystoreLocation);
                 certificate = store.getCertificate(certificateFriendlyName);
-                LOG.info("Existing keystore file " + keystoreLocation + " contains certificate named " + certificateFriendlyName + ": " + (certificate != null));
+                LOG.info("Existing keystore file {} contains certificate named {}: {}", keystoreLocation, certificateFriendlyName, certificate != null);
             }
 
             if (certificate == null) {
                 try (OutputStream file = new FileOutputStream(keystorePath.toFile())) {
                     file.write(generateSelfSignedCertificateKeystore(certificateFriendlyName, domain));
-                    LOG.info("Self-signed certificate named " + certificateFriendlyName);
+                    LOG.info("Self-signed certificate named {}", certificateFriendlyName);
                 }
             }
         } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e) {
             if (e.getCause() instanceof UnrecoverableKeyException) {
-                LOG.error("Cannot load keystore file " + keystoreLocation + " - likely due to keystore having a password, which is unsupported.");
+                LOG.error("Cannot load keystore file {} - likely due to keystore having a password, which is unsupported.", keystoreLocation);
             } else {
                 LOG.error("Error while validating certificate on startup", e);
             }
@@ -133,7 +139,7 @@ public class KeystoreCheckListener implements SpringApplicationRunListener {
             PKCS12SafeBagBuilder keyBagBuilder = new JcaPKCS12SafeBagBuilder(keyPair.getPrivate(),
                     new BcPKCS12PBEOutputEncryptorBuilder(
                             PKCSObjectIdentifiers.pbeWithSHAAnd3_KeyTripleDES_CBC,
-                            new CBCBlockCipher(new DESedeEngine())).setIterationCount(2048)
+                            CBCBlockCipher.newInstance(new DESedeEngine())).setIterationCount(2048)
                             .build("".toCharArray()));
             keyBagBuilder.addBagAttribute(PKCSObjectIdentifiers.pkcs_9_at_friendlyName, new DERBMPString(certificateFriendlyName));
 
@@ -141,7 +147,7 @@ public class KeystoreCheckListener implements SpringApplicationRunListener {
             pfxBuilder.addEncryptedData(
                     new BcPKCS12PBEOutputEncryptorBuilder(
                             PKCSObjectIdentifiers.pbeWithSHAAnd40BitRC2_CBC,
-                            new CBCBlockCipher(new RC2Engine())).setIterationCount(2048)
+                            CBCBlockCipher.newInstance(new RC2Engine())).setIterationCount(2048)
                             .build("".toCharArray()), certBags);
             pfxBuilder.addData(keyBagBuilder.build());
 
@@ -165,11 +171,11 @@ public class KeystoreCheckListener implements SpringApplicationRunListener {
     }
 
     @Override
-    public void started(ConfigurableApplicationContext context) {
+    public void started(ConfigurableApplicationContext context, Duration timeTaken) {
     }
 
     @Override
-    public void running(ConfigurableApplicationContext context) {
+    public void ready(ConfigurableApplicationContext context, Duration timeTaken) {
     }
 
     @Override

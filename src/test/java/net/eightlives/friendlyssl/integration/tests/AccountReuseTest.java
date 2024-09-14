@@ -6,6 +6,7 @@ import net.eightlives.friendlyssl.integration.TestApp;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
@@ -20,6 +21,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -52,6 +54,15 @@ class AccountReuseTest implements IntegrationTest {
     @Autowired
     FriendlySSLConfig config;
 
+    @Autowired
+    @Qualifier("ssl-certificate-monitor")
+    ScheduledExecutorService timer;
+
+    @Override
+    public ScheduledExecutorService getTimer() {
+        return timer;
+    }
+
     @Order(1)
     @DisplayName("Start server and account does not exist")
     @Timeout(20)
@@ -70,7 +81,7 @@ class AccountReuseTest implements IntegrationTest {
                         "n.e.f.service.UpdateCheckerService       : Resource is valid",
                         "n.e.f.s.CertificateCreateRenewService    : Certificate renewal successful. New certificate expiration time is",
                         "n.e.f.s.CertificateCreateRenewService    : Reloading SSL context...",
-                        "n.e.f.service.SSLContextService          : Finished reloading SSL context"
+                        "n.e.f.s.CertificateCreateRenewService    : Finished reloading SSL context"
                 ),
                 output
         );
@@ -98,7 +109,7 @@ class AccountReuseTest implements IntegrationTest {
                         "n.e.f.service.UpdateCheckerService       : Resource is valid",
                         "n.e.f.s.CertificateCreateRenewService    : Certificate renewal successful. New certificate expiration time is",
                         "n.e.f.s.CertificateCreateRenewService    : Reloading SSL context...",
-                        "n.e.f.service.SSLContextService          : Finished reloading SSL context"
+                        "n.e.f.s.CertificateCreateRenewService    : Finished reloading SSL context"
                 ),
                 output
         );

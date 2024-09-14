@@ -9,6 +9,7 @@ import net.eightlives.friendlyssl.util.TestUtils;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
@@ -34,6 +35,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
 
 import static net.eightlives.friendlyssl.integration.tests.CertificateAutoRenewalTest.CertificateRenewalApp;
 import static net.eightlives.friendlyssl.util.TestUtils.getExpirationContext;
@@ -74,6 +76,15 @@ class CertificateAutoRenewalTest implements IntegrationTest {
     @Autowired
     FriendlySSLConfig config;
 
+    @Autowired
+    @Qualifier("ssl-certificate-monitor")
+    ScheduledExecutorService timer;
+
+    @Override
+    public ScheduledExecutorService getTimer() {
+        return timer;
+    }
+
     @FriendlySSL
     @SpringBootApplication
     static class CertificateRenewalApp extends TestApp {
@@ -104,7 +115,8 @@ class CertificateAutoRenewalTest implements IntegrationTest {
     }
 
     @AfterEach
-    void tearDown() throws IOException {
+    public void tearDown() throws IOException {
+        getTimer().shutdownNow();
         Files.newOutputStream(Path.of(config.getKeystoreFile())).write(keystore);
     }
 
@@ -126,7 +138,7 @@ class CertificateAutoRenewalTest implements IntegrationTest {
                         "n.e.f.s.CertificateCreateRenewService    : Beginning certificate order.",
                         "n.e.f.s.CertificateCreateRenewService    : Certificate renewal successful. New certificate expiration time is",
                         "n.e.f.s.CertificateCreateRenewService    : Reloading SSL context...",
-                        "n.e.f.service.SSLContextService          : Finished reloading SSL context"
+                        "n.e.f.s.CertificateCreateRenewService    : Finished reloading SSL context"
                 ),
                 output
         );

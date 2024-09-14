@@ -11,9 +11,15 @@ friendly-ssl:
 server:
   port: 4430
   ssl:
-    enabled: true
-    key-store: src/test/resources/temp/keystore.p12
-    key-store-password:
-    keyStoreType: PKCS12
-    keyAlias: friendlyssl
-  tomcat.mbeanregistry.enabled: true
+    bundle: friendlyssl
+
+spring.ssl.bundle:
+  watch.file.quiet-period: 1s
+  jks:
+    friendlyssl:
+      reload-on-update: true
+      key.alias: friendlyssl
+      keystore:
+        location: src/test/resources/temp/keystore.p12
+        password:
+        type: PKCS12

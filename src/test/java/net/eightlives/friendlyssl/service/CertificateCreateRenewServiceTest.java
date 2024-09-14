@@ -4,21 +4,25 @@ import net.eightlives.friendlyssl.config.FriendlySSLConfig;
 import net.eightlives.friendlyssl.exception.FriendlySSLException;
 import net.eightlives.friendlyssl.model.CertificateRenewal;
 import net.eightlives.friendlyssl.model.CertificateRenewalStatus;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.shredzone.acme4j.Login;
 import org.shredzone.acme4j.Session;
 import org.shredzone.acme4j.util.KeyPairUtils;
+import org.springframework.boot.autoconfigure.ssl.SslProperties;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.ssl.SslBundle;
+import org.springframework.boot.ssl.SslBundles;
+import org.springframework.boot.web.server.Ssl;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,6 +33,8 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -53,17 +59,23 @@ class CertificateCreateRenewServiceTest {
     @Mock
     private AcmeAccountService accountService;
     @Mock
-    PKCS12KeyStoreService keyStoreService;
+    private PKCS12KeyStoreService keyStoreService;
     @Mock
-    CertificateOrderHandlerService certificateOrderHandlerService;
+    private CertificateOrderHandlerService certificateOrderHandlerService;
     @Mock
-    SSLContextService sslContextService;
+    private SslBundle sslBundle;
+    @Mock()
+    private ServerProperties serverConfig;
+    @Mock()
+    private SslProperties sslConfig;
+    @Mock
+    private SslBundles sslBundles;
 
     @BeforeEach
     void setUp() {
         service = new CertificateCreateRenewService(
-                config, accountService, keyStoreService, certificateOrderHandlerService, sslContextService,
-                Clock.fixed(FIXED_CLOCK, ZoneId.of("UTC"))
+                config, serverConfig, sslConfig, accountService, keyStoreService, certificateOrderHandlerService,
+                Clock.fixed(FIXED_CLOCK, ZoneId.of("UTC")), sslBundles
         );
     }
 
@@ -89,16 +101,15 @@ class CertificateCreateRenewServiceTest {
         @ParameterizedTest(name = "for method {0}")
         @ArgumentsSource(ServiceCallProvider.class)
         void accountServiceException(Function<CertificateCreateRenewService, CertificateRenewal> serviceCall) {
+            when(config.getErrorRetryWaitHours()).thenReturn(2);
             when(accountService.getOrCreateAccountLogin(any(Session.class))).thenThrow(
                     new FriendlySSLException("")
             );
-            when(config.getErrorRetryWaitHours()).thenReturn(2);
 
             CertificateRenewal renewal = serviceCall.apply(service);
 
-            assertEquals(CertificateRenewalStatus.ERROR, renewal.getStatus());
-
-            assertEquals(FIXED_CLOCK.plus(2, ChronoUnit.HOURS), renewal.getTime());
+            assertEquals(CertificateRenewalStatus.ERROR, renewal.status());
+            assertEquals(FIXED_CLOCK.plus(2, ChronoUnit.HOURS), renewal.time());
         }
 
         @DisplayName("When account service succeeds")
@@ -111,77 +122,239 @@ class CertificateCreateRenewServiceTest {
             private org.shredzone.acme4j.Certificate acmeCert;
 
             @BeforeEach
-            void setUp() throws CertificateException, IOException {
-                CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-                X509Certificate certificate = (X509Certificate) certificateFactory.generateCertificate(Files.newInputStream(
-                        Path.of("src", "test", "resources", "certificate_chain.pem")));
-
-                when(acmeCert.getCertificate()).thenReturn(certificate);
+            void setUp() {
                 when(accountService.getOrCreateAccountLogin(any(Session.class))).thenReturn(login);
-                when(config.getAutoRenewalHoursBefore()).thenReturn(72);
             }
 
-            @DisplayName("When calling #createCertificate")
-            @Test
-            void createCertificate() {
-                when(certificateOrderHandlerService.handleCertificateOrder(eq(login), any(KeyPair.class)))
-                        .thenReturn(acmeCert);
+            @DisplayName("When server.ssl is not configured, ")
+            @ParameterizedTest(name = "for method {0}")
+            @ArgumentsSource(ServiceCallProvider.class)
+            void serverSslNotConfigured(Function<CertificateCreateRenewService, CertificateRenewal> serviceCall) {
+                when(config.getErrorRetryWaitHours()).thenReturn(2);
 
-                CertificateRenewal renewal = service.createCertificate();
+                CertificateRenewal renewal = serviceCall.apply(service);
 
-                verify(sslContextService, times(1)).reloadSSLConfig();
-                assertEquals(CertificateRenewalStatus.SUCCESS, renewal.getStatus());
-                assertEquals(CERT_RENEWAL, renewal.getTime());
+                assertEquals(CertificateRenewalStatus.ERROR, renewal.status());
+                assertEquals(FIXED_CLOCK.plus(2, ChronoUnit.HOURS), renewal.time());
             }
 
-            @DisplayName("When calling #renewCertificate")
+            @DisplayName("When server.ssl is configured")
             @Nested
-            class RenewCertificate {
+            class SSLConfigured {
+
+                @Mock
+                private Ssl ssl;
 
                 @BeforeEach
                 void setUp() {
-                    when(config.getCertificateKeyAlias()).thenReturn("friendlyssl");
+                    when(serverConfig.getSsl()).thenReturn(ssl);
                 }
 
-                @DisplayName("When keystore service cannot find the certificate by name")
-                @Test
-                void keystoreNoCertificateFound() {
-                    service = new CertificateCreateRenewService(
-                            config, accountService, keyStoreService, certificateOrderHandlerService, sslContextService,
-                            Clock.fixed(CERT_EXPIRATION.minus(3, ChronoUnit.HOURS)
-                                    , ZoneId.of("UTC"))
-                    );
-                    when(keyStoreService.getKeyPair("friendlyssl"))
-                            .thenReturn(null);
-                    when(certificateOrderHandlerService.handleCertificateOrder(eq(login), any(KeyPair.class)))
-                            .thenReturn(acmeCert);
+                @DisplayName("When server.ssl.bundle is not configured, ")
+                @ParameterizedTest(name = "for method {0}")
+                @ArgumentsSource(ServiceCallProvider.class)
+                void serverSslBundleNotConfigured(Function<CertificateCreateRenewService, CertificateRenewal> serviceCall) {
+                    when(config.getErrorRetryWaitHours()).thenReturn(2);
 
-                    CertificateRenewal renewal = service.renewCertificate();
+                    CertificateRenewal renewal = serviceCall.apply(service);
 
-                    verify(sslContextService, times(1)).reloadSSLConfig();
-                    assertEquals(CertificateRenewalStatus.SUCCESS, renewal.getStatus());
-                    assertEquals(CERT_RENEWAL, renewal.getTime());
+                    assertEquals(CertificateRenewalStatus.ERROR, renewal.status());
+                    assertEquals(FIXED_CLOCK.plus(2, ChronoUnit.HOURS), renewal.time());
                 }
 
-                @DisplayName("When keystore service finds the certificate by name")
-                @Test
-                void keystoreCertificateFound() {
-                    service = new CertificateCreateRenewService(
-                            config, accountService, keyStoreService, certificateOrderHandlerService, sslContextService,
-                            Clock.fixed(CERT_EXPIRATION.minus(3, ChronoUnit.HOURS)
-                                    , ZoneId.of("UTC"))
-                    );
-                    KeyPair keyPair = KeyPairUtils.createKeyPair(2048);
-                    when(keyStoreService.getKeyPair("friendlyssl"))
-                            .thenReturn(keyPair);
-                    when(certificateOrderHandlerService.handleCertificateOrder(login, keyPair))
-                            .thenReturn(acmeCert);
+                @DisplayName("When server.ssl.bundle is configured")
+                @Nested
+                class SSLBundleConfigured {
 
-                    CertificateRenewal renewal = service.renewCertificate();
+                    @BeforeEach
+                    void setUp() {
+                        when(ssl.getBundle()).thenReturn("friendlyssl");
+                    }
 
-                    verify(sslContextService, times(1)).reloadSSLConfig();
-                    assertEquals(CertificateRenewalStatus.SUCCESS, renewal.getStatus());
-                    assertEquals(CERT_RENEWAL, renewal.getTime());
+                    @DisplayName("When SSL bundle cannot be found, ")
+                    @ParameterizedTest(name = "for method {0}")
+                    @ArgumentsSource(ServiceCallProvider.class)
+                    void serverSslBundleNotFound(Function<CertificateCreateRenewService, CertificateRenewal> serviceCall) {
+                        when(config.getErrorRetryWaitHours()).thenReturn(2);
+
+                        CertificateRenewal renewal = serviceCall.apply(service);
+
+                        assertEquals(CertificateRenewalStatus.ERROR, renewal.status());
+                        assertEquals(FIXED_CLOCK.plus(2, ChronoUnit.HOURS), renewal.time());
+                    }
+
+                    @DisplayName("When SSL bundle is found")
+                    @Nested
+                    class SSLBundleFound {
+
+                        @Captor
+                        private ArgumentCaptor<Consumer<SslBundle>> handlerCaptor;
+
+                        @BeforeEach
+                        void setUp() {
+                            doNothing().when(sslBundles).addBundleUpdateHandler(eq("friendlyssl"), handlerCaptor.capture());
+                        }
+
+                        @DisplayName("When certificate order fails, ")
+                        @ParameterizedTest(name = "for method {0}")
+                        @ArgumentsSource(ServiceCallProvider.class)
+                        void certificateOrderFails(Function<CertificateCreateRenewService, CertificateRenewal> serviceCall) {
+                            when(config.getErrorRetryWaitHours()).thenReturn(2);
+                            when(certificateOrderHandlerService.handleCertificateOrder(any(), any())).thenThrow(new FriendlySSLException("error"));
+
+                            CertificateRenewal renewal = serviceCall.apply(service);
+
+                            assertEquals(CertificateRenewalStatus.ERROR, renewal.status());
+                            assertEquals(FIXED_CLOCK.plus(2, ChronoUnit.HOURS), renewal.time());
+                        }
+
+                        @DisplayName("When certificate order succeeds")
+                        @Nested
+                        class CertificateOrderSucceeds {
+
+                            @BeforeEach
+                            void setUp() throws IOException, CertificateException {
+                                CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+                                X509Certificate certificate = (X509Certificate) certificateFactory.generateCertificate(Files.newInputStream(
+                                        Path.of("src", "test", "resources", "certificate_chain.pem")));
+                                when(acmeCert.getCertificate()).thenReturn(certificate);
+                                when(certificateOrderHandlerService.handleCertificateOrder(eq(login), any(KeyPair.class)))
+                                        .thenReturn(acmeCert);
+                            }
+
+                            @DisplayName("When spring.ssl.bundle is not configured, ")
+                            @ParameterizedTest(name = "for method {0}")
+                            @ArgumentsSource(ServiceCallProvider.class)
+                            void springSslBundleNotConfigured(Function<CertificateCreateRenewService, CertificateRenewal> serviceCall) {
+                                when(config.getErrorRetryWaitHours()).thenReturn(2);
+
+                                CertificateRenewal renewal = serviceCall.apply(service);
+
+                                assertEquals(CertificateRenewalStatus.ERROR, renewal.status());
+                                assertEquals(FIXED_CLOCK.plus(2, ChronoUnit.HOURS), renewal.time());
+                            }
+
+                            @DisplayName("When spring.ssl.bundle is configured, ")
+                            @Nested
+                            class SpringSSLBundleConfigured {
+
+                                @BeforeEach
+                                void setUp() {
+                                    SslProperties.Bundles bundles = mock(SslProperties.Bundles.class);
+                                    SslProperties.Bundles.Watch watch = mock(SslProperties.Bundles.Watch.class);
+                                    SslProperties.Bundles.Watch.File watchFile = mock(SslProperties.Bundles.Watch.File.class);
+                                    when(watchFile.getQuietPeriod()).thenReturn(Duration.ofSeconds(2));
+                                    when(watch.getFile()).thenReturn(watchFile);
+                                    when(bundles.getWatch()).thenReturn(watch);
+                                    when(sslConfig.getBundle()).thenReturn(bundles);
+                                }
+
+                                @DisplayName("When calling ::createCertificate")
+                                @Nested
+                                class CreateCertificate {
+
+                                    @DisplayName("When calling ::createCertificate and SSL Bundle change is not picked up within the quiet period")
+                                    @Test
+                                    void createCertificateTimeout() {
+                                        when(config.getErrorRetryWaitHours()).thenReturn(2);
+
+                                        CertificateRenewal renewal = service.createCertificate();
+
+                                        assertEquals(CertificateRenewalStatus.ERROR, renewal.status());
+                                        assertEquals(FIXED_CLOCK.plus(2, ChronoUnit.HOURS), renewal.time());
+                                    }
+
+                                    @DisplayName("When calling ::createCertificate")
+                                    @Test
+                                    void createCertificate() {
+                                        when(config.getAutoRenewalHoursBefore()).thenReturn(72);
+
+                                        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+                                            executor.submit(() -> {
+                                                try {
+                                                    Thread.sleep(1000);
+                                                } catch (InterruptedException e) {
+                                                    throw new RuntimeException(e);
+                                                }
+                                                handlerCaptor.getValue().accept(null);
+                                            });
+
+                                            CertificateRenewal renewal = service.createCertificate();
+
+                                            assertEquals(CertificateRenewalStatus.SUCCESS, renewal.status());
+                                            assertEquals(CERT_RENEWAL, renewal.time());
+                                        }
+                                    }
+                                }
+
+                                @DisplayName("When calling #renewCertificate")
+                                @Nested
+                                class RenewCertificate {
+
+                                    @BeforeEach
+                                    void setUp() {
+                                        when(config.getCertificateKeyAlias()).thenReturn("friendlyssl");
+                                        when(config.getAutoRenewalHoursBefore()).thenReturn(72);
+                                    }
+
+                                    @DisplayName("When keystore service cannot find the certificate by name")
+                                    @Test
+                                    void keystoreNoCertificateFound() {
+                                        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+                                            service = new CertificateCreateRenewService(
+                                                    config, serverConfig, sslConfig, accountService, keyStoreService, certificateOrderHandlerService,
+                                                    Clock.fixed(CERT_EXPIRATION.minus(3, ChronoUnit.HOURS), ZoneId.of("UTC")),
+                                                    sslBundles
+                                            );
+                                            when(keyStoreService.getKeyPair("friendlyssl"))
+                                                    .thenReturn(null);
+
+                                            executor.submit(() -> {
+                                                try {
+                                                    Thread.sleep(1000);
+                                                } catch (InterruptedException e) {
+                                                    throw new RuntimeException(e);
+                                                }
+                                                handlerCaptor.getValue().accept(null);
+                                            });
+                                            CertificateRenewal renewal = service.renewCertificate();
+
+                                            assertEquals(CertificateRenewalStatus.SUCCESS, renewal.status());
+                                            assertEquals(CERT_RENEWAL, renewal.time());
+                                        }
+                                    }
+
+                                    @DisplayName("When keystore service finds the certificate by name")
+                                    @Test
+                                    void keystoreCertificateFound() {
+                                        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+                                            service = new CertificateCreateRenewService(
+                                                    config, serverConfig, sslConfig, accountService, keyStoreService, certificateOrderHandlerService,
+                                                    Clock.fixed(CERT_EXPIRATION.minus(3, ChronoUnit.HOURS), ZoneId.of("UTC")),
+                                                    sslBundles
+                                            );
+                                            KeyPair keyPair = KeyPairUtils.createKeyPair(2048);
+                                            when(keyStoreService.getKeyPair("friendlyssl"))
+                                                    .thenReturn(keyPair);
+
+                                            executor.submit(() -> {
+                                                try {
+                                                    Thread.sleep(1000);
+                                                } catch (InterruptedException e) {
+                                                    throw new RuntimeException(e);
+                                                }
+                                                handlerCaptor.getValue().accept(null);
+                                            });
+                                            CertificateRenewal renewal = service.renewCertificate();
+
+                                            assertEquals(CertificateRenewalStatus.SUCCESS, renewal.status());
+                                            assertEquals(CERT_RENEWAL, renewal.time());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -192,8 +365,8 @@ class CertificateCreateRenewServiceTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                    Arguments.of((Function<CertificateCreateRenewService, CertificateRenewal>) CertificateCreateRenewService::createCertificate),
-                    Arguments.of((Function<CertificateCreateRenewService, CertificateRenewal>) CertificateCreateRenewService::renewCertificate)
+                    Arguments.of(Named.of("::createCertificate", (Function<CertificateCreateRenewService, CertificateRenewal>) CertificateCreateRenewService::createCertificate)),
+                    Arguments.of(Named.of("::renewCertificate", (Function<CertificateCreateRenewService, CertificateRenewal>) CertificateCreateRenewService::renewCertificate))
             );
         }
     }

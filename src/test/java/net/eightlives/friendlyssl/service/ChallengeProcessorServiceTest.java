@@ -14,13 +14,13 @@ import org.shredzone.acme4j.Status;
 import org.shredzone.acme4j.challenge.Http01Challenge;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -60,7 +60,7 @@ class ChallengeProcessorServiceTest {
         @BeforeEach
         void setUp() {
             when(auth.getStatus()).thenReturn(Status.PENDING);
-            when(auth.findChallenge(Http01Challenge.TYPE)).thenReturn(challenge);
+            when(auth.findChallenge(Http01Challenge.class)).thenReturn(Optional.of(challenge));
         }
 
         @DisplayName("and no HTTP challenge found for any authorization, an exception should be thrown")
@@ -68,7 +68,7 @@ class ChallengeProcessorServiceTest {
         void noHttpChallengeException() {
             Authorization noHttpAuth = mock(Authorization.class);
             when(noHttpAuth.getStatus()).thenReturn(Status.PENDING);
-            when(noHttpAuth.findChallenge(Http01Challenge.TYPE)).thenReturn(null);
+            when(noHttpAuth.findChallenge(Http01Challenge.class)).thenReturn(Optional.empty());
 
             assertThrows(FriendlySSLException.class, () -> service.process(List.of(auth, noHttpAuth)));
         }
@@ -113,7 +113,7 @@ class ChallengeProcessorServiceTest {
                     challengeFuture.completeExceptionally(new FriendlySSLException(""));
 
                     Exception e = assertThrows(ExecutionException.class, () -> service.process(List.of(auth)).get(1, TimeUnit.SECONDS));
-                    assertTrue(e.getCause() instanceof FriendlySSLException);
+                    assertInstanceOf(FriendlySSLException.class, e.getCause());
                 }
 
                 @DisplayName("and challenge future times out")
@@ -122,7 +122,7 @@ class ChallengeProcessorServiceTest {
                     challengeFuture.completeExceptionally(new TimeoutException());
 
                     Exception e = assertThrows(ExecutionException.class, () -> service.process(List.of(auth)).get(1, TimeUnit.SECONDS));
-                    assertTrue(e.getCause() instanceof TimeoutException);
+                    assertInstanceOf(TimeoutException.class, e.getCause());
                 }
 
                 @DisplayName("and challenge future succeeds")

@@ -6,6 +6,7 @@ import net.eightlives.friendlyssl.integration.TestApp;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
@@ -20,6 +21,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -51,6 +53,15 @@ class ExpiredCertificateTest implements IntegrationTest {
     @Autowired
     FriendlySSLConfig config;
 
+    @Autowired
+    @Qualifier("ssl-certificate-monitor")
+    ScheduledExecutorService timer;
+
+    @Override
+    public ScheduledExecutorService getTimer() {
+        return timer;
+    }
+
     byte[] keystore;
 
     @BeforeEach
@@ -59,7 +70,8 @@ class ExpiredCertificateTest implements IntegrationTest {
     }
 
     @AfterEach
-    void tearDown() throws IOException {
+    public void tearDown() throws IOException {
+        getTimer().shutdownNow();
         Files.newOutputStream(Path.of(config.getKeystoreFile())).write(keystore);
     }
 
@@ -80,7 +92,7 @@ class ExpiredCertificateTest implements IntegrationTest {
                         "n.e.f.service.UpdateCheckerService       : Resource is valid",
                         "n.e.f.s.CertificateCreateRenewService    : Certificate renewal successful. New certificate expiration time is",
                         "n.e.f.s.CertificateCreateRenewService    : Reloading SSL context...",
-                        "n.e.f.service.SSLContextService          : Finished reloading SSL context"
+                        "n.e.f.s.CertificateCreateRenewService    : Finished reloading SSL context"
                 ),
                 output
         );

@@ -43,7 +43,7 @@ public class AutoRenewService {
         LOG.info("Auto-renew starting...");
         return keyStoreService.getCertificate(config.getCertificateKeyAlias()).map(certificate -> {
             Instant renewTime = Instant.ofEpochMilli(certificate.getNotAfter().getTime());
-            LOG.info("Existing certificate expiration time is " +
+            LOG.info("Existing certificate expiration time is {}",
                     DateTimeFormatter.RFC_1123_DATE_TIME.format(renewTime.atZone(ZoneOffset.UTC)));
             if (clock.instant().plus(config.getAutoRenewalHoursBefore(), ChronoUnit.HOURS).isBefore(renewTime)) {
                 return new CertificateRenewal(

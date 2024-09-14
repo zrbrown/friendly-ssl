@@ -2,10 +2,13 @@ package net.eightlives.friendlyssl.integration.tests;
 
 import net.eightlives.friendlyssl.integration.IntegrationTest;
 import net.eightlives.friendlyssl.integration.TestApp;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
@@ -17,6 +20,7 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
 
 @SpringBootTest
 @ContextConfiguration(initializers = TosNotAcceptedTest.class, classes = TestApp.class)
@@ -38,6 +42,15 @@ public class TosNotAcceptedTest implements IntegrationTest {
     @Override
     public GenericContainer getPebbleContainer() {
         return pebbleContainer;
+    }
+
+    @Autowired
+    @Qualifier("ssl-certificate-monitor")
+    ScheduledExecutorService timer;
+
+    @Override
+    public ScheduledExecutorService getTimer() {
+        return timer;
     }
 
     @DisplayName("Start server with no accepted terms of service")

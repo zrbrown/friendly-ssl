@@ -36,12 +36,12 @@ public class CertificateChallengeController {
      * @return the content associated with the given token, or empty string if not content was found
      */
     @GetMapping(value = "/{token}", produces = MediaType.TEXT_PLAIN_VALUE)
-    public String getToken(@PathVariable String token) {
-        LOG.debug("Challenge endpoint hit for token: " + token);
+    public String getToken(@PathVariable("token") String token) {
+        LOG.debug("Challenge endpoint hit for token: {}", token);
         String content = challengeTokenStore.getTokens().getOrDefault(token, "");
         CompletableFuture.runAsync(
                 () -> applicationEventPublisher.publishEvent(new ChallengeTokenRequested(this, token)));
-        LOG.debug("Returning this content to the ACME server: " + content);
+        LOG.debug("Returning this content to the ACME server: {}", content);
         return content;
     }
 }

@@ -41,8 +41,7 @@ import java.lang.annotation.*;
         CertificateCreateRenewService.class,
         TermsOfServiceService.class,
         UpdateCheckerService.class,
-        AccountBuilderFactory.class,
-        SSLContextService.class
+        AccountBuilderFactory.class
 })
 @EnableScheduling
 public @interface FriendlySSL {

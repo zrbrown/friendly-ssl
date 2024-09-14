@@ -30,7 +30,7 @@ public class ChallengeTokenStore {
      * @param content content to associate to {@code token}
      */
     public void setToken(String token, String content) {
-        LOG.debug("Token " + token + " with content " + content + " added to token store");
+        LOG.debug("Token {} with content {} added to token store", token, content);
         tokensToContent.put(token, content);
     }
 }

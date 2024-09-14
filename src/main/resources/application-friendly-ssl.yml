@@ -16,11 +16,18 @@ friendly-ssl:
 #  friendly-ssl:
 #    domain: domain.com
 #    account-email: your@email.com
-#  server.tomcat.mbeanregistry.enabled: true
 #
-# Note: If you do not wish to set 'server.tomcat.mbeanregistry.enabled: true', generated certificates will not be
-# automatically reloaded into context and the server will have effectively not contain a new certificate. The
-# server will need to be restarted upon renewal or you will need to implement your own context-reloading solution.
+# server.ssl.bundle: youralias
+# spring.ssl.bundle:
+#    watch.file.quiet-period: 1m
+#    jks:
+#       youralias:
+#          reload-on-update: true
+#          key.alias: youralias
+#          keystore:
+#             location: keystore.p12
+#             password:
+#             type: PKCS12
 #
 # You will need to change the session url to a production one (default is LetsEncrypt staging):
 #
