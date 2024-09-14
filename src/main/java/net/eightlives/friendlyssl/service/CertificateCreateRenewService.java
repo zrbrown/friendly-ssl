@@ -14,18 +14,17 @@ import org.springframework.boot.autoconfigure.ssl.SslProperties;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.ssl.SslBundles;
 import org.springframework.boot.web.server.Ssl;
-import org.springframework.core.SpringProperties;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.security.KeyPair;
-import java.time.*;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @Component
 public class CertificateCreateRenewService {
